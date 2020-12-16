@@ -6,7 +6,7 @@ namespace SCPIAcquisition {
     class ScpiCommands {
         private SerialRW mSerialRW;
 
-        private const int MEASURE_TIMEOUT_MS = 5000;
+        private const int MEASURE_TIMEOUT_MS = 10000;
         private const int QUERY_TIMEOUT_MS = 1000;
 
         public enum CmdType {
