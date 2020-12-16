@@ -49,6 +49,9 @@ namespace SCPIAcquisition {
 
             // 設定を読んでUIに反映します。
             SettingsToUI();
+
+            // UIのローカライズ実行。
+            LocalizeUI();
         }
 
         private void Window_Closed(object sender, EventArgs e) {
@@ -247,6 +250,30 @@ namespace SCPIAcquisition {
             }
 
             Properties.Settings.Default.Save();
+        }
+
+        private void LocalizeUI() {
+            groupBoxSettings.Header = Properties.Resources.Settings;
+            groupBoxConnection.Header = Properties.Resources.ConnectionSettings;
+            groupBoxControls.Header = Properties.Resources.Controls;
+            groupBoxLog.Header = Properties.Resources.Log;
+            groupBoxMeasuredValue.Header = Properties.Resources.LatestMeasuredValue;
+            groupBoxMeasurementFunction.Header = Properties.Resources.MeasurementFunction;
+            buttonUpdate.Content = Properties.Resources.Update;
+            buttonConnect.Content = Properties.Resources.Connect;
+            buttonReset.Content = Properties.Resources.Reset;
+            buttonBeep.Content = Properties.Resources.Beep;
+            checkBoxDisplay.Content = Properties.Resources.FrontPanelDisplay;
+            radioButtonACA.Content = Properties.Resources.ACCurrent;
+            radioButtonACV.Content = Properties.Resources.ACVoltage;
+            radioButtonDCA.Content = Properties.Resources.DCCurrent;
+            radioButtonDCV.Content = Properties.Resources.DCVoltage;
+            radioButtonFrequency.Content = Properties.Resources.Frequency;
+            radioButtonCapacitance.Content = Properties.Resources.Capacitance;
+            radioButtonResistance.Content = Properties.Resources.Resistance;
+            cbItem6Digits.Content = string.Format("6 {0}", Properties.Resources.Digits);
+            cbItem7Digits.Content = string.Format("7 {0}", Properties.Resources.Digits);
+            cbItem8Digits.Content = string.Format("8 {0}", Properties.Resources.Digits);
         }
 
         class BWArgs {
@@ -460,31 +487,31 @@ namespace SCPIAcquisition {
                 case ScpiCommands.CmdType.Measure:
                     switch (cmd.mt) {
                         case ScpiCommands.MeasureType.DC_V:
-                            textBlockMeasureType.Text = "DC Voltage";
+                            textBlockMeasureType.Text = Properties.Resources.DCVoltage;
                             textBlockMeasuredValue.Text = string.Format("{0}V", number);
                             break;
                         case ScpiCommands.MeasureType.AC_V:
-                            textBlockMeasureType.Text = "AC Voltage";
+                            textBlockMeasureType.Text = Properties.Resources.ACVoltage;
                             textBlockMeasuredValue.Text = string.Format("{0}V", number);
                             break;
                         case ScpiCommands.MeasureType.DC_A:
-                            textBlockMeasureType.Text = "DC Current";
+                            textBlockMeasureType.Text = Properties.Resources.DCCurrent;
                             textBlockMeasuredValue.Text = string.Format("{0}A", number);
                             break;
                         case ScpiCommands.MeasureType.AC_A:
-                            textBlockMeasureType.Text = "AC Current";
+                            textBlockMeasureType.Text = Properties.Resources.ACCurrent;
                             textBlockMeasuredValue.Text = string.Format("{0}A", number);
                             break;
                         case ScpiCommands.MeasureType.Resistance:
-                            textBlockMeasureType.Text = "Resistance";
+                            textBlockMeasureType.Text = Properties.Resources.Resistance;
                             textBlockMeasuredValue.Text = string.Format("{0}Ω", number);
                             break;
                         case ScpiCommands.MeasureType.Capacitance:
-                            textBlockMeasureType.Text = "Capacitance";
+                            textBlockMeasureType.Text = Properties.Resources.Capacitance;
                             textBlockMeasuredValue.Text = string.Format("{0}F", number);
                             break;
                         case ScpiCommands.MeasureType.Frequency:
-                            textBlockMeasureType.Text = "Frequency";
+                            textBlockMeasureType.Text = Properties.Resources.Frequency;
                             textBlockMeasuredValue.Text = string.Format("{0}Hz", number);
                             break;
                     }

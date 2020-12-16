@@ -118,60 +118,60 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ACCurrent" xml:space="preserve">
-    <value>AC Current</value>
+    <value>AC電流</value>
   </data>
   <data name="ACVoltage" xml:space="preserve">
-    <value>AC Voltage</value>
+    <value>AC電圧</value>
   </data>
   <data name="Beep" xml:space="preserve">
-    <value>Beep</value>
+    <value>ビープ音</value>
   </data>
   <data name="Capacitance" xml:space="preserve">
-    <value>Capacitance</value>
+    <value>キャパシタンス</value>
   </data>
   <data name="Connect" xml:space="preserve">
-    <value>Connect</value>
+    <value>接続</value>
   </data>
   <data name="ConnectionSettings" xml:space="preserve">
-    <value>Connection Settings</value>
+    <value>接続設定</value>
   </data>
   <data name="Controls" xml:space="preserve">
-    <value>Controls</value>
+    <value>制御</value>
   </data>
   <data name="DCCurrent" xml:space="preserve">
-    <value>DC Current</value>
+    <value>DC電流</value>
   </data>
   <data name="DCVoltage" xml:space="preserve">
-    <value>DC Voltage</value>
+    <value>DC電圧</value>
   </data>
   <data name="Digits" xml:space="preserve">
-    <value>Digits</value>
+    <value>桁</value>
   </data>
   <data name="Frequency" xml:space="preserve">
-    <value>Frequency</value>
+    <value>周波数</value>
   </data>
   <data name="FrontPanelDisplay" xml:space="preserve">
-    <value>Front Panel Display</value>
+    <value>フロントパネル表示</value>
   </data>
   <data name="LatestMeasuredValue" xml:space="preserve">
-    <value>Latest Measured Value</value>
+    <value>測定値</value>
   </data>
   <data name="Log" xml:space="preserve">
-    <value>Log</value>
+    <value>ログ</value>
   </data>
   <data name="MeasurementFunction" xml:space="preserve">
-    <value>Measurement Function</value>
+    <value>機能選択</value>
   </data>
   <data name="Reset" xml:space="preserve">
-    <value>Reset</value>
+    <value>リセット</value>
   </data>
   <data name="Resistance" xml:space="preserve">
-    <value>Resistance</value>
+    <value>抵抗</value>
   </data>
   <data name="Settings" xml:space="preserve">
-    <value>Settings</value>
+    <value>設定</value>
   </data>
   <data name="Update" xml:space="preserve">
-    <value>Update</value>
+    <value>更新</value>
   </data>
 </root>

@@ -30,7 +30,7 @@
                         </Grid.RowDefinitions>
 
                         <ComboBox Grid.Row="0" Name="comboBoxComPorts" Margin="6,0,70,0" VerticalAlignment="Center" />
-                        <Button Content="_Update" Margin="0,0,6,0" Width="55" HorizontalAlignment="Right" VerticalAlignment="Center" Click="ButtonUpdateComList_Click" />
+                        <Button Content="Update" Margin="0,0,6,0" Width="55" HorizontalAlignment="Right" VerticalAlignment="Center" Click="ButtonUpdateComList_Click" Name="buttonUpdate" />
 
                         <ComboBox Grid.Row="1" Name="comboBoxComBaudRate" VerticalAlignment="Center" Margin="6,0,6,0">
                             <ComboBoxItem Content="9600 Baud" />
@@ -50,17 +50,17 @@
                             <ComboBoxItem Content="Parity: Even" />
                         </ComboBox>
                         <TextBlock Grid.Row="5" Text="Flow Control: None" Name="textBlockFlowControl" Margin="6,0,0,0" VerticalAlignment="Center" />
-                        <Button Grid.Row="6" Content="_Connect" Name="buttonConnect" Width="75" Margin="6,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsEnabled="False" Click="buttonConnect_Click" />
+                        <Button Grid.Row="6" Content="Connect" Name="buttonConnect" Width="75" Margin="6,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsEnabled="False" Click="buttonConnect_Click" />
                     </Grid>
                 </GroupBox>
                 <GroupBox Grid.Column="1" Header="Controls" Name="groupBoxControls" IsEnabled="False">
                     <StackPanel>
-                        <Button Margin="6,6,0,0" Content="_Reset" Name="buttonReset" Width="75" HorizontalAlignment="Left" Click="buttonReset_Click" />
-                        <Button Margin="6,6,0,0" Content="_Beep" Name="buttonBeep" Width="75" HorizontalAlignment="Left" Click="buttonBeep_Click" />
+                        <Button Margin="6,6,0,0" Content="Reset" Name="buttonReset" Width="75" HorizontalAlignment="Left" Click="buttonReset_Click" />
+                        <Button Margin="6,6,0,0" Content="Beep" Name="buttonBeep" Width="75" HorizontalAlignment="Left" Click="buttonBeep_Click" />
                         <CheckBox Margin="6,6,0,0" Content="_Front Panel Display" Name="checkBoxDisplay" Checked="checkBoxDisplay_Checked" Unchecked="checkBoxDisplay_Unchecked" />
                     </StackPanel>
                 </GroupBox>
-                <GroupBox Grid.Column="2" Header="Measurement Function" Name="groupBoxMF">
+                <GroupBox Grid.Column="2" Header="Measurement Function" Name="groupBoxMeasurementFunction">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*" />
@@ -90,9 +90,9 @@
                         <TextBlock HorizontalAlignment="Left" Margin="6,0,0,0" Name="textBlockMeasureType" Text="DC Voltage" VerticalAlignment="Center" FontSize="24" />
                         <TextBlock Margin="6,0,6,0" Name="textBlockMeasuredValue" Text="-------- V" VerticalAlignment="Center" FontSize="24" TextAlignment="Center" FontFamily="Courier New" FontWeight="Bold" Grid.Row="1" />
                         <ComboBox Grid.Row="2" Name="comboBoxDispDigits"  Margin="6,0,6,0" VerticalAlignment="Center" HorizontalContentAlignment="Center" >
-                            <ComboBoxItem Content="6 digits"/>
-                            <ComboBoxItem Content="7 digits" />
-                            <ComboBoxItem Content="8 digits" />
+                            <ComboBoxItem Content="6 digits" Name="cbItem6Digits" />
+                            <ComboBoxItem Content="7 digits" Name="cbItem7Digits" />
+                            <ComboBoxItem Content="8 digits" Name="cbItem8Digits"  />
                         </ComboBox>
                     </Grid>
                 </GroupBox>
