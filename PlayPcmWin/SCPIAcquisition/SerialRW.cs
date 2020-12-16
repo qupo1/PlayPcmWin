@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO.Ports;
 
 namespace SCPIAcquisition {
     public class SerialRW {
-        private const int READ_TIMEOUT_MS = 10000;
         private string[] mComPortList;
         private SerialPort mSerialPort = null;
 
@@ -44,14 +40,10 @@ namespace SCPIAcquisition {
             mSerialPort.Write(s);
         }
 
-        public string RecvLine() {
-            mSerialPort.ReadTimeout = READ_TIMEOUT_MS;
+        public string RecvLine(int timeoutMS) {
+            mSerialPort.ReadTimeout = timeoutMS;
             string r = "";
-            try {
-                r = mSerialPort.ReadLine();
-            } catch (TimeoutException ex) {
-                // 特にすることはない。
-            }
+            r = mSerialPort.ReadLine();
             return r;
         }
     }

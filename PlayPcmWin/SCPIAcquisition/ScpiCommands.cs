@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace SCPIAcquisition {
     class ScpiCommands {
         private SerialRW mSerialRW;
+
+        private const int MEASURE_TIMEOUT_MS = 5000;
+        private const int QUERY_TIMEOUT_MS = 1000;
 
         public enum CmdType {
             Reset,
@@ -57,6 +59,8 @@ namespace SCPIAcquisition {
 
         public ScpiCommands() {
             mSerialRW = null;
+            // IDの問い合わせ。
+            SetCmd(new ScpiCommands.Cmd(ScpiCommands.CmdType.IDN));
         }
 
         public void SetSerial(SerialRW serialRW) {
@@ -96,25 +100,25 @@ namespace SCPIAcquisition {
 
         private string MeasureRangeTypeToStr(ScpiCommands.MeasureType mt) {
             switch (mt) {
-            case MeasureType.None:
-            default:
-                throw new ArgumentException();
+                case MeasureType.None:
+                default:
+                    throw new ArgumentException();
 
-            case MeasureType.DC_V:
-                return "VOLT:DC";
-            case MeasureType.AC_V:
-                return "VOLT:DC";
-            case MeasureType.DC_A:
-                return "CURR:DC";
-            case MeasureType.AC_A:
-                return "CURR:AC";
-            case MeasureType.Capacitance:
-                return "CAP";
+                case MeasureType.DC_V:
+                    return "VOLT:DC";
+                case MeasureType.AC_V:
+                    return "VOLT:DC";
+                case MeasureType.DC_A:
+                    return "CURR:DC";
+                case MeasureType.AC_A:
+                    return "CURR:AC";
+                case MeasureType.Capacitance:
+                    return "CAP";
 
-            case MeasureType.Frequency:
-                return "FREQ:VOLT";
-            case MeasureType.Resistance:
-                return "RES";
+                case MeasureType.Frequency:
+                    return "FREQ:VOLT";
+                case MeasureType.Resistance:
+                    return "RES";
             }
         }
 
@@ -129,60 +133,60 @@ namespace SCPIAcquisition {
                     var cmd = mCmdList[0];
 
                     switch (cmd.ct) {
-                    case CmdType.Reset:
-                        mSerialRW.Send("*RST\n");
-                        break;
-                    case CmdType.IDN:
-                        mSerialRW.Send("*IDN?\n");
-                        cmd.result = mSerialRW.RecvLine();
-                        break;
-                    case CmdType.Beep:
-                        mSerialRW.Send("SYST:BEEP\n");
-                        break;
-                    case CmdType.LcdDisplayOn:
-                        mSerialRW.Send("DISP ON\n");
-                        break;
-                    case CmdType.LcdDisplayOff:
-                        mSerialRW.Send("DISP OFF\n");
-                        break;
-                    case CmdType.AutoRangeOn:
-                        mSerialRW.Send(string.Format("SENS:{0}:AUTO ON\n", MeasureRangeTypeToStr(cmd.mt)));
-                        break;
-                    case CmdType.AutoRangeOff:
-                        mSerialRW.Send(string.Format("SENS:{0}:AUTO OFF\n", MeasureRangeTypeToStr(cmd.mt)));
-                        break;
-                    case CmdType.Measure:
-                        switch (cmd.mt) {
-                        case MeasureType.DC_V:
-                            mSerialRW.Send("MEAS:VOLT:DC?\n");
-                            cmd.result = mSerialRW.RecvLine();
+                        case CmdType.Reset:
+                            mSerialRW.Send("*RST\n");
                             break;
-                        case MeasureType.AC_V:
-                            mSerialRW.Send("MEAS:VOLT:AC?\n");
-                            cmd.result = mSerialRW.RecvLine();
+                        case CmdType.IDN:
+                            mSerialRW.Send("*IDN?\n");
+                            cmd.result = mSerialRW.RecvLine(QUERY_TIMEOUT_MS);
                             break;
-                        case MeasureType.DC_A:
-                            mSerialRW.Send("MEAS:CURR:DC?\n");
-                            cmd.result = mSerialRW.RecvLine();
+                        case CmdType.Beep:
+                            mSerialRW.Send("SYST:BEEP\n");
                             break;
-                        case MeasureType.AC_A:
-                            mSerialRW.Send("MEAS:CURR:AC?\n");
-                            cmd.result = mSerialRW.RecvLine();
+                        case CmdType.LcdDisplayOn:
+                            mSerialRW.Send("DISP ON\n");
                             break;
-                        case MeasureType.Resistance:
-                            mSerialRW.Send("MEAS:RES?\n");
-                            cmd.result = mSerialRW.RecvLine();
+                        case CmdType.LcdDisplayOff:
+                            mSerialRW.Send("DISP OFF\n");
                             break;
-                        case MeasureType.Capacitance:
-                            mSerialRW.Send("MEAS:CAP?\n");
-                            cmd.result = mSerialRW.RecvLine();
+                        case CmdType.AutoRangeOn:
+                            mSerialRW.Send(string.Format("SENS:{0}:AUTO ON\n", MeasureRangeTypeToStr(cmd.mt)));
                             break;
-                        case MeasureType.Frequency:
-                            mSerialRW.Send("MEAS:FREQ?\n");
-                            cmd.result = mSerialRW.RecvLine();
+                        case CmdType.AutoRangeOff:
+                            mSerialRW.Send(string.Format("SENS:{0}:AUTO OFF\n", MeasureRangeTypeToStr(cmd.mt)));
                             break;
-                        }
-                        break;
+                        case CmdType.Measure:
+                            switch (cmd.mt) {
+                                case MeasureType.DC_V:
+                                    mSerialRW.Send("MEAS:VOLT:DC?\n");
+                                    cmd.result = mSerialRW.RecvLine(MEASURE_TIMEOUT_MS);
+                                    break;
+                                case MeasureType.AC_V:
+                                    mSerialRW.Send("MEAS:VOLT:AC?\n");
+                                    cmd.result = mSerialRW.RecvLine(MEASURE_TIMEOUT_MS);
+                                    break;
+                                case MeasureType.DC_A:
+                                    mSerialRW.Send("MEAS:CURR:DC?\n");
+                                    cmd.result = mSerialRW.RecvLine(MEASURE_TIMEOUT_MS);
+                                    break;
+                                case MeasureType.AC_A:
+                                    mSerialRW.Send("MEAS:CURR:AC?\n");
+                                    cmd.result = mSerialRW.RecvLine(MEASURE_TIMEOUT_MS);
+                                    break;
+                                case MeasureType.Resistance:
+                                    mSerialRW.Send("MEAS:RES?\n");
+                                    cmd.result = mSerialRW.RecvLine(MEASURE_TIMEOUT_MS);
+                                    break;
+                                case MeasureType.Capacitance:
+                                    mSerialRW.Send("MEAS:CAP?\n");
+                                    cmd.result = mSerialRW.RecvLine(MEASURE_TIMEOUT_MS);
+                                    break;
+                                case MeasureType.Frequency:
+                                    mSerialRW.Send("MEAS:FREQ?\n");
+                                    cmd.result = mSerialRW.RecvLine(MEASURE_TIMEOUT_MS);
+                                    break;
+                            }
+                            break;
                     }
 
                     mCmdList.RemoveAt(0);
