@@ -8,7 +8,7 @@
             <RowDefinition Height="1*" />
             <RowDefinition Height="150" />
         </Grid.RowDefinitions>
-        <GroupBox Header="Settings" Name="groupBoxSettings"  Margin="6">
+        <GroupBox Header="Settings" Name="groupBoxSettings"  Margin="6,0,6,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="200" />
@@ -29,20 +29,20 @@
                             <RowDefinition Height="1*" />
                         </Grid.RowDefinitions>
 
-                        <ComboBox Grid.Row="0" Name="comboBoxComPorts" Margin="6,0,70,0" VerticalAlignment="Center" />
-                        <Button Content="Update" Margin="0,0,6,0" Width="55" HorizontalAlignment="Right" VerticalAlignment="Center" Click="ButtonUpdateComList_Click" Name="buttonUpdate" />
+                        <ComboBox Grid.Row="0" Name="comboBoxComPorts" Margin="6,0,90,0" VerticalAlignment="Center" />
+                        <Button Content="Update" Margin="0,0,6,0" Width="75" HorizontalAlignment="Right" VerticalAlignment="Center" Click="ButtonUpdateComList_Click" Name="buttonUpdate" />
 
                         <ComboBox Grid.Row="1" Name="comboBoxComBaudRate" VerticalAlignment="Center" Margin="6,0,6,0">
                             <ComboBoxItem Content="9600 Baud" />
                             <ComboBoxItem Content="115200 Baud" IsSelected="True" />
                         </ComboBox>
-                        <ComboBox Grid.Row="2" Name="comboBoxComStopBits" Margin="6,0,6,0" VerticalAlignment="Center" >
-                            <ComboBoxItem Content="Stop Bits: 1bit" IsSelected="True" />
-                            <ComboBoxItem Content="Stop Bits: 2bit" />
-                        </ComboBox>
-                        <ComboBox Grid.Row="3" Name="comboBoxComDataBits" Margin="6,0,6,0" VerticalAlignment="Center" >
+                        <ComboBox Grid.Row="2" Name="comboBoxComDataBits" Margin="6,0,6,0" VerticalAlignment="Center" >
                             <ComboBoxItem Content="Data Bits: 7bit"/>
                             <ComboBoxItem Content="Data Bits: 8bit" IsSelected="True" />
+                        </ComboBox>
+                        <ComboBox Grid.Row="3" Name="comboBoxComStopBits" Margin="6,0,6,0" VerticalAlignment="Center" >
+                            <ComboBoxItem Content="Stop Bits: 1bit" IsSelected="True" />
+                            <ComboBoxItem Content="Stop Bits: 2bit" />
                         </ComboBox>
                         <ComboBox Grid.Row="4" Name="comboBoxComParity"  Margin="6,0,6,0" VerticalAlignment="Center" >
                             <ComboBoxItem Content="Parity: None" IsSelected="True" />
@@ -101,11 +101,13 @@
                 </GroupBox>
             </Grid>
         </GroupBox>
-        <GroupBox Grid.Row="2" Header="Log" Name="groupBoxLog" >
+        <GroupBox Grid.Row="1" Header="Graph" Margin="6,0,6,0" >
+            <my:TimeDomain1DGraphUC x:Name="graph" />
+        </GroupBox>
+        <GroupBox Grid.Row="2" Header="Log" Name="groupBoxLog" Margin="6,0,6,6" >
             <Grid>
                 <TextBox Name="textBoxLog" AcceptsReturn="True" AcceptsTab="True" IsReadOnly="True" VerticalScrollBarVisibility="Auto" />
             </Grid>
         </GroupBox>
-        <my:TimeDomain1DGraphUC Grid.Row="1" x:Name="graph" />
     </Grid>
 </Window>

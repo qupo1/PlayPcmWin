@@ -267,6 +267,8 @@ namespace SCPIAcquisition {
         }
 
         private void RedrawGraph() {
+            var fgColor = SystemColors.ControlTextBrush;
+
             canvas.Children.Clear();
 
             var graphDimension = new GraphDimension();
@@ -277,7 +279,7 @@ namespace SCPIAcquisition {
             graphDimension.graphWH = new WWVectorD2(W, H);
 
             // 枠線。
-            DrawRectangle(Brushes.Gray, SPACING_X, SPACING_Y, W - SPACING_X * 2, H - SPACING_Y * 2);
+            DrawRectangle(fgColor, SPACING_X, SPACING_Y, W - SPACING_X * 2, H - SPACING_Y * 2);
 
             // 総数が0
             if (mPlotData.Count == 0) {
@@ -289,7 +291,6 @@ namespace SCPIAcquisition {
             }
 
             textBlockCurTime.Text = string.Format("Last: {0}", System.DateTime.Now.ToString());
-
 
             // 最大値、最小値を調べgraphDimensionにセット。
             double xMin = double.MaxValue;
@@ -324,10 +325,10 @@ namespace SCPIAcquisition {
 
             // 最大値、最小値の文字表示。
 
-            DrawText(string.Format("{0}", FormatNumber(xMin, 4)), 10, Brushes.Black, PivotPosType.Top, SPACING_X, TEXT_MARGIN + H - SPACING_Y);
-            DrawText(string.Format("{0}", FormatNumber(xMax, 4)), 10, Brushes.Black, PivotPosType.Top, W - SPACING_X, TEXT_MARGIN + H - SPACING_Y);
-            DrawText(string.Format("{0}", FormatNumber(yMin, 4)), 10, Brushes.Black, PivotPosType.Right, SPACING_X - TEXT_MARGIN, H - SPACING_Y);
-            DrawText(string.Format("{0}", FormatNumber(yMax, 4)), 10, Brushes.Black, PivotPosType.Right, SPACING_X - TEXT_MARGIN, SPACING_Y);
+            DrawText(string.Format("{0}", FormatNumber(xMin, 4)), 10, fgColor, PivotPosType.Top, SPACING_X, TEXT_MARGIN + H - SPACING_Y);
+            DrawText(string.Format("{0}", FormatNumber(xMax, 4)), 10, fgColor, PivotPosType.Top, W - SPACING_X, TEXT_MARGIN + H - SPACING_Y);
+            DrawText(string.Format("{0}", FormatNumber(yMin, 4)), 10, fgColor, PivotPosType.Right, SPACING_X - TEXT_MARGIN, H - SPACING_Y);
+            DrawText(string.Format("{0}", FormatNumber(yMax, 4)), 10, fgColor, PivotPosType.Right, SPACING_X - TEXT_MARGIN, SPACING_Y);
 
             // 折れ線描画。
 
@@ -350,7 +351,7 @@ namespace SCPIAcquisition {
             }
 
             var polyline = new Polyline();
-            polyline.Stroke = Brushes.Black;
+            polyline.Stroke = fgColor;
             polyline.Points = plPoints;
             canvas.Children.Add(polyline);
 
@@ -362,7 +363,7 @@ namespace SCPIAcquisition {
                     continue;
                 }
 
-                DrawDot(Brushes.Black, DOT_RADIUS, gXY);
+                DrawDot(fgColor, DOT_RADIUS, gXY);
             }
             */
 
