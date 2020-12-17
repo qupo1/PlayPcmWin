@@ -56,6 +56,20 @@ namespace WWMath {
         }
 
         /// <summary>
+        /// 有限の範囲の値の時true。
+        /// </summary>
+        public bool IsValid() {
+            if (double.IsNaN(v[0]) || double.IsInfinity(v[0])) {
+                return false;
+            }
+            if (double.IsNaN(v[1]) || double.IsInfinity(v[1])) {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// 自分自身は変更しない。
         /// </summary>
         /// <returns>長さが1になるよう拡縮されたベクトルv</returns>

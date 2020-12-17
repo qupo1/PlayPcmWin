@@ -223,6 +223,69 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Time.
+        /// </summary>
+        internal static string Time {
+            get {
+                return ResourceManager.GetString("Time", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to F.
+        /// </summary>
+        internal static string Unit_Capacitance {
+            get {
+                return ResourceManager.GetString("Unit_Capacitance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A.
+        /// </summary>
+        internal static string Unit_Current {
+            get {
+                return ResourceManager.GetString("Unit_Current", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hz.
+        /// </summary>
+        internal static string Unit_Frequency {
+            get {
+                return ResourceManager.GetString("Unit_Frequency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ω.
+        /// </summary>
+        internal static string Unit_Resistance {
+            get {
+                return ResourceManager.GetString("Unit_Resistance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to seconds.
+        /// </summary>
+        internal static string Unit_Time {
+            get {
+                return ResourceManager.GetString("Unit_Time", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to V.
+        /// </summary>
+        internal static string Unit_Voltage {
+            get {
+                return ResourceManager.GetString("Unit_Voltage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Update.
         /// </summary>
         internal static string Update {

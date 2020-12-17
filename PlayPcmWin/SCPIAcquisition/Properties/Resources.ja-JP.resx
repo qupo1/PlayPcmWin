@@ -118,16 +118,16 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ACCurrent" xml:space="preserve">
-    <value>AC電流</value>
+    <value>交流電流</value>
   </data>
   <data name="ACVoltage" xml:space="preserve">
-    <value>AC電圧</value>
+    <value>交流電圧</value>
   </data>
   <data name="Beep" xml:space="preserve">
     <value>ビープ音</value>
   </data>
   <data name="Capacitance" xml:space="preserve">
-    <value>キャパシタンス</value>
+    <value>静電容量</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>接続</value>
@@ -139,10 +139,10 @@
     <value>制御</value>
   </data>
   <data name="DCCurrent" xml:space="preserve">
-    <value>DC電流</value>
+    <value>直流電流</value>
   </data>
   <data name="DCVoltage" xml:space="preserve">
-    <value>DC電圧</value>
+    <value>直流電圧</value>
   </data>
   <data name="Digits" xml:space="preserve">
     <value>桁</value>
@@ -170,6 +170,12 @@
   </data>
   <data name="Settings" xml:space="preserve">
     <value>設定</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="Unit_Time" xml:space="preserve">
+    <value>秒</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>更新</value>

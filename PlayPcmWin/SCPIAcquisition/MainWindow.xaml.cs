@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Windows;
+using System.Diagnostics;
 
 namespace SCPIAcquisition {
     public partial class MainWindow : Window {
-        private SerialRW mSerial = new SerialRW();
         private const int MAX_LOG_LINES = 1000;
+        private const int MEASUREMENT_CHANGED_DISCARD_NUM = 1;
+
+        private SerialRW mSerial = new SerialRW();
         private List<string> mLogStringList = new List<string>();
-        BackgroundWorker mBW;
+        private int mMeasuredTypeChangedCountdown = 0;
+        private BackgroundWorker mBW;
 
         private ScpiCommands.MeasureType mMeasureType = ScpiCommands.MeasureType.DC_V;
 
@@ -35,6 +39,7 @@ namespace SCPIAcquisition {
 
         public MainWindow() {
             InitializeComponent();
+
             mBW = new BackgroundWorker();
             mBW.DoWork += new DoWorkEventHandler(mBW_DoWork);
             mBW.WorkerReportsProgress = true;
@@ -44,6 +49,8 @@ namespace SCPIAcquisition {
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
+            Title = string.Format("SCPIAcquisition {0}\n", AssemblyVersion);
+
             AddLog(string.Format("SCPIAcquisition version {0}\n", AssemblyVersion));
             UpdateComList();
 
@@ -52,6 +59,13 @@ namespace SCPIAcquisition {
 
             // UIのローカライズ実行。
             LocalizeUI();
+
+            graph.GraphTitle = Properties.Resources.DCVoltage;
+            graph.XAxisText = string.Format("{0} ({1})", Properties.Resources.Time, Properties.Resources.Unit_Time);
+            graph.YAxisText = string.Format("{0} ({1})", Properties.Resources.DCVoltage, Properties.Resources.Unit_Voltage);
+            graph.Clear();
+            graph.Add(new WWMath.WWVectorD2(0, 0));
+            graph.Redraw();
         }
 
         private void Window_Closed(object sender, EventArgs e) {
@@ -97,28 +111,6 @@ namespace SCPIAcquisition {
             115200,
         };
 
-        private System.IO.Ports.StopBits[] mStopBitList = new System.IO.Ports.StopBits[] {
-            System.IO.Ports.StopBits.One,
-            System.IO.Ports.StopBits.Two,
-        };
-
-        private System.IO.Ports.Parity[] mParityList = new System.IO.Ports.Parity[] {
-            System.IO.Ports.Parity.None,
-            System.IO.Ports.Parity.Odd,
-            System.IO.Ports.Parity.Even,
-        };
-
-        private int[] mDataBitList = new int[] {
-            7,
-            8,
-        };
-
-        private int[] mDispDigitsList = new int[] {
-            6,
-            7,
-            8
-        };
-
         private int BaudRateToIdx(int baud) {
             switch (baud) {
             case 9600:
@@ -129,27 +121,26 @@ namespace SCPIAcquisition {
             }
         }
 
-        private int DataBitsToIdx(int dataBits) {
-            switch (dataBits) {
-            case 7:
-                return 0;
-            case 8:
+        private System.IO.Ports.StopBits[] mStopBitList = new System.IO.Ports.StopBits[] {
+            System.IO.Ports.StopBits.One,
+            System.IO.Ports.StopBits.Two,
+        };
+
+        private int StopBitsStrToIdx(string stopBits) {
+            switch (stopBits) {
+            case "One":
             default:
+                return 0;
+            case "Two":
                 return 1;
             }
         }
 
-        private int DispDigitsToIdx(int dispDigits) {
-            switch (dispDigits) {
-            case 6:
-                return 0;
-            case 7:
-                return 1;
-            case 8:
-            default:
-                return 2;
-            }
-        }
+        private System.IO.Ports.Parity[] mParityList = new System.IO.Ports.Parity[] {
+            System.IO.Ports.Parity.None,
+            System.IO.Ports.Parity.Odd,
+            System.IO.Ports.Parity.Even,
+        };
 
         private int ParityStrToIdx(string parityStr) {
             switch (parityStr) {
@@ -163,13 +154,42 @@ namespace SCPIAcquisition {
             }
         }
 
-        private int StopBitsStrToIdx(string stopBits) {
-            switch (stopBits) {
-            case "One":
-            default:
+        private int[] mDataBitList = new int[] {
+            7,
+            8,
+        };
+
+        private int DataBitsToIdx(int dataBits) {
+            switch (dataBits) {
+            case 7:
                 return 0;
-            case "Two":
+            case 8:
+            default:
                 return 1;
+            }
+        }
+
+        private int[] mDispDigitsList = new int[] {
+            4,
+            5,
+            6,
+            7,
+            8
+        };
+
+        private int DispDigitsToIdx(int dispDigits) {
+            switch (dispDigits) {
+            case 4:
+                return 0;
+            case 5:
+                return 1;
+            case 6:
+                return 2;
+            case 7:
+                return 3;
+            case 8:
+            default:
+                return 4;
             }
         }
 
@@ -271,6 +291,8 @@ namespace SCPIAcquisition {
             radioButtonFrequency.Content = Properties.Resources.Frequency;
             radioButtonCapacitance.Content = Properties.Resources.Capacitance;
             radioButtonResistance.Content = Properties.Resources.Resistance;
+            cbItem4Digits.Content = string.Format("4 {0}", Properties.Resources.Digits);
+            cbItem5Digits.Content = string.Format("5 {0}", Properties.Resources.Digits);
             cbItem6Digits.Content = string.Format("6 {0}", Properties.Resources.Digits);
             cbItem7Digits.Content = string.Format("7 {0}", Properties.Resources.Digits);
             cbItem8Digits.Content = string.Format("8 {0}", Properties.Resources.Digits);
@@ -291,6 +313,8 @@ namespace SCPIAcquisition {
             }
         };
 
+        Stopwatch mSW = new Stopwatch();
+
         private void buttonConnect_Click(object sender, RoutedEventArgs e) {
             groupBoxConnection.IsEnabled = false;
             buttonConnect.IsEnabled = false;
@@ -301,6 +325,10 @@ namespace SCPIAcquisition {
             int dataBits = mDataBitList[comboBoxComDataBits.SelectedIndex];
             var parity = mParityList[comboBoxComParity.SelectedIndex];
             var stopBits = mStopBitList[comboBoxComStopBits.SelectedIndex];
+
+            graph.Clear();
+            mSW.Restart();
+            graph.Redraw();
 
             mBW.RunWorkerAsync(new BWArgs(portIdx, baud, dataBits, stopBits, parity));
         }
@@ -397,6 +425,8 @@ namespace SCPIAcquisition {
             groupBoxConnection.IsEnabled = true;
             buttonConnect.IsEnabled = true;
             groupBoxControls.IsEnabled = false;
+
+            mSW.Stop();
         }
 
         // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -445,30 +475,46 @@ namespace SCPIAcquisition {
                 }
 
                 switch (DispDigits()) {
+                case 4:
+                    if (v < 10) {
+                        return string.Format("{0}{1:0.000} {2}", bMinus ? "-" : "", v, unit);
+                    }
+                    if (v < 100) {
+                        return string.Format("{0}{1:0.00} {2}", bMinus ? "-" : "", v, unit);
+                    }
+                    return string.Format("{0}{1:0.0} {2}", bMinus ? "-" : "", v, unit);
+                case 5:
+                    if (v < 10) {
+                        return string.Format("{0}{1:0.0000} {2}", bMinus ? "-" : "", v, unit);
+                    }
+                    if (v < 100) {
+                        return string.Format("{0}{1:0.000} {2}", bMinus ? "-" : "", v, unit);
+                    }
+                    return string.Format("{0}{1:0.00} {2}", bMinus ? "-" : "", v, unit);
                 case 6:
                     if (v < 10) {
-                        return string.Format("{0}{1:0.00000} {2}", bMinus ? "-" : "+", v, unit);
+                        return string.Format("{0}{1:0.00000} {2}", bMinus ? "-" : "", v, unit);
                     }
                     if (v < 100) {
-                        return string.Format("{0}{1:0.0000} {2}", bMinus ? "-" : "+", v, unit);
+                        return string.Format("{0}{1:0.0000} {2}", bMinus ? "-" : "", v, unit);
                     }
-                    return string.Format("{0}{1:0.000} {2}", bMinus ? "-" : "+", v, unit);
+                    return string.Format("{0}{1:0.000} {2}", bMinus ? "-" : "", v, unit);
                 case 7:
                     if (v < 10) {
-                        return string.Format("{0}{1:0.000000} {2}", bMinus ? "-" : "+", v, unit);
+                        return string.Format("{0}{1:0.000000} {2}", bMinus ? "-" : "", v, unit);
                     }
                     if (v < 100) {
-                        return string.Format("{0}{1:0.00000} {2}", bMinus ? "-" : "+", v, unit);
+                        return string.Format("{0}{1:0.00000} {2}", bMinus ? "-" : "", v, unit);
                     }
-                    return string.Format("{0}{1:0.0000} {2}", bMinus ? "-" : "+", v, unit);
+                    return string.Format("{0}{1:0.0000} {2}", bMinus ? "-" : "", v, unit);
                 case 8:
                     if (v < 10) {
-                        return string.Format("{0}{1:0.0000000} {2}", bMinus ? "-" : "+", v, unit);
+                        return string.Format("{0}{1:0.0000000} {2}", bMinus ? "-" : "", v, unit);
                     }
                     if (v < 100) {
-                        return string.Format("{0}{1:0.000000} {2}", bMinus ? "-" : "+", v, unit);
+                        return string.Format("{0}{1:0.000000} {2}", bMinus ? "-" : "", v, unit);
                     }
-                    return string.Format("{0}{1:0.00000} {2}", bMinus ? "-" : "+", v, unit);
+                    return string.Format("{0}{1:0.00000} {2}", bMinus ? "-" : "", v, unit);
                 default:
                     throw new ArgumentException();
                 }
@@ -477,8 +523,34 @@ namespace SCPIAcquisition {
             }
         }
 
+        private void PlotNewValue(string numberStr, string measureTypeStr, string unitStr) {
+            if (0 < mMeasuredTypeChangedCountdown) {
+                // 計測種類の切り替え直後に戻る計測値は、切り替え前の値の場合があるので捨てる。
+                --mMeasuredTypeChangedCountdown;
+                return;
+            }
+
+            {
+                string numberWithPrefix = FormatNumber(numberStr);
+
+                textBlockMeasureType.Text = measureTypeStr;
+                textBlockMeasuredValue.Text = string.Format("{0}{1}", numberWithPrefix, unitStr);
+            }
+
+            {
+                double v;
+                graph.GraphTitle = measureTypeStr;
+                graph.YAxisText = string.Format("{0} ({1})", measureTypeStr, unitStr);
+                if (double.TryParse(numberStr, out v)) {
+                    graph.Add(new WWMath.WWVectorD2(0.001 * mSW.ElapsedMilliseconds, v));
+                    graph.Redraw();
+                }
+            }
+
+
+        }
+
         private void ResultDisp(ScpiCommands.Cmd cmd) {
-            string number = FormatNumber(cmd.result);
 
             switch (cmd.ct) {
                 case ScpiCommands.CmdType.IDN:
@@ -487,32 +559,25 @@ namespace SCPIAcquisition {
                 case ScpiCommands.CmdType.Measure:
                     switch (cmd.mt) {
                         case ScpiCommands.MeasureType.DC_V:
-                            textBlockMeasureType.Text = Properties.Resources.DCVoltage;
-                            textBlockMeasuredValue.Text = string.Format("{0}V", number);
+                            PlotNewValue(cmd.result, Properties.Resources.DCVoltage, Properties.Resources.Unit_Voltage);
                             break;
                         case ScpiCommands.MeasureType.AC_V:
-                            textBlockMeasureType.Text = Properties.Resources.ACVoltage;
-                            textBlockMeasuredValue.Text = string.Format("{0}V", number);
+                            PlotNewValue(cmd.result, Properties.Resources.ACVoltage, Properties.Resources.Unit_Voltage);
                             break;
                         case ScpiCommands.MeasureType.DC_A:
-                            textBlockMeasureType.Text = Properties.Resources.DCCurrent;
-                            textBlockMeasuredValue.Text = string.Format("{0}A", number);
+                            PlotNewValue(cmd.result, Properties.Resources.DCCurrent, Properties.Resources.Unit_Current);
                             break;
                         case ScpiCommands.MeasureType.AC_A:
-                            textBlockMeasureType.Text = Properties.Resources.ACCurrent;
-                            textBlockMeasuredValue.Text = string.Format("{0}A", number);
+                            PlotNewValue(cmd.result, Properties.Resources.ACCurrent, Properties.Resources.Unit_Current);
                             break;
                         case ScpiCommands.MeasureType.Resistance:
-                            textBlockMeasureType.Text = Properties.Resources.Resistance;
-                            textBlockMeasuredValue.Text = string.Format("{0}Ω", number);
+                            PlotNewValue(cmd.result, Properties.Resources.Resistance, Properties.Resources.Unit_Resistance);
                             break;
                         case ScpiCommands.MeasureType.Capacitance:
-                            textBlockMeasureType.Text = Properties.Resources.Capacitance;
-                            textBlockMeasuredValue.Text = string.Format("{0}F", number);
+                            PlotNewValue(cmd.result, Properties.Resources.Capacitance, Properties.Resources.Unit_Capacitance);
                             break;
                         case ScpiCommands.MeasureType.Frequency:
-                            textBlockMeasureType.Text = Properties.Resources.Frequency;
-                            textBlockMeasuredValue.Text = string.Format("{0}Hz", number);
+                            PlotNewValue(cmd.result, Properties.Resources.Frequency, Properties.Resources.Unit_Frequency);
                             break;
                     }
                     return;
@@ -540,24 +605,36 @@ namespace SCPIAcquisition {
             mScpi.SetCmd(new ScpiCommands.Cmd(ScpiCommands.CmdType.Reset));
         }
 
+        private void MeasureTypeChanged() {
+            mMeasuredTypeChangedCountdown = MEASUREMENT_CHANGED_DISCARD_NUM;
+            graph.Clear();
+            graph.Redraw();
+            mSW.Restart();
+        }
+
         private void radioButtonDCV_Checked(object sender, RoutedEventArgs e) {
             mMeasureType = ScpiCommands.MeasureType.DC_V;
+            MeasureTypeChanged();
         }
 
         private void radioButtonACV_Checked(object sender, RoutedEventArgs e) {
             mMeasureType = ScpiCommands.MeasureType.AC_V;
+            MeasureTypeChanged();
         }
 
         private void radioButtonResistance_Checked(object sender, RoutedEventArgs e) {
             mMeasureType = ScpiCommands.MeasureType.Resistance;
+            MeasureTypeChanged();
         }
 
         private void radioButtonDCA_Checked(object sender, RoutedEventArgs e) {
             mMeasureType = ScpiCommands.MeasureType.DC_A;
+            MeasureTypeChanged();
         }
 
         private void radioButtonACA_Checked(object sender, RoutedEventArgs e) {
             mMeasureType = ScpiCommands.MeasureType.AC_A;
+            MeasureTypeChanged();
         }
 
         private void radioButtonFrequency_Checked(object sender, RoutedEventArgs e) {
@@ -566,7 +643,7 @@ namespace SCPIAcquisition {
 
         private void radioButtonCapacitance_Checked(object sender, RoutedEventArgs e) {
             mMeasureType = ScpiCommands.MeasureType.Capacitance;
+            MeasureTypeChanged();
         }
-
     }
 }

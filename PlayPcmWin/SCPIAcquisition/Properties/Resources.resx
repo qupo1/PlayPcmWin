@@ -171,6 +171,27 @@
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
   </data>
+  <data name="Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Unit_Capacitance" xml:space="preserve">
+    <value>F</value>
+  </data>
+  <data name="Unit_Current" xml:space="preserve">
+    <value>A</value>
+  </data>
+  <data name="Unit_Frequency" xml:space="preserve">
+    <value>Hz</value>
+  </data>
+  <data name="Unit_Resistance" xml:space="preserve">
+    <value>Ω</value>
+  </data>
+  <data name="Unit_Time" xml:space="preserve">
+    <value>seconds</value>
+  </data>
+  <data name="Unit_Voltage" xml:space="preserve">
+    <value>V</value>
+  </data>
   <data name="Update" xml:space="preserve">
     <value>Update</value>
   </data>
