@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 using WWMath;
 
 namespace SCPIAcquisition {
-    /// <summary>
-    /// Interaction logic for TimeDomain1DGraphUC.xaml
-    /// </summary>
     public partial class TimeDomain1DGraphUC : UserControl {
+        public int PlotSegmentNum { get; set; }
+
+        private int PLOT_SEGMENT_NUM_DEFAULT = 1000;
+
         public TimeDomain1DGraphUC() {
             InitializeComponent();
+
+            StartDateTime = System.DateTime.Now;
+            PlotSegmentNum = PLOT_SEGMENT_NUM_DEFAULT;
         }
 
         public string GraphTitle {
@@ -51,6 +48,18 @@ namespace SCPIAcquisition {
         /// </summary>
         public void Add(WWVectorD2 v) {
             mPlotData.Add(v);
+        }
+
+        /// <summary>
+        /// プロットデータ取得。
+        /// </summary>
+        public List<WWVectorD2> PlotData() {
+            return mPlotData;
+        }
+
+        public DateTime StartDateTime {
+            get;
+            set;
         }
 
         /// <summary>
@@ -268,17 +277,18 @@ namespace SCPIAcquisition {
             graphDimension.graphWH = new WWVectorD2(W, H);
 
             // 枠線。
-            DrawRectangle(Brushes.Gray, SPACING_X, SPACING_Y, W - SPACING_X*2, H - SPACING_Y*2);
+            DrawRectangle(Brushes.Gray, SPACING_X, SPACING_Y, W - SPACING_X * 2, H - SPACING_Y * 2);
 
             // 総数が0
             if (mPlotData.Count == 0) {
                 textBlockStartTime.Text = "";
                 textBlockCurTime.Text = "";
                 textBlockStartTime.Text = string.Format("Start: {0}", System.DateTime.Now.ToString());
+                StartDateTime = System.DateTime.Now;
                 return;
             }
-            
-            textBlockCurTime.Text = string.Format("{0}", System.DateTime.Now.ToString());
+
+            textBlockCurTime.Text = string.Format("Last: {0}", System.DateTime.Now.ToString());
 
 
             // 最大値、最小値を調べgraphDimensionにセット。
@@ -320,8 +330,17 @@ namespace SCPIAcquisition {
             DrawText(string.Format("{0}", FormatNumber(yMax, 4)), 10, Brushes.Black, PivotPosType.Right, SPACING_X - TEXT_MARGIN, SPACING_Y);
 
             // 折れ線描画。
+
+            int step = 1;
+            if (PlotSegmentNum < mPlotData.Count) {
+                // プロット点が多すぎるとき間引く。
+                step = mPlotData.Count / PlotSegmentNum;
+            }
+
             var plPoints = new PointCollection();
-            foreach (var pXY in mPlotData) {
+            for (int i = 0; i < mPlotData.Count; i += step) {
+                var pXY = mPlotData[i];
+
                 var gXY = PlotValueToGraphPos(pXY, graphDimension);
                 if (!gXY.IsValid()) {
                     continue;
@@ -329,6 +348,7 @@ namespace SCPIAcquisition {
 
                 plPoints.Add(new Point(gXY.X, gXY.Y));
             }
+
             var polyline = new Polyline();
             polyline.Stroke = Brushes.Black;
             polyline.Points = plPoints;

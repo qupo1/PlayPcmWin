@@ -58,6 +58,7 @@
                         <Button Margin="6,6,0,0" Content="Reset" Name="buttonReset" Width="75" HorizontalAlignment="Left" Click="buttonReset_Click" />
                         <Button Margin="6,6,0,0" Content="Beep" Name="buttonBeep" Width="75" HorizontalAlignment="Left" Click="buttonBeep_Click" />
                         <CheckBox Margin="6,6,0,0" Content="_Front Panel Display" Name="checkBoxDisplay" Checked="checkBoxDisplay_Checked" Unchecked="checkBoxDisplay_Unchecked" />
+                        <Button Margin="6,6,6,0" Content="Save data as CSV..." Name="buttonSaveAs" Click="buttonSaveAs_Click" />
                     </StackPanel>
                 </GroupBox>
                 <GroupBox Grid.Column="2" Header="Measurement Function" Name="groupBoxMeasurementFunction">

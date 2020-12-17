@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
-using System.Diagnostics;
+using Microsoft.Win32;
+using System.IO;
 
 namespace SCPIAcquisition {
     public partial class MainWindow : Window {
@@ -551,7 +553,6 @@ namespace SCPIAcquisition {
         }
 
         private void ResultDisp(ScpiCommands.Cmd cmd) {
-
             switch (cmd.ct) {
                 case ScpiCommands.CmdType.IDN:
                     AddLog(string.Format("IDN: {0}\n", cmd.result));
@@ -644,6 +645,42 @@ namespace SCPIAcquisition {
         private void radioButtonCapacitance_Checked(object sender, RoutedEventArgs e) {
             mMeasureType = ScpiCommands.MeasureType.Capacitance;
             MeasureTypeChanged();
+        }
+
+        private void buttonSaveAs_Click(object sender, RoutedEventArgs e) {
+            var sfd = new SaveFileDialog();
+            sfd.AddExtension = true;
+            sfd.DefaultExt=".csv";
+            sfd.ValidateNames = true;
+            sfd.Filter = "CSV File|*.csv";
+            var r = sfd.ShowDialog();
+
+            if (r != true) {
+                return;
+            }
+
+            bool bSuccess = false;
+            try {
+                using (var sw = new StreamWriter(sfd.FileName)) {
+                    sw.WriteLine("Measurement started at {0}", graph.StartDateTime);
+                    sw.WriteLine("Time(seconds), {0}", graph.YAxisText);
+
+                    var data = graph.PlotData();
+                    foreach (var v in data) {
+                        sw.WriteLine("{0}, {1}", v.X, v.Y);
+                    }
+                }
+
+                bSuccess = true;
+            } catch (IOException ex) {
+                MessageBox.Show(ex.ToString(), "File Write Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            if (bSuccess) {
+                AddLog(string.Format("Save as {0}", sfd.FileName));
+            } else {
+                AddLog(string.Format("Error: Failed to save {0}", sfd.FileName));
+            }
         }
     }
 }

@@ -16,8 +16,8 @@
             <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.ColumnSpan="2" Name="textBlockTitle" Text="Graph Title" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16" />
-        <TextBlock Grid.Row="2" Grid.Column="1" Name="textBlockStartTime" Text="Start Time" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Center" />
-        <TextBlock Grid.Row="2" Grid.Column="1" Name="textBlockCurTime" Text="Current Time" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Name="textBlockStartTime" Text="Start Time" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Bottom" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Name="textBlockCurTime" Text="Current Time" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Bottom" />
         <TextBlock Grid.Row="2" Grid.Column="1" Name="textBlockXAxis" Text="X Axis" HorizontalAlignment="Center" />
         <Canvas Grid.Column="1" Grid.Row="1" Name="canvas" Margin="0,0,6,0">
             <Rectangle Canvas.Left="20" Canvas.Top="00" Width="950" Height="220" Stroke="Black" />
