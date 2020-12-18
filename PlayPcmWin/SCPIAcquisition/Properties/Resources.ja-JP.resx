@@ -130,7 +130,7 @@
     <value>静電容量</value>
   </data>
   <data name="Connect" xml:space="preserve">
-    <value>接続</value>
+    <value>接続(_C)</value>
   </data>
   <data name="ConnectionSettings" xml:space="preserve">
     <value>接続設定</value>
@@ -144,6 +144,9 @@
   <data name="DCVoltage" xml:space="preserve">
     <value>直流電圧</value>
   </data>
+  <data name="DCVoltageRadioItem" xml:space="preserve">
+    <value>直流電圧(_V)</value>
+  </data>
   <data name="Digits" xml:space="preserve">
     <value>桁</value>
   </data>
@@ -151,9 +154,9 @@
     <value>周波数</value>
   </data>
   <data name="FrontPanelDisplay" xml:space="preserve">
-    <value>フロントパネル表示</value>
+    <value>フロントパネル表示(_F)</value>
   </data>
-  <data name="LatestMeasuredValue" xml:space="preserve">
+  <data name="LastMeasuredValue" xml:space="preserve">
     <value>測定値</value>
   </data>
   <data name="Log" xml:space="preserve">
@@ -168,8 +171,17 @@
   <data name="Resistance" xml:space="preserve">
     <value>抵抗</value>
   </data>
+  <data name="SaveDataAsCsv" xml:space="preserve">
+    <value>CSV形式で保存(_A)...</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>設定</value>
+  </data>
+  <data name="ShowGrid" xml:space="preserve">
+    <value>枠線</value>
+  </data>
+  <data name="ShowStartEndTime" xml:space="preserve">
+    <value>開始終了時刻</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>時間</value>
@@ -178,6 +190,6 @@
     <value>秒</value>
   </data>
   <data name="Update" xml:space="preserve">
-    <value>更新</value>
+    <value>更新(_U)</value>
   </data>
 </root>

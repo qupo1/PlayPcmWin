@@ -57,7 +57,7 @@
                     <StackPanel>
                         <Button Margin="6,6,0,0" Content="Reset" Name="buttonReset" Width="75" HorizontalAlignment="Left" Click="buttonReset_Click" />
                         <Button Margin="6,6,0,0" Content="Beep" Name="buttonBeep" Width="75" HorizontalAlignment="Left" Click="buttonBeep_Click" />
-                        <CheckBox Margin="6,6,0,0" Content="_Front Panel Display" Name="checkBoxDisplay" Checked="checkBoxDisplay_Checked" Unchecked="checkBoxDisplay_Unchecked" />
+                        <CheckBox Margin="6,6,0,0" Content="_Front Panel Display" Name="checkBoxDisplay" Checked="checkBoxDisplay_Checked" Unchecked="checkBoxDisplay_Unchecked" IsChecked="True" />
                         <Button Margin="6,6,6,0" Content="Save data as CSV..." Name="buttonSaveAs" Click="buttonSaveAs_Click" />
                     </StackPanel>
                 </GroupBox>
@@ -81,7 +81,7 @@
                         <RadioButton Grid.Row="6" Content="Frequency" Margin="6,0,0,0" Name="radioButtonFrequency" VerticalAlignment="Center" Grid.ColumnSpan="2" Checked="radioButtonFrequency_Checked" />
                     </Grid>
                 </GroupBox>
-                <GroupBox Grid.Column="3" Header="Latest Measured Value" Name="groupBoxMeasuredValue" >
+                <GroupBox Grid.Column="3" Header="Last Measured Value" Name="groupBoxMeasuredValue" >
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*" />

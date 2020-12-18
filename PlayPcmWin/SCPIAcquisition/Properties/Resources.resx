@@ -130,7 +130,7 @@
     <value>Capacitance</value>
   </data>
   <data name="Connect" xml:space="preserve">
-    <value>Connect</value>
+    <value>_Connect</value>
   </data>
   <data name="ConnectionSettings" xml:space="preserve">
     <value>Connection Settings</value>
@@ -144,6 +144,9 @@
   <data name="DCVoltage" xml:space="preserve">
     <value>DC Voltage</value>
   </data>
+  <data name="DCVoltageRadioItem" xml:space="preserve">
+    <value>DC _Voltage</value>
+  </data>
   <data name="Digits" xml:space="preserve">
     <value>Digits</value>
   </data>
@@ -151,10 +154,10 @@
     <value>Frequency</value>
   </data>
   <data name="FrontPanelDisplay" xml:space="preserve">
-    <value>Front Panel Display</value>
+    <value>_Front Panel Display</value>
   </data>
-  <data name="LatestMeasuredValue" xml:space="preserve">
-    <value>Latest Measured Value</value>
+  <data name="LastMeasuredValue" xml:space="preserve">
+    <value>Last Measured Value</value>
   </data>
   <data name="Log" xml:space="preserve">
     <value>Log</value>
@@ -168,8 +171,17 @@
   <data name="Resistance" xml:space="preserve">
     <value>Resistance</value>
   </data>
+  <data name="SaveDataAsCsv" xml:space="preserve">
+    <value>S_ave data as CSV...</value>
+  </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="ShowGrid" xml:space="preserve">
+    <value>Grid</value>
+  </data>
+  <data name="ShowStartEndTime" xml:space="preserve">
+    <value>Start/End Time</value>
   </data>
   <data name="Time" xml:space="preserve">
     <value>Time</value>
@@ -193,6 +205,6 @@
     <value>V</value>
   </data>
   <data name="Update" xml:space="preserve">
-    <value>Update</value>
+    <value>_Update</value>
   </data>
 </root>

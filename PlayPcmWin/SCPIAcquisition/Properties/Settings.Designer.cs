@@ -118,5 +118,29 @@ namespace SCPIAcquisition.Properties {
                 this["MeasurementFunction"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowGrid {
+            get {
+                return ((bool)(this["ShowGrid"]));
+            }
+            set {
+                this["ShowGrid"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowStartEndTime {
+            get {
+                return ((bool)(this["ShowStartEndTime"]));
+            }
+            set {
+                this["ShowStartEndTime"] = value;
+            }
+        }
     }
 }

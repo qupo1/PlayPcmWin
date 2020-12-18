@@ -97,7 +97,7 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connect.
+        ///   Looks up a localized string similar to _Connect.
         /// </summary>
         internal static string Connect {
             get {
@@ -142,6 +142,15 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DC _Voltage.
+        /// </summary>
+        internal static string DCVoltageRadioItem {
+            get {
+                return ResourceManager.GetString("DCVoltageRadioItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Digits.
         /// </summary>
         internal static string Digits {
@@ -160,7 +169,7 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Front Panel Display.
+        ///   Looks up a localized string similar to _Front Panel Display.
         /// </summary>
         internal static string FrontPanelDisplay {
             get {
@@ -169,11 +178,11 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Latest Measured Value.
+        ///   Looks up a localized string similar to Last Measured Value.
         /// </summary>
-        internal static string LatestMeasuredValue {
+        internal static string LastMeasuredValue {
             get {
-                return ResourceManager.GetString("LatestMeasuredValue", resourceCulture);
+                return ResourceManager.GetString("LastMeasuredValue", resourceCulture);
             }
         }
         
@@ -214,11 +223,38 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to S_ave data as CSV....
+        /// </summary>
+        internal static string SaveDataAsCsv {
+            get {
+                return ResourceManager.GetString("SaveDataAsCsv", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Settings.
         /// </summary>
         internal static string Settings {
             get {
                 return ResourceManager.GetString("Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Grid.
+        /// </summary>
+        internal static string ShowGrid {
+            get {
+                return ResourceManager.GetString("ShowGrid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start/End Time.
+        /// </summary>
+        internal static string ShowStartEndTime {
+            get {
+                return ResourceManager.GetString("ShowStartEndTime", resourceCulture);
             }
         }
         
@@ -286,7 +322,7 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Update.
+        ///   Looks up a localized string similar to _Update.
         /// </summary>
         internal static string Update {
             get {

@@ -9,12 +9,13 @@ using System.IO;
 
 namespace SCPIAcquisition {
     public partial class MainWindow : Window {
+        private bool mInitialized = false;
+
         private const int MAX_LOG_LINES = 1000;
         private const int MEASUREMENT_CHANGED_DISCARD_NUM = 1;
 
         private SerialRW mSerial = new SerialRW();
         private List<string> mLogStringList = new List<string>();
-        private int mMeasuredTypeChangedCountdown = 0;
         private BackgroundWorker mBW;
 
         private ScpiCommands.MeasureType mMeasureType = ScpiCommands.MeasureType.DC_V;
@@ -57,6 +58,7 @@ namespace SCPIAcquisition {
             UpdateComList();
 
             // 設定を読んでUIに反映します。
+            // MeasureTypeラジオボタンの何れかがCheckされ、MeasureTypeChanged()が呼び出されます。
             SettingsToUI();
 
             // UIのローカライズ実行。
@@ -68,6 +70,14 @@ namespace SCPIAcquisition {
             graph.Clear();
             graph.Add(new WWMath.WWVectorD2(0, 0));
             graph.Redraw();
+
+            mInitialized = true;
+
+            // ディスプレイのON/OFFの設定値を計測器に送出。
+            mScpi.SetCmd(new ScpiCommands.Cmd(
+                Properties.Settings.Default.FrontPanelDisp ?
+                    ScpiCommands.CmdType.LcdDisplayOn:
+                    ScpiCommands.CmdType.LcdDisplayOff));
         }
 
         private void Window_Closed(object sender, EventArgs e) {
@@ -100,7 +110,7 @@ namespace SCPIAcquisition {
                 buttonConnect.IsEnabled = false;
             }
 
-            AddLog("Updated com port list.\n");
+            AddLog("Updated Com port list.\n");
         }
 
         private void ButtonUpdateComList_Click(object sender, RoutedEventArgs e) {
@@ -116,7 +126,7 @@ namespace SCPIAcquisition {
         private int BaudRateToIdx(int baud) {
             switch (baud) {
             case 9600:
-            default:
+            default: //< 設定値はファイルから読みだされるので異常な値が来ることがある。
                 return 0;
             case 115200:
                 return 1;
@@ -131,7 +141,7 @@ namespace SCPIAcquisition {
         private int StopBitsStrToIdx(string stopBits) {
             switch (stopBits) {
             case "One":
-            default:
+            default: //< 設定値はファイルから読みだされるので異常な値が来ることがある。
                 return 0;
             case "Two":
                 return 1;
@@ -147,7 +157,7 @@ namespace SCPIAcquisition {
         private int ParityStrToIdx(string parityStr) {
             switch (parityStr) {
             case "None":
-            default:
+            default: //< 設定値はファイルから読みだされるので異常な値が来ることがある。
                 return 0;
             case "Odd":
                 return 1;
@@ -166,7 +176,7 @@ namespace SCPIAcquisition {
             case 7:
                 return 0;
             case 8:
-            default:
+            default: //< 設定値はファイルから読みだされるので異常な値が来ることがある。
                 return 1;
             }
         }
@@ -190,7 +200,7 @@ namespace SCPIAcquisition {
             case 7:
                 return 3;
             case 8:
-            default:
+            default: //< 設定値はファイルから読みだされるので異常な値が来ることがある。
                 return 4;
             }
         }
@@ -214,7 +224,7 @@ namespace SCPIAcquisition {
 
             switch (Properties.Settings.Default.MeasurementFunction) {
             case "DCV":
-            default:
+            default: //< 設定値はファイルから読みだされるので異常な値が来ることがある。
                 radioButtonDCV.IsChecked = true;
                 break;
             case "ACV":
@@ -236,6 +246,9 @@ namespace SCPIAcquisition {
                 radioButtonFrequency.IsChecked = true;
                 break;
             }
+
+            graph.ShowGrid = Properties.Settings.Default.ShowGrid;
+            graph.ShowStartEndTime = Properties.Settings.Default.ShowStartEndTime;
         }
 
         private void UIToSettings() {
@@ -251,25 +264,26 @@ namespace SCPIAcquisition {
 
             if (radioButtonDCV.IsChecked == true) {
                 Properties.Settings.Default.MeasurementFunction = "DCV";
-            }
-            if (radioButtonACV.IsChecked == true) {
+            } else if (radioButtonACV.IsChecked == true) {
                 Properties.Settings.Default.MeasurementFunction = "ACV";
-            }
-            if (radioButtonDCA.IsChecked == true) {
+            } else if (radioButtonDCA.IsChecked == true) {
                 Properties.Settings.Default.MeasurementFunction = "DCA";
-            }
-            if (radioButtonACA.IsChecked == true) {
+            } else if (radioButtonACA.IsChecked == true) {
                 Properties.Settings.Default.MeasurementFunction = "ACA";
-            }
-            if (radioButtonResistance.IsChecked == true) {
+            } else if (radioButtonResistance.IsChecked == true) {
                 Properties.Settings.Default.MeasurementFunction = "Resistance";
-            }
-            if (radioButtonCapacitance.IsChecked == true) {
+            } else if (radioButtonCapacitance.IsChecked == true) {
                 Properties.Settings.Default.MeasurementFunction = "Capacitance";
-            }
-            if (radioButtonFrequency.IsChecked == true) {
+            } else if (radioButtonFrequency.IsChecked == true) {
                 Properties.Settings.Default.MeasurementFunction = "Frequency";
+            } else {
+                throw new NotImplementedException();
             }
+
+            Properties.Settings.Default.ShowGrid = graph.ShowGrid;
+            Properties.Settings.Default.ShowStartEndTime = graph.ShowStartEndTime;
+
+            // セット完了。保存する。
 
             Properties.Settings.Default.Save();
         }
@@ -279,17 +293,18 @@ namespace SCPIAcquisition {
             groupBoxConnection.Header = Properties.Resources.ConnectionSettings;
             groupBoxControls.Header = Properties.Resources.Controls;
             groupBoxLog.Header = Properties.Resources.Log;
-            groupBoxMeasuredValue.Header = Properties.Resources.LatestMeasuredValue;
+            groupBoxMeasuredValue.Header = Properties.Resources.LastMeasuredValue;
             groupBoxMeasurementFunction.Header = Properties.Resources.MeasurementFunction;
             buttonUpdate.Content = Properties.Resources.Update;
             buttonConnect.Content = Properties.Resources.Connect;
             buttonReset.Content = Properties.Resources.Reset;
             buttonBeep.Content = Properties.Resources.Beep;
+            buttonSaveAs.Content = Properties.Resources.SaveDataAsCsv;
             checkBoxDisplay.Content = Properties.Resources.FrontPanelDisplay;
             radioButtonACA.Content = Properties.Resources.ACCurrent;
             radioButtonACV.Content = Properties.Resources.ACVoltage;
             radioButtonDCA.Content = Properties.Resources.DCCurrent;
-            radioButtonDCV.Content = Properties.Resources.DCVoltage;
+            radioButtonDCV.Content = Properties.Resources.DCVoltageRadioItem;
             radioButtonFrequency.Content = Properties.Resources.Frequency;
             radioButtonCapacitance.Content = Properties.Resources.Capacitance;
             radioButtonResistance.Content = Properties.Resources.Resistance;
@@ -381,10 +396,8 @@ namespace SCPIAcquisition {
                     // 実行結果を取り出してUIにフィードバックする。
                     var cmdList = mScpi.GetResults(nCmd);
                     foreach (var c in cmdList) {
-                        if (0 < c.result.Length) {
-                            mBW.ReportProgress(REPORT_CMD_RESULT, c);
-                            System.Threading.Thread.Sleep(500);
-                        }
+                        mBW.ReportProgress(REPORT_CMD_RESULT, c);
+                        System.Threading.Thread.Sleep(500);
                     }
                 } else {
                     // 測定する。
@@ -405,7 +418,7 @@ namespace SCPIAcquisition {
                 groupBoxConnection.IsEnabled = false;
                 buttonConnect.IsEnabled = false;
                 groupBoxControls.IsEnabled = true;
-                AddLog(string.Format("Connected. {0}, {1} baud, {2} bit, Stop bit={3}, Parity={4}\n",
+                AddLog(string.Format("Connected. {0}, {1} Baud, Data bits={2} bit, Stop bits={3}, Parity={4}.\n",
                     (string)comboBoxComPorts.SelectedValue, bwArgs.baud, bwArgs.dataBits, bwArgs.stopBits, bwArgs.parity));
             }
             if (REPORT_CMD_RESULT == e.ProgressPercentage) {
@@ -525,18 +538,20 @@ namespace SCPIAcquisition {
             }
         }
 
-        private void PlotNewValue(string numberStr, string measureTypeStr, string unitStr) {
-            if (0 < mMeasuredTypeChangedCountdown) {
-                // 計測種類の切り替え直後に戻る計測値は、切り替え前の値の場合があるので捨てる。
-                --mMeasuredTypeChangedCountdown;
-                return;
-            }
+        private void PlotNewValue(ScpiCommands.Cmd cmd, string measureTypeStr, string unitStr) {
+            string numberStr = cmd.result;
 
             {
                 string numberWithPrefix = FormatNumber(numberStr);
 
                 textBlockMeasureType.Text = measureTypeStr;
                 textBlockMeasuredValue.Text = string.Format("{0}{1}", numberWithPrefix, unitStr);
+            }
+
+            if (mMeasureType != cmd.mt) {
+                // 計測種類の切り替え直後に戻る計測値は、切り替え前の値の場合がある。
+                // グラフに追加しない。
+                return;
             }
 
             {
@@ -548,44 +563,53 @@ namespace SCPIAcquisition {
                     graph.Redraw();
                 }
             }
-
-
         }
 
         private void ResultDisp(ScpiCommands.Cmd cmd) {
             switch (cmd.ct) {
                 case ScpiCommands.CmdType.IDN:
-                    AddLog(string.Format("IDN: {0}\n", cmd.result));
+                    //AddLog(string.Format("IDN: {0}\n", cmd.result));
                     return;
+                case ScpiCommands.CmdType.Reset:
+                    AddLog("Reset command sent.\n");
+                    break;
+                case ScpiCommands.CmdType.Beep:
+                    AddLog("Beep command sent.\n");
+                    break;
+                case ScpiCommands.CmdType.LcdDisplayOff:
+                    AddLog("Display Off command sent.\n");
+                    break;
+                case ScpiCommands.CmdType.LcdDisplayOn:
+                    AddLog("Display On command sent.\n");
+                    break;
                 case ScpiCommands.CmdType.Measure:
                     switch (cmd.mt) {
                         case ScpiCommands.MeasureType.DC_V:
-                            PlotNewValue(cmd.result, Properties.Resources.DCVoltage, Properties.Resources.Unit_Voltage);
+                            PlotNewValue(cmd, Properties.Resources.DCVoltage, Properties.Resources.Unit_Voltage);
                             break;
                         case ScpiCommands.MeasureType.AC_V:
-                            PlotNewValue(cmd.result, Properties.Resources.ACVoltage, Properties.Resources.Unit_Voltage);
+                            PlotNewValue(cmd, Properties.Resources.ACVoltage, Properties.Resources.Unit_Voltage);
                             break;
                         case ScpiCommands.MeasureType.DC_A:
-                            PlotNewValue(cmd.result, Properties.Resources.DCCurrent, Properties.Resources.Unit_Current);
+                            PlotNewValue(cmd, Properties.Resources.DCCurrent, Properties.Resources.Unit_Current);
                             break;
                         case ScpiCommands.MeasureType.AC_A:
-                            PlotNewValue(cmd.result, Properties.Resources.ACCurrent, Properties.Resources.Unit_Current);
+                            PlotNewValue(cmd, Properties.Resources.ACCurrent, Properties.Resources.Unit_Current);
                             break;
                         case ScpiCommands.MeasureType.Resistance:
-                            PlotNewValue(cmd.result, Properties.Resources.Resistance, Properties.Resources.Unit_Resistance);
+                            PlotNewValue(cmd, Properties.Resources.Resistance, Properties.Resources.Unit_Resistance);
                             break;
                         case ScpiCommands.MeasureType.Capacitance:
-                            PlotNewValue(cmd.result, Properties.Resources.Capacitance, Properties.Resources.Unit_Capacitance);
+                            PlotNewValue(cmd, Properties.Resources.Capacitance, Properties.Resources.Unit_Capacitance);
                             break;
                         case ScpiCommands.MeasureType.Frequency:
-                            PlotNewValue(cmd.result, Properties.Resources.Frequency, Properties.Resources.Unit_Frequency);
+                            PlotNewValue(cmd, Properties.Resources.Frequency, Properties.Resources.Unit_Frequency);
                             break;
                     }
                     return;
                 default:
                     return;
             }
-
         }
 
         // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -595,10 +619,16 @@ namespace SCPIAcquisition {
         }
 
         private void checkBoxDisplay_Checked(object sender, RoutedEventArgs e) {
+            if (!mInitialized) {
+                return;
+            }
             mScpi.SetCmd(new ScpiCommands.Cmd(ScpiCommands.CmdType.LcdDisplayOn));
         }
 
         private void checkBoxDisplay_Unchecked(object sender, RoutedEventArgs e) {
+            if (!mInitialized) {
+                return;
+            }
             mScpi.SetCmd(new ScpiCommands.Cmd(ScpiCommands.CmdType.LcdDisplayOff));
         }
 
@@ -607,7 +637,6 @@ namespace SCPIAcquisition {
         }
 
         private void MeasureTypeChanged() {
-            mMeasuredTypeChangedCountdown = MEASUREMENT_CHANGED_DISCARD_NUM;
             graph.Clear();
             graph.Redraw();
             mSW.Restart();

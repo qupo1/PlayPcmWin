@@ -26,5 +26,11 @@
     <Setting Name="MeasurementFunction" Type="System.String" Scope="User">
       <Value Profile="(Default)">DCV</Value>
     </Setting>
+    <Setting Name="ShowGrid" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ShowStartEndTime" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

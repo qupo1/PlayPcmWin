@@ -8,15 +8,41 @@ using WWMath;
 
 namespace SCPIAcquisition {
     public partial class TimeDomain1DGraphUC : UserControl {
-        public int PlotSegmentNum { get; set; }
+        private bool mInitialized = false;
 
         private int PLOT_SEGMENT_NUM_DEFAULT = 1000;
+
+        private int GRID_X = 4;
+        private int GRID_Y = 4;
+
+        private const double TICK_SIZE = 3;
+
+        private const double SPACING_X = 20;
+        private const double SPACING_Y = 20;
+        private const double TEXT_MARGIN = 6;
+        private const double DOT_RADIUS = 2.5;
+
 
         public TimeDomain1DGraphUC() {
             InitializeComponent();
 
+            ShowGrid = true;
+            ShowStartEndTime = true;
             StartDateTime = System.DateTime.Now;
             PlotSegmentNum = PLOT_SEGMENT_NUM_DEFAULT;
+        }
+
+        private void textBlockStartTime_Loaded(object sender, RoutedEventArgs e) {
+            mInitialized = true;
+
+            LocalizeUI();
+
+            Redraw();
+        }
+
+        private void LocalizeUI() {
+            checkBoxGrid.Content = Properties.Resources.ShowGrid;
+            checkBoxTime.Content = Properties.Resources.ShowStartEndTime;
         }
 
         public string GraphTitle {
@@ -33,6 +59,21 @@ namespace SCPIAcquisition {
             get { return textBlockYAxis.Text; }
             set { textBlockYAxis.Text = value; }
         }
+
+        /// <summary>
+        /// 折れ線グラフの頂点最大数。プロットデータ数がこれを超えた場合描画する頂点を間引く。
+        /// </summary>
+        public int PlotSegmentNum { get; set; }
+
+        /// <summary>
+        /// 枠線の表示。
+        /// </summary>
+        public bool ShowGrid { get; set; }
+
+        /// <summary>
+        /// 開始終了時刻表示。
+        /// </summary>
+        public bool ShowStartEndTime { get; set; }
 
         List<WWVectorD2> mPlotData = new List<WWVectorD2>();
 
@@ -62,19 +103,12 @@ namespace SCPIAcquisition {
             set;
         }
 
-        /// <summary>
-        /// グラフの再描画。描画スレッドから呼ぶ必要あり。
-        /// </summary>
-        public void Redraw() {
-            RedrawGraph();
-        }
-
         private void UserControl_Loaded(object sender, RoutedEventArgs e) {
             Redraw();
         }
 
         private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e) {
-            RedrawGraph();
+            Redraw();
         }
 
         private void DrawLine(Brush brush, double x1, double y1, double x2, double y2) {
@@ -92,13 +126,10 @@ namespace SCPIAcquisition {
         }
 
         private void DrawRectangle(Brush brush, double x, double y, double w, double h) {
-            var r = new Rectangle();
-            r.Stroke = brush;
-            r.Width = w;
-            r.Height = h;
-            canvas.Children.Add(r);
-            Canvas.SetLeft(r, x);
-            Canvas.SetTop(r, y);
+            DrawLine(brush, new WWVectorD2(x, y), new WWVectorD2(x+w, y));
+            DrawLine(brush, new WWVectorD2(x+w, y), new WWVectorD2(x + w, y+h));
+            DrawLine(brush, new WWVectorD2(x + w, y+h), new WWVectorD2(x, y + h));
+            DrawLine(brush, new WWVectorD2(x, y + h), new WWVectorD2(x, y));
         }
 
         private void DrawDot(Brush brush, double radius, WWVectorD2 xy) {
@@ -119,7 +150,7 @@ namespace SCPIAcquisition {
             Bottom
         };
 
-        private void DrawText(string text, double fontSize, Brush brush, PivotPosType pp, double pivotX, double pivotY) {
+        private void DrawText(Brush brush, string text, double fontSize, PivotPosType pp, double pivotX, double pivotY) {
             var tb = new TextBlock();
             tb.Text = text;
             tb.FontSize = FontSize;
@@ -158,11 +189,6 @@ namespace SCPIAcquisition {
             Canvas.SetTop(tb, y);
         }
 
-        private const double SPACING_X = 20;
-        private const double SPACING_Y = 20;
-        private const double TEXT_MARGIN = 6;
-        private const double DOT_RADIUS = 2.5;
-
         static double RoundToSignificantDigits(double d, int digits) {
             if (d == 0)
                 return 0;
@@ -195,7 +221,10 @@ namespace SCPIAcquisition {
                 bMinus = true;
                 v = -v;
             }
-            if (10e15 < v) {
+
+            if (v < 10e-15) {
+                return "0";
+            } else if (10e15 < v) {
                 return string.Format("{0} ∞ ", bMinus ? "-" : "");
             } else if (v < 0.001 * 0.001 * 0.001) {
                 unit = "p";
@@ -266,8 +295,12 @@ namespace SCPIAcquisition {
             }
         }
 
-        private void RedrawGraph() {
+        /// <summary>
+        /// グラフの再描画。描画スレッドから呼ぶ必要あり。
+        /// </summary>
+        public void Redraw() {
             var fgColor = SystemColors.ControlTextBrush;
+            var gridColor = SystemColors.ControlDarkBrush;
 
             canvas.Children.Clear();
 
@@ -279,7 +312,7 @@ namespace SCPIAcquisition {
             graphDimension.graphWH = new WWVectorD2(W, H);
 
             // 枠線。
-            DrawRectangle(fgColor, SPACING_X, SPACING_Y, W - SPACING_X * 2, H - SPACING_Y * 2);
+            DrawRectangle(gridColor, SPACING_X, SPACING_Y, W - SPACING_X * 2, H - SPACING_Y * 2);
 
             // 総数が0
             if (mPlotData.Count == 0) {
@@ -323,12 +356,38 @@ namespace SCPIAcquisition {
             graphDimension.minValuesXY = new WWVectorD2(xMin, yMin);
             graphDimension.maxValuesXY = new WWVectorD2(xMax, yMax);
 
-            // 最大値、最小値の文字表示。
+            // グリッド縦線。
+            for (int i = 0; i <= GRID_X; ++i) {
+                DrawText(fgColor, string.Format("{0}", FormatNumber(xMin + (xMax - xMin) * i / GRID_X, 6)), 10, PivotPosType.Top,
+                                   SPACING_X + (W - SPACING_X * 2) * i / GRID_X, TEXT_MARGIN + H - SPACING_Y);
+                if (ShowGrid) {
+                    DrawLine(gridColor,
+                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i / GRID_X, SPACING_Y),
+                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i / GRID_X, H - SPACING_Y + TICK_SIZE));
+                } else {
+                    // グリッド線を表示しない場合、Tickを表示する。
+                    DrawLine(gridColor,
+                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i / GRID_X, H - SPACING_Y),
+                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i / GRID_X, H - SPACING_Y + TICK_SIZE));
+                }
+            }
 
-            DrawText(string.Format("{0}", FormatNumber(xMin, 4)), 10, fgColor, PivotPosType.Top, SPACING_X, TEXT_MARGIN + H - SPACING_Y);
-            DrawText(string.Format("{0}", FormatNumber(xMax, 4)), 10, fgColor, PivotPosType.Top, W - SPACING_X, TEXT_MARGIN + H - SPACING_Y);
-            DrawText(string.Format("{0}", FormatNumber(yMin, 4)), 10, fgColor, PivotPosType.Right, SPACING_X - TEXT_MARGIN, H - SPACING_Y);
-            DrawText(string.Format("{0}", FormatNumber(yMax, 4)), 10, fgColor, PivotPosType.Right, SPACING_X - TEXT_MARGIN, SPACING_Y);
+            // グリッド横線。
+            for (int i = 0; i <= GRID_Y; ++i) {
+                DrawText(fgColor, string.Format("{0}", FormatNumber(yMin + (yMax - yMin)*i/GRID_Y, 6)), 10, PivotPosType.Right, 
+                                   SPACING_X - TEXT_MARGIN, H - SPACING_Y - (H - SPACING_Y * 2) * i / GRID_Y);
+
+                if (ShowGrid) {
+                    DrawLine(gridColor,
+                        new WWVectorD2(SPACING_X -TICK_SIZE, H - SPACING_Y - (H - SPACING_Y * 2) * i / GRID_Y),
+                        new WWVectorD2(W - SPACING_X, H - SPACING_Y - (H - SPACING_Y * 2) * i / GRID_Y));
+                } else {
+                    // グリッド線を表示しない場合、Tickを表示する。
+                    DrawLine(gridColor,
+                        new WWVectorD2(SPACING_X-TICK_SIZE, H - SPACING_Y - (H - SPACING_Y * 2) * i / GRID_Y),
+                        new WWVectorD2(SPACING_X, H - SPACING_Y - (H - SPACING_Y * 2) * i / GRID_Y));
+                }
+            }
 
             // 折れ線描画。
 
@@ -368,5 +427,48 @@ namespace SCPIAcquisition {
             */
 
         }
+
+        private void checkBoxGrid_Checked(object sender, RoutedEventArgs e) {
+            ShowGrid = true;
+
+            if (!mInitialized) {
+                return;
+            }
+
+            Redraw();
+        }
+
+        private void checkBoxGrid_Unchecked(object sender, RoutedEventArgs e) {
+            ShowGrid = false;
+
+            if (!mInitialized) {
+                return;
+            }
+
+            Redraw();
+        }
+
+        private void checkBoxTime_Checked(object sender, RoutedEventArgs e) {
+            ShowStartEndTime = true;
+
+            if (!mInitialized) {
+                return;
+            }
+
+            textBlockStartTime.Visibility = System.Windows.Visibility.Visible;
+            textBlockCurTime.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        private void checkBoxTime_Unchecked(object sender, RoutedEventArgs e) {
+            ShowStartEndTime = false;
+
+            if (!mInitialized) {
+                return;
+            }
+
+            textBlockStartTime.Visibility = System.Windows.Visibility.Collapsed;
+            textBlockCurTime.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
     }
 }
