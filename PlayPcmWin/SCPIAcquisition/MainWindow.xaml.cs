@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Windows;
 using Microsoft.Win32;
-using System.IO;
-using System.Globalization;
 
 namespace SCPIAcquisition {
     public partial class MainWindow : Window {
@@ -22,8 +21,6 @@ namespace SCPIAcquisition {
         private ScpiCommands.MeasureType mMeasureType = ScpiCommands.MeasureType.DC_V;
 
         private ScpiCommands mScpi = new ScpiCommands();
-
-        private DateTime mStartDateTime;
 
         private static string AssemblyVersion {
             get { return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); }
@@ -346,7 +343,7 @@ namespace SCPIAcquisition {
             var stopBits = mStopBitList[comboBoxComStopBits.SelectedIndex];
 
             graph.Clear();
-            mStartDateTime = System.DateTime.Now;
+            graph.StartDateTime = System.DateTime.Now;
             graph.Redraw();
 
             mBW.RunWorkerAsync(new BWArgs(portIdx, baud, dataBits, stopBits, parity));
@@ -387,8 +384,9 @@ namespace SCPIAcquisition {
                 int nCmd = 0;
                 try {
                     nCmd = mScpi.ExecCmd();
-                } catch (TimeoutException ex) {
+                } catch (Exception ex) {
                     // 機器が接続されていない等。
+                    // TimeoutExceptionの他に、InvalidOperationException "Port Closed"のエラーが起きることがある。
                     // スレッドがエラー終了する。
                     e.Result = ex.ToString();
                     break;
@@ -435,8 +433,8 @@ namespace SCPIAcquisition {
             var result = e.Result as string;
             if (0 < result.Length) {
                 // エラーメッセージ。
-                AddLog(result);
-                MessageBox.Show(result, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                AddLog(string.Format("{0}\n\n", result));
+                MessageBox.Show(result, "Acquisition stopped.", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             groupBoxConnection.IsEnabled = true;
@@ -567,7 +565,7 @@ namespace SCPIAcquisition {
                 // ヨーロッパのロケールのWindowsでdouble.TryParse()すると小数点をカンマとみなして
                 // パースし失敗するので、小数点記号をピリオドであることを指定する。
                 if (double.TryParse(numberStr, NumberStyles.Any, CultureInfo.InvariantCulture, out v)) {
-                    double elapsedSec = (cmd.timeTick - mStartDateTime.Ticks) / 10000.0 / 1000.0;
+                    double elapsedSec = (cmd.timeTick - graph.StartDateTime.Ticks) / 10000.0 / 1000.0;
                     graph.Add(new WWMath.WWVectorD2(elapsedSec, v));
                     graph.Redraw();
                 }
@@ -647,7 +645,7 @@ namespace SCPIAcquisition {
 
         private void MeasureTypeChanged() {
             graph.Clear();
-            mStartDateTime = System.DateTime.Now;
+            graph.StartDateTime = System.DateTime.Now;
             graph.Redraw();
         }
 
@@ -703,7 +701,7 @@ namespace SCPIAcquisition {
                     sw.WriteLine(string.Format(CultureInfo.InvariantCulture,
                         "{0} {1}.{2:000}",
                         Properties.Resources.MeasurementStartedAt,
-                        mStartDateTime.ToString("MMMM/dd/yyyy HH:mm:ss"), mStartDateTime.Millisecond));
+                        graph.StartDateTime.ToString("MMMM/dd/yyyy HH:mm:ss"), graph.StartDateTime.Millisecond));
                     sw.WriteLine(string.Format(CultureInfo.InvariantCulture,
                         "{0} ({1}), {2}",
                         Properties.Resources.Time,

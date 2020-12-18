@@ -77,6 +77,11 @@ namespace SCPIAcquisition {
         /// </summary>
         public bool ShowStartEndTime { get; set; }
 
+        /// <summary>
+        /// 計測開始時刻。
+        /// </summary>
+        public DateTime StartDateTime { get; set; }
+
         List<WWVectorD2> mPlotData = new List<WWVectorD2>();
 
         /// <summary>
@@ -98,11 +103,6 @@ namespace SCPIAcquisition {
         /// </summary>
         public List<WWVectorD2> PlotData() {
             return mPlotData;
-        }
-
-        public DateTime StartDateTime {
-            get;
-            set;
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e) {
