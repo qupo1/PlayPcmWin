@@ -52,6 +52,8 @@ namespace SCPIAcquisition {
                 ct = act;
                 mt = amt;
             }
+
+            public long timeTick;
         };
 
         List<Cmd> mCmdList = new List<Cmd>();
@@ -188,6 +190,9 @@ namespace SCPIAcquisition {
                             }
                             break;
                     }
+
+                    // 結果が戻ってきた時刻。
+                    cmd.timeTick = System.DateTime.Now.Ticks;
 
                     mCmdList.RemoveAt(0);
                     mResultList.Add(cmd);

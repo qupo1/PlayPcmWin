@@ -11,8 +11,9 @@ namespace SCPIAcquisition {
         private bool mInitialized = false;
 
         private int PLOT_SEGMENT_NUM_DEFAULT = 1000;
+        private int PLOT_POINT_MAX = 75;
+        private double PLOT_RATIO_THRESHOLD = 5;
 
-        private int GRID_X = 4;
         private int GRID_Y = 4;
 
         private const double TICK_SIZE = 3;
@@ -20,7 +21,7 @@ namespace SCPIAcquisition {
         private const double SPACING_X = 20;
         private const double SPACING_Y = 20;
         private const double TEXT_MARGIN = 6;
-        private const double DOT_RADIUS = 2.5;
+        private const double DOT_RADIUS = 1.5;
 
 
         public TimeDomain1DGraphUC() {
@@ -41,6 +42,7 @@ namespace SCPIAcquisition {
         }
 
         private void LocalizeUI() {
+            groupBoxGraphSettings.Header = Properties.Resources.Settings;
             checkBoxGrid.Content = Properties.Resources.ShowGrid;
             checkBoxTime.Content = Properties.Resources.ShowStartEndTime;
         }
@@ -201,6 +203,8 @@ namespace SCPIAcquisition {
             public WWVectorD2 graphWH;
             public WWVectorD2 minValuesXY;
             public WWVectorD2 maxValuesXY;
+
+            public double gridStepX;
         };
 
         WWVectorD2 PlotValueToGraphPos(WWVectorD2 v, GraphDimension gd) {
@@ -212,6 +216,46 @@ namespace SCPIAcquisition {
             double plotY = SPACING_Y + (gd.graphWH.Y - SPACING_Y * 2) * (1.0 - ratioY);
 
             return new WWVectorD2(plotX, plotY);
+        }
+
+        private static string FormatTime(double v) {
+            string unit = "sec";
+            bool bMinus = false;
+            if (v < 0) {
+                bMinus = true;
+                v = -v;
+            }
+
+            if (v == 0) {
+                return "0";
+            }
+
+            if (v < 1) {
+                unit = "ms";
+                v *= 1000;
+            } else if (v < 60) {
+                unit = Properties.Resources.Graph_Second;
+            } else if (v < 3600) {
+                unit = Properties.Resources.Graph_Minute;
+                v /= 60;
+            } else if (v < 3600 * 24) {
+                unit = Properties.Resources.Graph_Hour;
+                v /= 3600;
+            } else if (v < 3600 * 24 * 7) {
+                unit = Properties.Resources.Graph_Day;
+                v /= 3600 * 24;
+            } else {
+                unit = Properties.Resources.Graph_Week;
+                v /= 3600 * 24 * 7;
+            }
+
+            if (v < 10) {
+                return string.Format("{0}{1:0.000} {2}", bMinus ? "-" : "", v, unit);
+            }
+            if (v < 100) {
+                return string.Format("{0}{1:0.00} {2}", bMinus ? "-" : "", v, unit);
+            }
+            return string.Format("{0}{1:0.0} {2}", bMinus ? "-" : "", v, unit);
         }
 
         private static string FormatNumber(double v, int dispDigits) {
@@ -295,6 +339,93 @@ namespace SCPIAcquisition {
             }
         }
 
+        private class FirstDigitAndExponent {
+            public int firstDigit;
+            public int exponent;
+            public FirstDigitAndExponent(int aFirstDigit, int aExponent) {
+                firstDigit = aFirstDigit;
+                exponent = aExponent;
+            }
+        };
+        private static FirstDigitAndExponent CalcFirstDigit(double v) {
+            v = Math.Abs(v);
+
+            if (v < 10e-15) {
+                return new FirstDigitAndExponent(1, -15);
+            }
+            if (10e15 < v) {
+                return new FirstDigitAndExponent(1, 15);
+            }
+
+            int exponent = 0;
+
+            while (10.0 <= v) {
+                v /= 10.0;
+                ++exponent;
+            }
+            while (v < 1.0) {
+                v *= 10.0;
+                --exponent;
+            }
+
+            return new FirstDigitAndExponent((int)v, exponent);
+        }
+
+        private static void CalcGraphGridStep(GraphDimension gd) {
+
+            // x軸のステップ。
+            double maxX = gd.maxValuesXY.X;
+            if (maxX < 6) {
+                // 6秒以下：1秒毎。
+                gd.gridStepX = 1;
+            } else if (maxX < 15) {
+                // 15秒以下：2秒毎。
+                gd.gridStepX = 2;
+            } else if (maxX < 30) {
+                // 30秒以下：5秒毎。
+                gd.gridStepX = 5;
+            } else if (maxX < 60) {
+                // 1分以下：10秒毎。
+                gd.gridStepX = 10;
+            } else if (maxX < 60*3) {
+                // 3分以下：30秒毎。
+                gd.gridStepX = 30;
+            } else if (maxX < 60*6) {
+                // 6分以下：1分毎。
+                gd.gridStepX = 60;
+            } else if (maxX < 60*15) {
+                // 15分以下：3分毎。
+                gd.gridStepX = 60 * 3;
+            } else if (maxX < 60*30) {
+                // 30分以下：5分毎。
+                gd.gridStepX = 60 * 5;
+            } else if (maxX < 3600) {
+                // 1時間以下：10分毎。
+                gd.gridStepX = 60 * 10;
+            } else if (maxX < 3600*3) {
+                // 3時間以下：30分毎。
+                gd.gridStepX = 60 * 30;
+            } else if (maxX < 3600 * 6) {
+                // 6時間以下：1時間毎。
+                gd.gridStepX = 3600;
+            } else if (maxX < 3600 * 12) {
+                // 12時間以下：2時間毎。
+                gd.gridStepX = 3600 * 2;
+            } else if (maxX < 3600 * 24) {
+                // 1日以下：4時間毎。
+                gd.gridStepX = 3600 * 4;
+            } else if (maxX < 3600 * 24 * 3) {
+                // 3日以下：12時間毎。
+                gd.gridStepX = 3600 * 12;
+            } else if (maxX < 3600 * 24 * 7) {
+                // 1週間以下：1日毎。
+                gd.gridStepX = 3600 * 24;
+            } else {
+                // 1週間以上：1週間毎。
+                gd.gridStepX = 3600 * 24 * 7;
+            }
+        }
+
         /// <summary>
         /// グラフの再描画。描画スレッドから呼ぶ必要あり。
         /// </summary>
@@ -304,12 +435,12 @@ namespace SCPIAcquisition {
 
             canvas.Children.Clear();
 
-            var graphDimension = new GraphDimension();
+            var gd = new GraphDimension();
 
             // キャンバスサイズを調べる。
             double W = canvas.ActualWidth;
             double H = canvas.ActualHeight;
-            graphDimension.graphWH = new WWVectorD2(W, H);
+            gd.graphWH = new WWVectorD2(W, H);
 
             // 枠線。
             DrawRectangle(gridColor, SPACING_X, SPACING_Y, W - SPACING_X * 2, H - SPACING_Y * 2);
@@ -318,22 +449,19 @@ namespace SCPIAcquisition {
             if (mPlotData.Count == 0) {
                 textBlockStartTime.Text = "";
                 textBlockCurTime.Text = "";
-                textBlockStartTime.Text = string.Format("Start: {0}", System.DateTime.Now.ToString());
+                textBlockStartTime.Text = string.Format("{0}: {1}",Properties.Resources.Start, System.DateTime.Now.ToString());
                 StartDateTime = System.DateTime.Now;
                 return;
             }
 
-            textBlockCurTime.Text = string.Format("Last: {0}", System.DateTime.Now.ToString());
+            textBlockCurTime.Text = string.Format("{0}: {1}",Properties.Resources.Last, System.DateTime.Now.ToString());
 
             // 最大値、最小値を調べgraphDimensionにセット。
-            double xMin = double.MaxValue;
+            double xMin = 0;
             double yMin = double.MaxValue;
             double xMax = double.MinValue;
             double yMax = double.MinValue;
             foreach (var v in mPlotData) {
-                if (v.X < xMin) {
-                    xMin = v.X;
-                }
                 if (v.Y < yMin) {
                     yMin = v.Y;
                 }
@@ -353,22 +481,34 @@ namespace SCPIAcquisition {
                 yMax = yMin + 1;
             }
 
-            graphDimension.minValuesXY = new WWVectorD2(xMin, yMin);
-            graphDimension.maxValuesXY = new WWVectorD2(xMax, yMax);
+            if (double.Epsilon < yMin && PLOT_RATIO_THRESHOLD < yMax / yMin) {
+                // yMinが正の値で、yMinとyMaxの比が3倍以上の場合yMinを0にする。
+                yMin = 0;
+            } else if (yMax < -double.Epsilon && PLOT_RATIO_THRESHOLD < yMin / yMax) {
+                // yMaxが負の値で、yMinとyMaxの比が3倍以上の場合yMaxを0にする。
+                yMax = 0;
+            }
 
-            // グリッド縦線。
-            for (int i = 0; i <= GRID_X; ++i) {
-                DrawText(fgColor, string.Format("{0}", FormatNumber(xMin + (xMax - xMin) * i / GRID_X, 6)), 10, PivotPosType.Top,
-                                   SPACING_X + (W - SPACING_X * 2) * i / GRID_X, TEXT_MARGIN + H - SPACING_Y);
+
+            gd.minValuesXY = new WWVectorD2(xMin, yMin);
+            gd.maxValuesXY = new WWVectorD2(xMax, yMax);
+
+            // グラフのステップの計算。
+            CalcGraphGridStep(gd);
+            
+            // グリッド縦線を切りの良い位置に引く。
+            for (int i=0; i<xMax/gd.gridStepX; ++i) {
+                DrawText(fgColor, string.Format("{0}", FormatTime(xMin + gd.gridStepX * i)), 10, PivotPosType.Top,
+                                   SPACING_X + (W - SPACING_X * 2) * i * gd.gridStepX / (xMax-xMin), TEXT_MARGIN + H - SPACING_Y);
                 if (ShowGrid) {
                     DrawLine(gridColor,
-                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i / GRID_X, SPACING_Y),
-                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i / GRID_X, H - SPACING_Y + TICK_SIZE));
+                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i * gd.gridStepX / (xMax - xMin), SPACING_Y),
+                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i * gd.gridStepX / (xMax - xMin), H - SPACING_Y + TICK_SIZE));
                 } else {
                     // グリッド線を表示しない場合、Tickを表示する。
                     DrawLine(gridColor,
-                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i / GRID_X, H - SPACING_Y),
-                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i / GRID_X, H - SPACING_Y + TICK_SIZE));
+                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i * gd.gridStepX / (xMax - xMin), H - SPACING_Y),
+                        new WWVectorD2(SPACING_X + (W - SPACING_X * 2) * i * gd.gridStepX / (xMax - xMin), H - SPACING_Y + TICK_SIZE));
                 }
             }
 
@@ -401,7 +541,7 @@ namespace SCPIAcquisition {
             for (int i = 0; i < mPlotData.Count; i += step) {
                 var pXY = mPlotData[i];
 
-                var gXY = PlotValueToGraphPos(pXY, graphDimension);
+                var gXY = PlotValueToGraphPos(pXY, gd);
                 if (!gXY.IsValid()) {
                     continue;
                 }
@@ -414,18 +554,17 @@ namespace SCPIAcquisition {
             polyline.Points = plPoints;
             canvas.Children.Add(polyline);
 
-            /*
-            // 点をプロット。
-            foreach (var pXY in mPlotData) {
-                var gXY = PlotValueToGraphPos(pXY, graphDimension);
-                if (!gXY.IsValid()) {
-                    continue;
+            if (mPlotData.Count <= PLOT_POINT_MAX) {
+                // 点をプロット。
+                foreach (var pXY in mPlotData) {
+                    var gXY = PlotValueToGraphPos(pXY, gd);
+                    if (!gXY.IsValid()) {
+                        continue;
+                    }
+
+                    DrawDot(fgColor, DOT_RADIUS, gXY);
                 }
-
-                DrawDot(fgColor, DOT_RADIUS, gXY);
             }
-            */
-
         }
 
         private void checkBoxGrid_Checked(object sender, RoutedEventArgs e) {

@@ -124,6 +124,15 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CSV Files|*.csv.
+        /// </summary>
+        internal static string CSVFilter {
+            get {
+                return ResourceManager.GetString("CSVFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to DC Current.
         /// </summary>
         internal static string DCCurrent {
@@ -178,6 +187,69 @@ namespace SCPIAcquisition.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Graph.
+        /// </summary>
+        internal static string Graph {
+            get {
+                return ResourceManager.GetString("Graph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to day.
+        /// </summary>
+        internal static string Graph_Day {
+            get {
+                return ResourceManager.GetString("Graph_Day", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hour.
+        /// </summary>
+        internal static string Graph_Hour {
+            get {
+                return ResourceManager.GetString("Graph_Hour", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to min.
+        /// </summary>
+        internal static string Graph_Minute {
+            get {
+                return ResourceManager.GetString("Graph_Minute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to sec.
+        /// </summary>
+        internal static string Graph_Second {
+            get {
+                return ResourceManager.GetString("Graph_Second", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to week.
+        /// </summary>
+        internal static string Graph_Week {
+            get {
+                return ResourceManager.GetString("Graph_Week", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Last.
+        /// </summary>
+        internal static string Last {
+            get {
+                return ResourceManager.GetString("Last", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Last Measured Value.
         /// </summary>
         internal static string LastMeasuredValue {
@@ -201,6 +273,15 @@ namespace SCPIAcquisition.Properties {
         internal static string MeasurementFunction {
             get {
                 return ResourceManager.GetString("MeasurementFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Measurement started at.
+        /// </summary>
+        internal static string MeasurementStartedAt {
+            get {
+                return ResourceManager.GetString("MeasurementStartedAt", resourceCulture);
             }
         }
         
@@ -255,6 +336,15 @@ namespace SCPIAcquisition.Properties {
         internal static string ShowStartEndTime {
             get {
                 return ResourceManager.GetString("ShowStartEndTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start.
+        /// </summary>
+        internal static string Start {
+            get {
+                return ResourceManager.GetString("Start", resourceCulture);
             }
         }
         

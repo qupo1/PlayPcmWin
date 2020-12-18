@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows;
 using Microsoft.Win32;
 using System.IO;
+using System.Globalization;
 
 namespace SCPIAcquisition {
     public partial class MainWindow : Window {
@@ -21,6 +22,8 @@ namespace SCPIAcquisition {
         private ScpiCommands.MeasureType mMeasureType = ScpiCommands.MeasureType.DC_V;
 
         private ScpiCommands mScpi = new ScpiCommands();
+
+        private DateTime mStartDateTime;
 
         private static string AssemblyVersion {
             get { return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); }
@@ -65,7 +68,7 @@ namespace SCPIAcquisition {
             LocalizeUI();
 
             graph.GraphTitle = Properties.Resources.DCVoltage;
-            graph.XAxisText = string.Format("{0} ({1})", Properties.Resources.Time, Properties.Resources.Unit_Time);
+            graph.XAxisText = string.Format("{0}", Properties.Resources.Time);
             graph.YAxisText = string.Format("{0} ({1})", Properties.Resources.DCVoltage, Properties.Resources.Unit_Voltage);
             graph.Clear();
             graph.Add(new WWMath.WWVectorD2(0, 0));
@@ -292,6 +295,7 @@ namespace SCPIAcquisition {
             groupBoxSettings.Header = Properties.Resources.Settings;
             groupBoxConnection.Header = Properties.Resources.ConnectionSettings;
             groupBoxControls.Header = Properties.Resources.Controls;
+            groupBoxGraph.Header = Properties.Resources.Graph;
             groupBoxLog.Header = Properties.Resources.Log;
             groupBoxMeasuredValue.Header = Properties.Resources.LastMeasuredValue;
             groupBoxMeasurementFunction.Header = Properties.Resources.MeasurementFunction;
@@ -330,8 +334,6 @@ namespace SCPIAcquisition {
             }
         };
 
-        Stopwatch mSW = new Stopwatch();
-
         private void buttonConnect_Click(object sender, RoutedEventArgs e) {
             groupBoxConnection.IsEnabled = false;
             buttonConnect.IsEnabled = false;
@@ -344,7 +346,7 @@ namespace SCPIAcquisition {
             var stopBits = mStopBitList[comboBoxComStopBits.SelectedIndex];
 
             graph.Clear();
-            mSW.Restart();
+            mStartDateTime = System.DateTime.Now;
             graph.Redraw();
 
             mBW.RunWorkerAsync(new BWArgs(portIdx, baud, dataBits, stopBits, parity));
@@ -440,8 +442,6 @@ namespace SCPIAcquisition {
             groupBoxConnection.IsEnabled = true;
             buttonConnect.IsEnabled = true;
             groupBoxControls.IsEnabled = false;
-
-            mSW.Stop();
         }
 
         // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -458,7 +458,11 @@ namespace SCPIAcquisition {
             double v = 0;
 
             string unit = "";
-            if (double.TryParse(s, out v)) {
+
+            // 計測器から出てくる値は小数点記号がピリオド。
+            // ヨーロッパのロケールのWindowsでdouble.TryParse()すると小数点をカンマとみなして
+            // パースし失敗するので、小数点記号をピリオドであることを指定する。
+            if (double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out v)) {
                 bool bMinus = false;
                 if (v < 0) {
                     bMinus = true;
@@ -558,8 +562,13 @@ namespace SCPIAcquisition {
                 double v;
                 graph.GraphTitle = measureTypeStr;
                 graph.YAxisText = string.Format("{0} ({1})", measureTypeStr, unitStr);
-                if (double.TryParse(numberStr, out v)) {
-                    graph.Add(new WWMath.WWVectorD2(0.001 * mSW.ElapsedMilliseconds, v));
+
+                // 計測器から出てくる値は小数点記号がピリオド。
+                // ヨーロッパのロケールのWindowsでdouble.TryParse()すると小数点をカンマとみなして
+                // パースし失敗するので、小数点記号をピリオドであることを指定する。
+                if (double.TryParse(numberStr, NumberStyles.Any, CultureInfo.InvariantCulture, out v)) {
+                    double elapsedSec = (cmd.timeTick - mStartDateTime.Ticks) / 10000.0 / 1000.0;
+                    graph.Add(new WWMath.WWVectorD2(elapsedSec, v));
                     graph.Redraw();
                 }
             }
@@ -638,8 +647,8 @@ namespace SCPIAcquisition {
 
         private void MeasureTypeChanged() {
             graph.Clear();
+            mStartDateTime = System.DateTime.Now;
             graph.Redraw();
-            mSW.Restart();
         }
 
         private void radioButtonDCV_Checked(object sender, RoutedEventArgs e) {
@@ -681,7 +690,7 @@ namespace SCPIAcquisition {
             sfd.AddExtension = true;
             sfd.DefaultExt=".csv";
             sfd.ValidateNames = true;
-            sfd.Filter = "CSV File|*.csv";
+            sfd.Filter = Properties.Resources.CSVFilter;
             var r = sfd.ShowDialog();
 
             if (r != true) {
@@ -691,22 +700,33 @@ namespace SCPIAcquisition {
             bool bSuccess = false;
             try {
                 using (var sw = new StreamWriter(sfd.FileName)) {
-                    sw.WriteLine("Measurement started at {0}", graph.StartDateTime);
-                    sw.WriteLine("Time(seconds), {0}", graph.YAxisText);
+                    sw.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                        "{0} {1}.{2:000}",
+                        Properties.Resources.MeasurementStartedAt,
+                        mStartDateTime.ToString("MMMM/dd/yyyy HH:mm:ss"), mStartDateTime.Millisecond));
+                    sw.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                        "{0} ({1}), {2}",
+                        Properties.Resources.Time,
+                        Properties.Resources.Unit_Time,
+                        graph.YAxisText));
 
                     var data = graph.PlotData();
                     foreach (var v in data) {
-                        sw.WriteLine("{0}, {1}", v.X, v.Y);
+                        // カンマ区切りのCSV形式。
+                        // ヨーロッパのロケールのWindowsで単にWriteLine()すると小数点記号がカンマで数値が出力され
+                        // 都合が悪いので小数点記号をピリオドに設定する。
+                        sw.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                            "{0}, {1}", v.X, v.Y));
                     }
                 }
 
                 bSuccess = true;
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 MessageBox.Show(ex.ToString(), "File Write Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             if (bSuccess) {
-                AddLog(string.Format("Save as {0}", sfd.FileName));
+                AddLog(string.Format("Saved data as {0}", sfd.FileName));
             } else {
                 AddLog(string.Format("Error: Failed to save {0}", sfd.FileName));
             }

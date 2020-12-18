@@ -138,6 +138,9 @@
   <data name="Controls" xml:space="preserve">
     <value>制御</value>
   </data>
+  <data name="CSVFilter" xml:space="preserve">
+    <value>CSVファイル|*.csv</value>
+  </data>
   <data name="DCCurrent" xml:space="preserve">
     <value>直流電流</value>
   </data>
@@ -156,6 +159,9 @@
   <data name="FrontPanelDisplay" xml:space="preserve">
     <value>フロントパネル表示(_F)</value>
   </data>
+  <data name="Graph" xml:space="preserve">
+    <value>グラフ</value>
+  </data>
   <data name="LastMeasuredValue" xml:space="preserve">
     <value>測定値</value>
   </data>
@@ -164,6 +170,9 @@
   </data>
   <data name="MeasurementFunction" xml:space="preserve">
     <value>機能選択</value>
+  </data>
+  <data name="MeasurementStartedAt" xml:space="preserve">
+    <value>計測開始時刻</value>
   </data>
   <data name="Reset" xml:space="preserve">
     <value>リセット</value>
@@ -178,7 +187,7 @@
     <value>設定</value>
   </data>
   <data name="ShowGrid" xml:space="preserve">
-    <value>枠線</value>
+    <value>目盛線</value>
   </data>
   <data name="ShowStartEndTime" xml:space="preserve">
     <value>開始終了時刻</value>
@@ -191,5 +200,26 @@
   </data>
   <data name="Update" xml:space="preserve">
     <value>更新(_U)</value>
+  </data>
+  <data name="Graph_Day" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="Graph_Hour" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="Graph_Minute" xml:space="preserve">
+    <value>分</value>
+  </data>
+  <data name="Graph_Second" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="Graph_Week" xml:space="preserve">
+    <value>週</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>最新</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>開始</value>
   </data>
 </root>

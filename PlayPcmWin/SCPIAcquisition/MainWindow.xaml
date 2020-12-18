@@ -88,8 +88,8 @@
                             <RowDefinition Height="1*" />
                             <RowDefinition Height="1*" />
                         </Grid.RowDefinitions>
-                        <TextBlock HorizontalAlignment="Left" Margin="6,0,0,0" Name="textBlockMeasureType" Text="DC Voltage" VerticalAlignment="Center" FontSize="24" />
-                        <TextBlock Margin="6,0,6,0" Name="textBlockMeasuredValue" Text="-------- V" VerticalAlignment="Center" FontSize="24" TextAlignment="Center" FontFamily="Courier New" FontWeight="Bold" Grid.Row="1" />
+                        <TextBlock HorizontalAlignment="Center" Name="textBlockMeasureType" Text="DC Voltage" VerticalAlignment="Center" FontSize="24" />
+                        <TextBlock Name="textBlockMeasuredValue" Text="-------- V" VerticalAlignment="Center" FontSize="24" TextAlignment="Center" FontFamily="Courier New" FontWeight="Bold" Grid.Row="1" />
                         <ComboBox Grid.Row="2" Name="comboBoxDispDigits"  Margin="6,0,6,0" VerticalAlignment="Center" HorizontalContentAlignment="Center" >
                             <ComboBoxItem Content="4 digits" Name="cbItem4Digits" />
                             <ComboBoxItem Content="5 digits" Name="cbItem5Digits" />
@@ -101,7 +101,7 @@
                 </GroupBox>
             </Grid>
         </GroupBox>
-        <GroupBox Grid.Row="1" Header="Graph" Margin="6,0,6,0" >
+        <GroupBox Grid.Row="1" Header="Graph" Margin="6,0,6,0" Name="groupBoxGraph">
             <my:TimeDomain1DGraphUC x:Name="graph" />
         </GroupBox>
         <GroupBox Grid.Row="2" Header="Log" Name="groupBoxLog" Margin="6,0,6,6" >

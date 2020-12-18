@@ -138,6 +138,9 @@
   <data name="Controls" xml:space="preserve">
     <value>Controls</value>
   </data>
+  <data name="CSVFilter" xml:space="preserve">
+    <value>CSV Files|*.csv</value>
+  </data>
   <data name="DCCurrent" xml:space="preserve">
     <value>DC Current</value>
   </data>
@@ -156,6 +159,9 @@
   <data name="FrontPanelDisplay" xml:space="preserve">
     <value>_Front Panel Display</value>
   </data>
+  <data name="Graph" xml:space="preserve">
+    <value>Graph</value>
+  </data>
   <data name="LastMeasuredValue" xml:space="preserve">
     <value>Last Measured Value</value>
   </data>
@@ -164,6 +170,9 @@
   </data>
   <data name="MeasurementFunction" xml:space="preserve">
     <value>Measurement Function</value>
+  </data>
+  <data name="MeasurementStartedAt" xml:space="preserve">
+    <value>Measurement started at</value>
   </data>
   <data name="Reset" xml:space="preserve">
     <value>Reset</value>
@@ -206,5 +215,26 @@
   </data>
   <data name="Update" xml:space="preserve">
     <value>_Update</value>
+  </data>
+  <data name="Graph_Day" xml:space="preserve">
+    <value>day</value>
+  </data>
+  <data name="Graph_Hour" xml:space="preserve">
+    <value>hour</value>
+  </data>
+  <data name="Graph_Minute" xml:space="preserve">
+    <value>min</value>
+  </data>
+  <data name="Graph_Second" xml:space="preserve">
+    <value>sec</value>
+  </data>
+  <data name="Graph_Week" xml:space="preserve">
+    <value>week</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Start</value>
   </data>
 </root>
