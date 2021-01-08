@@ -121,7 +121,6 @@ WWGetHubInf(int level, int parentIdx, std::wstring hubName)
     memset(&hc, 0, sizeof hc);
     BHRG(DeviceIoControl(hHub, IOCTL_USB_GET_HUB_CAPABILITIES_EX, &hc, sizeof hc, &hc, sizeof hc, &bytes, nullptr));
 
-
     hub.name = hubName;
     hub.numPorts = ni.u.HubInformation.HubDescriptor.bNumberOfPorts;
     hub.hubType = WWUsbHubTypeToWWUsbDeviceBusSpeed(hi.HubType);
@@ -133,6 +132,15 @@ WWGetHubInf(int level, int parentIdx, std::wstring hubName)
     hub.ni = ni;
     hub.hi = hi;
     hub.hc = hc;
+
+    if (hub.isRoot) {
+        memset(&hub.tc, 0, sizeof hub.tc);
+        memset(&hub.dc, 0, sizeof hub.dc);
+    } else {
+        WWGetTransportCharacteristics(hHub, hub.tc);
+        WWGetDeviceCharacteristics(hHub, hub.dc);
+    }
+
     mHubs.push_back(hub);
 
     WWPrintIndentSpace(level);
@@ -158,6 +166,12 @@ WWGetHubInf(int level, int parentIdx, std::wstring hubName)
         break;
     default:
         break;
+    }
+
+    if (hub.dc.MaximumSendPathDelayInMilliSeconds != 0) {
+        printf(" MaxSendPathDelay=%ums MaxCompPathDelay=%ums\n",
+            hub.dc.MaximumSendPathDelayInMilliSeconds,
+            hub.dc.MaximumCompletionPathDelayInMilliSeconds);
     }
 
     printf("\n");

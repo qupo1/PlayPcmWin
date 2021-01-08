@@ -46,6 +46,7 @@ Open Visual Studio x64 Win64 command prompt and enter following commands to crea
  sn -k WWKeyClassifier2\WWKeyClassifier2.snk
  sn -k WWKeyClassifier2\WWKeyClassifier2.snk
  sn -k FIRFilterConsole\FIRFilterConsole.snk
+ sn -k SCPIAcquisition\SCPIAcquisition.snk
  
 Open PlayPcmWin\PlayPcmWin.sln to build/run PlayPcmWin (choose Release x64 build target)
 

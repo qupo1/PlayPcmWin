@@ -81,10 +81,25 @@ namespace WWTestSignalGenerator {
 
             short nCh = 1;
             int sampleFreq = 44100;
-            int sineFreq = sampleFreq / 4;
-            long nPeriod = (long)(args.durationSec * sineFreq);
+
+#if true
+            // Square wave gen, max magnitude
+            double signalFreq = 50; // 50Hz
+            double duty = 0.25; // デューティー比。
+
+            long nPeriod = (long)(sampleFreq / signalFreq);
+            long nHalfPeriod = nPeriod / 2;
+            long nSignalNum = (long)(nHalfPeriod * duty);
+            long counter = 0;
+            long nFrames = (long)(args.durationSec * sampleFreq);
+            long nFrameBytes = nFrames * nCh * 4; // 8==sizeof float
+#else
+            // 11025Hz signal gen
+            int signalFreq = sampleFreq / 4;
+            long nPeriod = (long)(args.durationSec * signalFreq);
             long nFrames = nPeriod * 4;
             long nFrameBytes = nFrames * nCh * 4; // 8==sizeof float
+#endif
 
             if (0x7fff0000 < nFrameBytes) {
                 args.errMsg = "Error: Sound Duration is too long!";
@@ -102,6 +117,37 @@ namespace WWTestSignalGenerator {
                     wwl.RiffChunkWrite(bw, riffChunkSize);
                     wwl.FmtChunkWriteEx(bw, nCh, sampleFreq, 32, WavWriterLowLevel.WAVE_FORMAT_IEEE_FLOAT, 0);
                     wwl.DataChunkHeaderWrite(bw, dataChunkSize);
+#if true
+                    // Square wave gen, max magnitude
+                    for (int i = 0; i < nFrames; ++i) {
+                        float v = 0.0f;
+                        if (0 == (i % nHalfPeriod)) {
+                            if (0 == (i % nPeriod)) {
+                                // +の信号出力開始。
+                                counter = nSignalNum;
+                            } else {
+                                // -の信号出力開始。
+                                counter = -nSignalNum;
+                            }
+                        }
+
+                        if (0 < counter) {
+                            // +の信号を出力。
+                            v = 32767.0f / 32768.0f;
+                            --counter;
+                        } else if (counter < 0) {
+                            // -の信号を出力。
+                            v = -32767.0f / 32768.0f;
+                            ++counter;
+                        } else {
+                            // 0を出力。
+                            v = 0.0f;
+                        }
+
+                        bw.Write(v);
+                    }
+#else
+                    // 11025Hz signal gen
                     for (int i = 0; i < nPeriod; ++i) {
                         var signal = new float[] {
                             0.0f,
@@ -114,6 +160,7 @@ namespace WWTestSignalGenerator {
                         bw.Write(signal[2]);
                         bw.Write(signal[3]);
                     }
+#endif
                 }
             } catch (System.Exception ex) {
                 args.errMsg = ex.ToString();

@@ -224,8 +224,8 @@ WWGetTransportCharacteristics(HANDLE h, USB_TRANSPORT_CHARACTERISTICS & tc_r)
     brv = DeviceIoControl(h, IOCTL_USB_GET_TRANSPORT_CHARACTERISTICS,
         &tc_r, sizeof tc_r, &tc_r, sizeof tc_r, &bytes, nullptr);
     if (!brv) {
-        printf("Error: Get Transport Characteristics failed\n");
-
+        //printf("Error: Get Transport Characteristics failed\n");
+        memset(&tc_r, 0, sizeof tc_r);
     } else {
         printf("rt_letency=%lldms potentialBandwidth=%lld\n",
             tc_r.CurrentRoundtripLatencyInMilliSeconds, tc_r.MaxPotentialBandwidth);
@@ -247,12 +247,13 @@ WWGetDeviceCharacteristics(HANDLE h, USB_DEVICE_CHARACTERISTICS &dc_r)
     brv = DeviceIoControl(h, IOCTL_USB_GET_DEVICE_CHARACTERISTICS,
         &dc_r, sizeof dc_r, &dc_r, sizeof dc_r, &bytes, nullptr);
     if (!brv) {
-        printf("Error: Get Device Characteristics failed\n");
-
+        //printf("Error: Get Device Characteristics failed\n");
+        memset(&dc_r, 0, sizeof dc_r);
     } else {
-        printf("dc MaxSendPathDelay=%ums MaxCompPathDelay=%ums\n",
+        /*printf("dc MaxSendPathDelay=%ums MaxCompPathDelay=%ums\n",
             dc_r.MaximumSendPathDelayInMilliSeconds,
             dc_r.MaximumCompletionPathDelayInMilliSeconds);
+            */
         hr = S_OK;
     }
 
@@ -335,4 +336,21 @@ WWGetNextDescriptor(
         }
     }
     return nullptr;
+}
+
+BOOL
+WWGetNodeConnectionInfoExV2(HANDLE h, int connIdx, USB_NODE_CONNECTION_INFORMATION_EX_V2& ci2_r)
+{
+    DWORD bytes = 0;
+
+    memset(&ci2_r, 0, sizeof ci2_r);
+    ci2_r.ConnectionIndex = connIdx;
+    ci2_r.Length = sizeof ci2_r;
+    ci2_r.SupportedUsbProtocols.Usb110 = 1;
+    ci2_r.SupportedUsbProtocols.Usb200 = 1;
+    ci2_r.SupportedUsbProtocols.Usb300 = 1;
+
+    // いつの頃からかDeviceIsOperatingAtSuperSpeedPlusOrHigherが1にならなくなった。
+    BOOL brv = DeviceIoControl(h, IOCTL_USB_GET_NODE_CONNECTION_INFORMATION_EX_V2, &ci2_r, sizeof ci2_r, &ci2_r, sizeof ci2_r, &bytes, nullptr);
+    return brv;
 }

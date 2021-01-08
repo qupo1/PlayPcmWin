@@ -492,19 +492,25 @@ GetSpeedCapabilityFromBos(PUSB_BOS_DESCRIPTOR bd)
         case USB_DEVICE_CAPABILITY_DESCRIPTOR_TYPE:
             {
                 PUSB_DEVICE_CAPABILITY_DESCRIPTOR capD = (PUSB_DEVICE_CAPABILITY_DESCRIPTOR)dCur;
-                if (capD->bDevCapabilityType == USB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB) {
-                    PUSB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB_DESCRIPTOR spD = (PUSB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB_DESCRIPTOR)dCur;
-                    int ssaCount = spD->bmAttributes.SublinkSpeedAttrCount;
-                    for (int i = 0; i < ssaCount; ++i) {
-                        auto & a = spD->bmSublinkSpeedAttr[i];
-                        if (3 == a.LaneSpeedExponent) {
-                            // Update giga
-                            // LaneSpeedMantissa Gbps
-                            if (giga < (int)a.LaneSpeedMantissa) {
-                                giga = a.LaneSpeedMantissa;
+                switch (capD->bDevCapabilityType) {
+                case USB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB:
+                    {
+                        PUSB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB_DESCRIPTOR spD = (PUSB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB_DESCRIPTOR)dCur;
+                        int ssaCount = spD->bmAttributes.SublinkSpeedAttrCount;
+                        for (int i = 0; i < ssaCount; ++i) {
+                            auto& a = spD->bmSublinkSpeedAttr[i];
+                            if (3 == a.LaneSpeedExponent) {
+                                // Update giga
+                                // LaneSpeedMantissa Gbps
+                                if (giga < (int)a.LaneSpeedMantissa) {
+                                    giga = a.LaneSpeedMantissa;
+                                }
                             }
                         }
                     }
+                    break;
+                default:
+                    break;
                 }
             }
             break;
@@ -564,13 +570,7 @@ GetHubPortInf(int level, int parentIdx, HANDLE hHub, int hubIdx, int connIdx, WW
     hp_r.pcp = pcp;
 
     // Get ci2, may fail : all zero
-    memset(&ci2, 0, sizeof ci2);
-    ci2.ConnectionIndex = connIdx;
-    ci2.Length = sizeof ci2;
-    ci2.SupportedUsbProtocols.Usb110 = 1;
-    ci2.SupportedUsbProtocols.Usb200 = 1;
-    ci2.SupportedUsbProtocols.Usb300 = 1;
-    brv = DeviceIoControl(hHub, IOCTL_USB_GET_NODE_CONNECTION_INFORMATION_EX_V2, &ci2, sizeof ci2, &ci2, sizeof ci2, &bytes, nullptr);
+    brv = WWGetNodeConnectionInfoExV2(hHub, connIdx, ci2);
     if (!brv) {
         // all zero == failed to get
         memset(&ci2, 0, sizeof ci2);
@@ -597,7 +597,7 @@ GetHubPortInf(int level, int parentIdx, HANDLE hHub, int hubIdx, int connIdx, WW
         // pcieの取得成功。
 
         // speedを決定する。
-        if (ci2.ConnectionIndex != 0 && cie->Speed == UsbHighSpeed) {
+        if (ci2.ConnectionIndex != 0 && UsbHighSpeed <= cie->Speed ) {
             if (ci2.Flags.DeviceIsOperatingAtSuperSpeedPlusOrHigher) {
                 hp_r.speed = WWUDB_SuperSpeedPlus10;
             } else if (ci2.Flags.DeviceIsOperatingAtSuperSpeedOrHigher) {
@@ -654,6 +654,8 @@ GetHubPortInf(int level, int parentIdx, HANDLE hHub, int hubIdx, int connIdx, WW
     if (hp_r.deviceIsHub) {
         HRG(GetExternalHubName(hHub, connIdx, hp_r.extHubName));
     }
+
+    
 
     if (cie->ConnectionStatus == DeviceConnected) {
         // 使用されているポート。

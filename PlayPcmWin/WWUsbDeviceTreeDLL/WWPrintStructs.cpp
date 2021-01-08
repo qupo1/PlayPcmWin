@@ -418,7 +418,7 @@ PrintSuperSpeedCapabilityDesc(int level, PUSB_DEVICE_CAPABILITY_SUPERSPEED_USB_D
 {
     WWPrintIndentSpace(level);
     printf("SuperSpeedUSB LinkPowerManagementSupported=%d SpeedsSupported=%s LowestSpeed=%s DeviceExitLatency U1=%dus U2=%dus\n",
-        0 != (d->bmAttributes &2),
+        0 != (d->bmAttributes & 2),
         SpeedsSupportedToStr(d->wSpeedsSupported).c_str(),
         FunctionalitySupportToStr(d->bFunctionalitySupport),
         d->bU1DevExitLat,
@@ -487,7 +487,6 @@ SubLinkTypeToStr(USB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_SPEED &a)
     return s;
 }
 
-
 static void
 PrintSuperSpeedPlusCapabilityDesc(int level, PUSB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB_DESCRIPTOR d)
 {
@@ -509,6 +508,65 @@ PrintSuperSpeedPlusCapabilityDesc(int level, PUSB_DEVICE_CAPABILITY_SUPERSPEEDPL
     }
 
     printf("\n");
+}
+
+static void
+PrintGuid(UCHAR guid[16])
+{
+    for (int i = 0; i < 16; ++i) {
+        printf("%02x", guid[i]);
+    }
+}
+
+static void
+PrintContainerIdDesc(int level, PUSB_DEVICE_CAPABILITY_CONTAINER_ID_DESCRIPTOR d)
+{
+    WWPrintIndentSpace(level);
+    printf("ContainerId ");
+    PrintGuid(d->ContainerID);
+    printf("\n");
+}
+
+static void
+PrintPrecisionTimeMeasurementDesc(int level)
+{
+    WWPrintIndentSpace(level);
+    printf("PrecisionTimeMeasurement\n");
+}
+
+static std::string
+VConnPowerToStr(USHORT pwr)
+{
+    if (pwr & 0x8000) {
+        return "0W";
+    }
+    switch (pwr) {
+    case 0:
+        return std::string("1W");
+    case 1:
+        return std::string("1.5W");
+    case 2:
+        return std::string("2W");
+    case 3:
+        return std::string("3W");
+    case 4:
+        return std::string("4W");
+    case 5:
+        return std::string("5W");
+    case 6:
+        return std::string("6W");
+    case 7:
+        return std::string("reserved");
+    }
+    return std::string("unknown");
+}
+
+static void
+PrintBillboardDesc(int level, PUSB_DEVICE_CAPABILITY_BILLBOARD_DESCRIPTOR d, std::vector<WWStringDesc>& sds)
+{
+    WWPrintIndentSpace(level);
+    printf("Billboard iAdditionalInfoURL=%d bNumberOfAlternateModes=%d bPreferredAlternateMode=%d VCONN_Power=%s ...\n",
+        d->iAddtionalInfoURL, d->bNumberOfAlternateModes,d->bPreferredAlternateMode,VConnPowerToStr(d->VconnPower.AsUshort).c_str());
 }
 
 /// @return bMaxBurst
@@ -542,35 +600,35 @@ PrintSuperSpeedEndpointCompanionDesc(int level, int endpointType, PUSB_COMMON_DE
     return d->bMaxBurst;
 }
 
-static std::string
-DeviceCapabilityTypeToStr(int t)
+std::string
+WWDeviceCapabilityTypeToStr(int t)
 {
-	switch (t) {
-	case USB_DEVICE_CAPABILITY_WIRELESS_USB: return "Wireless USB";
-	case USB_DEVICE_CAPABILITY_USB20_EXTENSION: return "USB20 Extension";
-	case USB_DEVICE_CAPABILITY_SUPERSPEED_USB: return "SuperSpeed USB";
-	case USB_DEVICE_CAPABILITY_CONTAINER_ID: return "Container ID";
-	case USB_DEVICE_CAPABILITY_PLATFORM: return "Platform";
-	case USB_DEVICE_CAPABILITY_POWER_DELIVERY: return "Power Delivery";
-	case USB_DEVICE_CAPABILITY_BATTERY_INFO: return "Battery Info";
-	case USB_DEVICE_CAPABILITY_PD_CONSUMER_PORT: return "PD Consumer Port";
-	case USB_DEVICE_CAPABILITY_PD_PROVIDER_PORT: return "PD Provider Port";
-	case USB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB: return "SuperSpeedPlus USB";
-	case USB_DEVICE_CAPABILITY_PRECISION_TIME_MEASUREMENT: return "Precision Timer Measurement";
-	case USB_DEVICE_CAPABILITY_BILLBOARD: return "Billboard";
-	case USB_DEVICE_CAPABILITY_FIRMWARE_STATUS: return "Firmware Status";
-	default:
-		{
-			char s[256];
-			sprintf_s(s, "UnknownCapabilityType %d", t);
-			return std::string(s);
-		}
-	}
+    switch (t) {
+    case USB_DEVICE_CAPABILITY_WIRELESS_USB: return "Wireless USB";
+    case USB_DEVICE_CAPABILITY_USB20_EXTENSION: return "USB20 Extension";
+    case USB_DEVICE_CAPABILITY_SUPERSPEED_USB: return "SuperSpeed USB";
+    case USB_DEVICE_CAPABILITY_CONTAINER_ID: return "Container ID";
+    case USB_DEVICE_CAPABILITY_PLATFORM: return "Platform";
+    case USB_DEVICE_CAPABILITY_POWER_DELIVERY: return "Power Delivery";
+    case USB_DEVICE_CAPABILITY_BATTERY_INFO: return "Battery Info";
+    case USB_DEVICE_CAPABILITY_PD_CONSUMER_PORT: return "PD Consumer Port";
+    case USB_DEVICE_CAPABILITY_PD_PROVIDER_PORT: return "PD Provider Port";
+    case USB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB: return "SuperSpeedPlus USB";
+    case USB_DEVICE_CAPABILITY_PRECISION_TIME_MEASUREMENT: return "Precision Timer Measurement";
+    case USB_DEVICE_CAPABILITY_BILLBOARD: return "Billboard";
+    case USB_DEVICE_CAPABILITY_FIRMWARE_STATUS: return "Firmware Status";
+    default:
+        {
+            char s[256];
+            sprintf_s(s, "UnknownCapabilityType %d", t);
+            return std::string(s);
+        }
+    }
 }
 
 
 static void
-PrintCapabilityDesc(int level, PUSB_COMMON_DESCRIPTOR d)
+PrintCapabilityDesc(int level, PUSB_COMMON_DESCRIPTOR d, std::vector<WWStringDesc>& sds)
 {
     PUSB_DEVICE_CAPABILITY_DESCRIPTOR capD = (PUSB_DEVICE_CAPABILITY_DESCRIPTOR)d;
     switch (capD->bDevCapabilityType) {
@@ -583,10 +641,19 @@ PrintCapabilityDesc(int level, PUSB_COMMON_DESCRIPTOR d)
     case USB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB:
         PrintSuperSpeedPlusCapabilityDesc(level, (PUSB_DEVICE_CAPABILITY_SUPERSPEEDPLUS_USB_DESCRIPTOR)d);
         break;
-	default:
+    case USB_DEVICE_CAPABILITY_CONTAINER_ID:
+        PrintContainerIdDesc(level, (PUSB_DEVICE_CAPABILITY_CONTAINER_ID_DESCRIPTOR)d);
+        break;
+    case USB_DEVICE_CAPABILITY_PRECISION_TIME_MEASUREMENT:
+        PrintPrecisionTimeMeasurementDesc(level);
+        break;
+    case USB_DEVICE_CAPABILITY_BILLBOARD:
+        PrintBillboardDesc(level, (PUSB_DEVICE_CAPABILITY_BILLBOARD_DESCRIPTOR)d, sds);
+        break;
+    default:
         WWPrintIndentSpace(level);
         printf("%s\n",
-            DeviceCapabilityTypeToStr(capD->bDevCapabilityType).c_str());
+            WWDeviceCapabilityTypeToStr(capD->bDevCapabilityType).c_str());
         break;
     }
 }
@@ -601,10 +668,10 @@ PrintOtgDesc(int level, PUSB_COMMON_DESCRIPTOR d)
 static void
 PrintBosDesc(int level, PUSB_COMMON_DESCRIPTOR d)
 {
-	PUSB_BOS_DESCRIPTOR bos = (PUSB_BOS_DESCRIPTOR)d;
+    PUSB_BOS_DESCRIPTOR bos = (PUSB_BOS_DESCRIPTOR)d;
 
-	WWPrintIndentSpace(level);
-	printf("BOS nCaps=%d totalLen=%d\n", bos->bNumDeviceCaps, bos->wTotalLength);
+    WWPrintIndentSpace(level);
+    printf("BOS nCaps=%d totalLen=%d\n", bos->bNumDeviceCaps, bos->wTotalLength);
 }
 
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -628,7 +695,7 @@ public:
                 PrintDeviceDesc(level, d);
                 break;
             case USB_DEVICE_CAPABILITY_DESCRIPTOR_TYPE:
-                PrintCapabilityDesc(level+1, d);
+                PrintCapabilityDesc(level+1, d, sds);
                 break;
             case USB_SUPERSPEED_ENDPOINT_COMPANION_DESCRIPTOR_TYPE:
                 PrintSuperSpeedEndpointCompanionDesc(level+1, endpointType, d);
@@ -642,9 +709,9 @@ public:
             case USB_OTG_DESCRIPTOR_TYPE:
                 PrintOtgDesc(level + 1, d);
                 break;
-			case USB_BOS_DESCRIPTOR_TYPE:
-				PrintBosDesc(level + 0, d);
-				break;
+            case USB_BOS_DESCRIPTOR_TYPE:
+                PrintBosDesc(level + 0, d);
+                break;
             default:
                 PrintOtherDesc(level + 1, d);
                 break;

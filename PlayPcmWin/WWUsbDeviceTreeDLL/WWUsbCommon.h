@@ -80,6 +80,9 @@ WWGetTransportCharacteristics(HANDLE h, USB_TRANSPORT_CHARACTERISTICS & tc_r);
 HRESULT
 WWGetDeviceCharacteristics(HANDLE h, USB_DEVICE_CHARACTERISTICS &dc_r);
 
+BOOL
+WWGetNodeConnectionInfoExV2(HANDLE h, int connIdx, USB_NODE_CONNECTION_INFORMATION_EX_V2& ci2_r);
+
 void
 WWPrintIndentSpace(int level);
 
