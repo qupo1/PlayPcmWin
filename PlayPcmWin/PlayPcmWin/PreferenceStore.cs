@@ -123,6 +123,8 @@ namespace PlayPcmWin {
 
         public ChannelCount2Type ChannelCount2 { get; set; }
 
+        public bool AllowsMultipleAppInstances { get; set; }
+
         public void PlayListColumnsOrderRemoveRange(int idx, int count) {
             playListColumnsOrder.RemoveRange(idx, count);
         }
@@ -216,6 +218,7 @@ namespace PlayPcmWin {
             ChannelCount2 = ChannelCount2Type.MixFormatChannelCount;
 
             IsFormatSupportedCall = true;
+            AllowsMultipleAppInstances = true;
         }
 
         /// <summary>

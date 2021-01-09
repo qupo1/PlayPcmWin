@@ -1137,6 +1137,15 @@ namespace PlayPcmWin.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Allows Multiple App Instances.
+        /// </summary>
+        internal static string SettingsAllowMultipleInstances {
+            get {
+                return ResourceManager.GetString("SettingsAllowMultipleInstances", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         internal static string SettingsButtonCancel {

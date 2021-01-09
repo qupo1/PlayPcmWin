@@ -730,4 +730,7 @@ Jcode.pm copyright is as follows: Copyright 1999-2005 Dan Kogai</value>
   <data name="AudioFilterDeEmphasis" xml:space="preserve">
     <value>De-emphasis (for 44.1kHz PCM playback)</value>
   </data>
+  <data name="SettingsAllowMultipleInstances" xml:space="preserve">
+    <value>Allows Multiple App Instances</value>
+  </data>
 </root>

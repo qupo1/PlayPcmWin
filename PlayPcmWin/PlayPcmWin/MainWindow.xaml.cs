@@ -311,10 +311,14 @@ namespace PlayPcmWin
             this.AddHandler(Slider.MouseLeftButtonDownEvent, new MouseButtonEventHandler(slider1_MouseLeftButtonDown), true);
             this.AddHandler(Slider.MouseLeftButtonUpEvent, new MouseButtonEventHandler(slider1_MouseLeftButtonUp), true);
 
-            // InitializeComponent()によって、チェックボックスのチェックイベントが発生し
-            // m_preferenceの内容が変わるので、InitializeComponent()の後にロードする。
+            // ■■ 順番注意：InitializeComponent()によって、チェックボックスのチェックイベントが発生し
+            // m_preferenceの内容が変わるので、InitializeComponent()の後にロードする。■■
 
             m_preference = PreferenceStore.Load();
+
+            if (!m_preference.AllowsMultipleAppInstances) {
+
+            }
 
             if (m_preference.ManuallySetMainWindowDimension) {
                 // 記録されているウィンドウ形状が、一部分でも画面に入っていたら、そのウィンドウ形状に設定する。

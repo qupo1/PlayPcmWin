@@ -123,6 +123,7 @@ namespace PlayPcmWin {
 
             checkBoxIsFormatSupported.Content = Properties.Resources.SettingsCheckBoxIsFormatSupportedCall;
             checkBoxParallelRead.Content = Properties.Resources.SettingsCheckBoxParallelRead;
+            checkBoxAllowsMultipleInstances.Content = Properties.Resources.SettingsAllowMultipleInstances;
         }
 
         public void SetPreference(Preference preference) {
@@ -328,6 +329,9 @@ namespace PlayPcmWin {
                 comboBoxChannelCount.SelectedItem = cbItemChannelCountMixFormat;
                 break;
             }
+
+            checkBoxAllowsMultipleInstances.IsChecked
+                = preference.AllowsMultipleAppInstances;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
@@ -527,6 +531,8 @@ namespace PlayPcmWin {
                 m_preference.ChannelCount2 = ChannelCount2Type.MixFormatChannelCount;
             }
 
+            m_preference.AllowsMultipleAppInstances = (checkBoxAllowsMultipleInstances.IsChecked == true);
+
             Close();
         }
 
@@ -658,5 +664,6 @@ namespace PlayPcmWin {
         private void checkBoxParallelRead_Unchecked(object sender, RoutedEventArgs e) {
             checkBoxVerifyFlacMD5Sum.IsEnabled = true;
         }
+
     }
 }

@@ -727,4 +727,7 @@ Jcode.pmのCopyright: Copyright 1999-2005 Dan Kogai</value>
   <data name="AudioFilterDeEmphasis" xml:space="preserve">
     <value>ディエンファシス (44.1kHz PCM再生専用)</value>
   </data>
+  <data name="SettingsAllowMultipleInstances" xml:space="preserve">
+    <value>複数起動を許可</value>
+  </data>
 </root>

@@ -115,7 +115,7 @@
                             </ComboBox>
                         </Grid>
                     </GroupBox>
-                    <GroupBox x:Uid="groupBoxDisplaySettings" Header="Display settings" Margin="4" Height="200" Width="440" Name="groupBoxDisplaySettings" >
+                    <GroupBox x:Uid="groupBoxDisplaySettings" Header="Display settings" Margin="4" Height="240" Width="440" Name="groupBoxDisplaySettings" >
                         <Grid x:Uid="Grid_7">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1*" />
@@ -162,22 +162,24 @@
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
                             </Grid.RowDefinitions>
                             <CheckBox Content="Restore the playlist on program startup"  Margin="6,0,6,0" Name="checkBoxStorePlaylistContent" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.ColumnSpan="3" />
-                            <CheckBox Grid.Row="1" Content="Sort dropped folder items" HorizontalAlignment="Left" IsChecked="False" Margin="6,0,6,0" Name="checkBoxSortDropFolder" VerticalAlignment="Center" Grid.ColumnSpan="2" />
-                            <CheckBox Grid.Row="2" Content="Sort dropped files" HorizontalAlignment="Left" IsChecked="False" Margin="6,0,6,0" Name="checkBoxSortDroppedFiles" VerticalAlignment="Center" Grid.ColumnSpan="2" />
+                            <CheckBox Grid.Row="1" Content="Sort dropped folder items" HorizontalAlignment="Left" IsChecked="False" Margin="6,0,6,0" Name="checkBoxSortDropFolder" VerticalAlignment="Center" Grid.ColumnSpan="3" />
+                            <CheckBox Grid.Row="2" Content="Sort dropped files" HorizontalAlignment="Left" IsChecked="False" Margin="6,0,6,0" Name="checkBoxSortDroppedFiles" VerticalAlignment="Center" Grid.ColumnSpan="3" />
                             <CheckBox Grid.Row="3" Content="Set [Batch read endpoint] on file drop" HorizontalAlignment="Left" IsChecked="False" Margin="6,0,6,0" Name="checkBoxBatchReadEndpointToEveryTrack" VerticalAlignment="Center" Grid.ColumnSpan="3" />
-                            <CheckBox Grid.Row="4" Content="Verify FLAC MD5sum on file read" HorizontalAlignment="Left" IsChecked="False" Margin="6,0,6,0" Name="checkBoxVerifyFlacMD5Sum" VerticalAlignment="Center" Grid.ColumnSpan="2" />
+                            <CheckBox Grid.Row="4" Content="Verify FLAC MD5sum on file read" HorizontalAlignment="Left" IsChecked="False" Margin="6,0,6,0" Name="checkBoxVerifyFlacMD5Sum" VerticalAlignment="Center" Grid.ColumnSpan="3" />
                             <CheckBox Grid.Row="5" Content="Add silent channel for ch. count to be even" HorizontalAlignment="Left" IsChecked="False" Margin="6,0,6,0" Name="checkBoxChannelCountEven" VerticalAlignment="Center" Grid.ColumnSpan="3" />
-                            <CheckBox Grid.Row="6" Content="Reduce PCM volume:"  Margin="6,0,0,0" Name="checkBoxReduceVolume" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Grid.ColumnSpan="2" />
-                            <CheckBox Grid.Row="7" Content="Call IsFormatSupported on playback"  Margin="6,0,6,0" Name="checkBoxIsFormatSupported" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Grid.ColumnSpan="2" />
-                            <CheckBox Grid.Row="8" Content="Parallel read (for Solid State Drives)"  Margin="6,0,6,0" Name="checkBoxParallelRead" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Checked="checkBoxParallelRead_Checked" Unchecked="checkBoxParallelRead_Unchecked" Grid.ColumnSpan="2" />
+                            <CheckBox Grid.Row="6" Content="Reduce PCM volume:"  Margin="6,0,0,0" Name="checkBoxReduceVolume" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Grid.ColumnSpan="1" />
+                            <CheckBox Grid.Row="7" Content="Call IsFormatSupported on playback"  Margin="6,0,6,0" Name="checkBoxIsFormatSupported" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Grid.ColumnSpan="3" />
+                            <CheckBox Grid.Row="8" Content="Parallel read (for Solid State Drives)"  Margin="6,0,6,0" Name="checkBoxParallelRead" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Checked="checkBoxParallelRead_Checked" Unchecked="checkBoxParallelRead_Unchecked" Grid.ColumnSpan="3" />
                             <Label Grid.Row="6" Grid.Column="2" Content="dB" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                             <ComboBox Grid.Column="1" Grid.Row="6" Text="6" HorizontalContentAlignment="Right" Name="comboBoxReduceVolumeByDb" VerticalAlignment="Center" >
                                 <ComboBoxItem Content="-2" />
                                 <ComboBoxItem Content="-4" />
                                 <ComboBoxItem Content="-6.02" IsSelected="True" />
                             </ComboBox>
+                            <CheckBox Grid.Row="9" Content="Allows Multiple App Instances"  Margin="6,0,6,0" Name="checkBoxAllowsMultipleInstances" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Grid.ColumnSpan="3" />
                         </Grid>
                     </GroupBox>
                 </WrapPanel>
