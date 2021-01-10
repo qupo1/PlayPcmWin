@@ -62,6 +62,11 @@ namespace MultipleAppInstanceComm {
 
         public void Term() {
             ServerStop();
+
+            if (mAppInstanceMtx != null) {
+                mAppInstanceMtx.Dispose();
+                mAppInstanceMtx = null;
+            }
         }
 
         /// <summary>
