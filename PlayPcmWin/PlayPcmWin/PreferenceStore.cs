@@ -218,7 +218,7 @@ namespace PlayPcmWin {
             ChannelCount2 = ChannelCount2Type.MixFormatChannelCount;
 
             IsFormatSupportedCall = true;
-            AllowsMultipleAppInstances = true;
+            AllowsMultipleAppInstances = false;
         }
 
         /// <summary>
