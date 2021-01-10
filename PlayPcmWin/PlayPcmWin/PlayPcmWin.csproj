@@ -127,6 +127,7 @@
     <Compile Include="FlacDecodeIF.cs" />
     <Compile Include="InterceptMediaKeys.cs" />
     <Compile Include="M3uRW.cs" />
+    <Compile Include="MultipleAppInstanceMgr.cs" />
     <Compile Include="NextTask.cs" />
     <Compile Include="PcmDataList.cs" />
     <Compile Include="PcmHeaderReader.cs" />

@@ -733,4 +733,13 @@ Jcode.pm copyright is as follows: Copyright 1999-2005 Dan Kogai</value>
   <data name="SettingsAllowMultipleInstances" xml:space="preserve">
     <value>Allows Multiple App Instances</value>
   </data>
+  <data name="FilesWillBeAddedAfterPlaybackStops" xml:space="preserve">
+    <value>■ Files will be added after playback stops. ■</value>
+  </data>
+  <data name="MultipleAppInstanceSettingsChanged" xml:space="preserve">
+    <value>Message about multiple app instance settings changed</value>
+  </data>
+  <data name="RestartTheAppToTakeEffect" xml:space="preserve">
+    <value>Restart the app to take effect.</value>
+  </data>
 </root>

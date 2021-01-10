@@ -665,5 +665,19 @@ namespace PlayPcmWin {
             checkBoxVerifyFlacMD5Sum.IsEnabled = true;
         }
 
+        private void checkBoxAllowsMultipleInstances_Checked(object sender, RoutedEventArgs e) {
+            if (!mWindowLoaded) {
+                return;
+            }
+            MessageBox.Show(Properties.Resources.RestartTheAppToTakeEffect, Properties.Resources.MultipleAppInstanceSettingsChanged, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void checkBoxAllowsMultipleInstances_Unchecked(object sender, RoutedEventArgs e) {
+            if (!mWindowLoaded) {
+                return;
+            }
+            MessageBox.Show(Properties.Resources.RestartTheAppToTakeEffect, Properties.Resources.MultipleAppInstanceSettingsChanged, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
     }
 }

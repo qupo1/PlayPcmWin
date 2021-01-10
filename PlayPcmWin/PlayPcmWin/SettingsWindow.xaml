@@ -179,7 +179,7 @@
                                 <ComboBoxItem Content="-4" />
                                 <ComboBoxItem Content="-6.02" IsSelected="True" />
                             </ComboBox>
-                            <CheckBox Grid.Row="9" Content="Allows Multiple App Instances"  Margin="6,0,6,0" Name="checkBoxAllowsMultipleInstances" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Grid.ColumnSpan="3" />
+                            <CheckBox Grid.Row="9" Content="Allows Multiple App Instances"  Margin="6,0,6,0" Name="checkBoxAllowsMultipleInstances" VerticalAlignment="Center" IsChecked="False" HorizontalAlignment="Left" Grid.ColumnSpan="3" Checked="checkBoxAllowsMultipleInstances_Checked" Unchecked="checkBoxAllowsMultipleInstances_Unchecked" />
                         </Grid>
                     </GroupBox>
                 </WrapPanel>

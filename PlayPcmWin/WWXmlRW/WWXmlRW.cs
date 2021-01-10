@@ -7,7 +7,6 @@ namespace WWXmlRW {
     public interface SaveLoadContents {
         int GetVersionNumber();
         int GetCurrentVersionNumber();
-
     }
 
     /// <summary>

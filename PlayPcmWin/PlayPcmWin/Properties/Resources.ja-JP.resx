@@ -730,4 +730,13 @@ Jcode.pmのCopyright: Copyright 1999-2005 Dan Kogai</value>
   <data name="SettingsAllowMultipleInstances" xml:space="preserve">
     <value>複数起動を許可</value>
   </data>
+  <data name="FilesWillBeAddedAfterPlaybackStops" xml:space="preserve">
+    <value>■再生停止後ファイルを再生リストに追加します。■</value>
+  </data>
+  <data name="MultipleAppInstanceSettingsChanged" xml:space="preserve">
+    <value>アプリ多重起動の設定変更についてのメッセージ</value>
+  </data>
+  <data name="RestartTheAppToTakeEffect" xml:space="preserve">
+    <value>この変更を反映するためにアプリを起動し直して下さい。</value>
+  </data>
 </root>

@@ -315,6 +315,15 @@ namespace PlayPcmWin.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ■ Files will be added after playback stops. ■.
+        /// </summary>
+        internal static string FilesWillBeAddedAfterPlaybackStops {
+            get {
+                return ResourceManager.GetString("FilesWillBeAddedAfterPlaybackStops", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CUE files|*.CUE.
         /// </summary>
         internal static string FilterCueFiles {
@@ -1038,6 +1047,15 @@ namespace PlayPcmWin.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Message about multiple app instance settings changed.
+        /// </summary>
+        internal static string MultipleAppInstanceSettingsChanged {
+            get {
+                return ResourceManager.GetString("MultipleAppInstanceSettingsChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nothing to store .
         /// </summary>
         internal static string NothingToStore {
@@ -1115,6 +1133,15 @@ namespace PlayPcmWin.Properties {
         internal static string ReadPlayGroupNCompleted {
             get {
                 return ResourceManager.GetString("ReadPlayGroupNCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restart the app to take effect..
+        /// </summary>
+        internal static string RestartTheAppToTakeEffect {
+            get {
+                return ResourceManager.GetString("RestartTheAppToTakeEffect", resourceCulture);
             }
         }
         
