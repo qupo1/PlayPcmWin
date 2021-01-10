@@ -5,22 +5,28 @@ using System.IO.Pipes;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
+using System.Diagnostics;
 
 namespace MultipleAppInstanceComm {
 
     /// <summary>
-    /// コマンドライン引数データを受信したとき呼ばれるコールバック。
+    /// 他のアプリインスタンスからのメッセージ(コマンドライン引数等)を受信した時呼ばれるコールバックのsignature。
     /// </summary>
-    /// <param name="args">受信したコマンドライン引数</param>
-    public delegate void MultipleAppInstanceRecvArgsCallback(object cbObject, MultipleAppInstanceMgr.ArgsParams args);
+    /// <param name="cbObject">サーバースレッド起動時にセットされたcbObject。</param>
+    /// <param name="msg">受信したメッセージ。</param>
+    public delegate void MultipleAppInstanceRecvMsgCallback(object cbObject, MultipleAppInstanceMgr.ReceivedMessage msg);
 
     /// <summary>
-    /// 複数インスタンス起動を検出。
-    /// 最初のインスタンスに起動引数を送ります。
+    /// 同一アプリの複数インスタンス起動を検出。
+    /// 最初に起動したアプリインスタンスに起動引数を送る。
     /// </summary>
     public class MultipleAppInstanceMgr {
-        public class ArgsParams {
-            public int version;
+
+        /// <summary>
+        /// 他のアプリインスタンスから受信したメッセージ。
+        /// </summary>
+        public class ReceivedMessage {
+            public int protocolVersion;
             public List<string> args = new List<string>();
         };
 
@@ -39,64 +45,59 @@ namespace MultipleAppInstanceComm {
         private bool mServerThreadEnd = false;
         private ManualResetEvent mServerStopEvent;
 
-        private MultipleAppInstanceRecvArgsCallback mCb;
+        private MultipleAppInstanceRecvMsgCallback mCb;
         private object mCbObject;
 
         /// <summary>
         /// ctor。
         /// </summary>
-        /// <param name="appName">パイプとミューテックスの名前。</param>
-        public MultipleAppInstanceMgr(string appName, MultipleAppInstanceRecvArgsCallback cb, object cbObject) {
-            mPipeName = appName;
+        /// <param name="appName">名前付きパイプと名前付きミューテックスの名前。ユニークなアプリの名前をセットする。</param>
+        public MultipleAppInstanceMgr(string appName) {
+            mPipeName  = appName;
             mMutexName = appName;
 
-            mCb = cb;
-            mCbObject = cbObject;
+            mCb = null;
+            mCbObject = null;
         }
 
         /// <summary>
-        /// アプリが既に起動しているか調べる。
+        /// このアプリが既に起動しているか調べる。
         /// </summary>
-        /// <returns>true: アプリが既に起動している。</returns>
+        /// <returns>true: アプリが既に起動している。false: このアプリの唯一のインスタンスである。</returns>
         public bool IsAppAlreadyRunning() {
             if (mOnlyInstance != null && mOnlyInstance == true) {
                 // 前回調べた結果、このインスタンスが唯一のインスタンスであった。
                 return false;
             }
 
-            bool onlyInstance = false;
+            bool onlyInstance;
             mAppInstanceMtx = new Mutex(true, mMutexName, out onlyInstance);
             if (!onlyInstance) {
+                // 同名の名前付きミューテックスが既に存在する：他にインスタンスが存在。
                 return true;
             }
 
-            // 唯一のインスタンスである事が判った。
+            // このアプリの唯一のインスタンスである事が判った。
             mOnlyInstance = true;
 
-            // Mutexのインスタンスのガベコレ消滅防止。
+            // 名前付きMutexのガベコレ消滅防止。
             GC.KeepAlive(mAppInstanceMtx);
 
             return false;
         }
 
         /// <summary>
-        /// 最初に起動したPPWに起動引数を送ります。
+        /// 最初に起動したアプリインスタンスに起動引数を送ります。
         /// </summary>
         /// <returns>成功すると0。失敗すると負の数。</returns>
-        public int SendArgsToServer(string[] args) {
-            if (args.Length == 0) {
-                // 送るデータが無い。
-                Console.WriteLine("SendArgsToServer nothing to send to.");
-                return 0;
-            }
-
-            var pipe = new NamedPipeClientStream(".", mPipeName,
+        public int ClientSendMsgToServer(string[] args) {
+            var stream = new NamedPipeClientStream(".", mPipeName,
                     PipeDirection.InOut, PipeOptions.None,
                     TokenImpersonationLevel.Impersonation);
 
-            Console.WriteLine("Connecting to named pipe server \"{0}\" ...\n", mPipeName);
+            Console.WriteLine("Connecting to named stream server \"{0}\" ...\n", mPipeName);
             try {
-                pipe.Connect(CONNECT_TIMEOUT_MSEC);
+                stream.Connect(CONNECT_TIMEOUT_MSEC);
             } catch (TimeoutException ex) {
                 Console.WriteLine("Error: Connect timeout. {0}", ex.ToString());
                 return -1;
@@ -112,46 +113,62 @@ namespace MultipleAppInstanceComm {
              * ...
              * -              args[args.Len-1].Len args[args.Len-1]の文字列。
              */
-            StreamWriteInt(pipe, PROTOCOL_VERSION);
-            StreamWriteInt(pipe, args.Length);
-
-            var ss = new StreamString(pipe);
+            StreamWriteInt(stream, PROTOCOL_VERSION);
+            StreamWriteInt(stream, args.Length);
 
             for (int i = 0; i < args.Length; ++i) {
-                ss.WriteString(args[i]);
+                StreamWriteString(stream, args[i]);
             }
 
-            pipe.Close();
+            stream.Close();
             return 0;
         }
+
+        // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+        // サーバースレッド。
 
         /// <summary>
         /// サーバースレッドを起動する。
         /// </summary>
-        /// <returns>0:成功。負の数:既に起動している。</returns>
-        public int StartServer() {
+        /// <param name="cb">後から起動したインスタンスからメッセージを受け取るコールバック。必要ないときはnullをセット。</param>
+        /// <param name="cbObject">コールバック関数の第1引数として渡されるオブジェクト。</param>
+        /// <returns>0:成功。負の数:既に起動しているので失敗。</returns>
+        public int ServerStart(MultipleAppInstanceRecvMsgCallback cb, object cbObject) {
             if (mServerThread != null) {
-                Console.WriteLine("StartServer() Server already running!");
+                Console.WriteLine("ServerStart() Server already running!");
                 return -1;
             }
+
+            mCb = cb;
+            mCbObject = cbObject;
 
             // 起動します。
             mServerStopEvent = new ManualResetEvent(false);
             mServerThreadEnd = false;
-            mServerThread = new Thread(ServerThread);
+            mServerThread = new Thread(NamedPipeServerThread);
             mServerThread.Start();
 
-            Console.WriteLine("StartServer() Success.");
+            //Console.WriteLine("ServerStart() Success.");
             return 0;
+        }
+
+        /// <summary>
+        /// サーバースレッドが呼び出すコールバックを変更する。
+        /// </summary>
+        /// <param name="cb">新しいコールバック。nullの場合呼ばなくなる。</param>
+        /// <param name="cbObject">コールバックの第1引数。</param>
+        public void ServerUpdateCallback(MultipleAppInstanceRecvMsgCallback cb, object cbObject) {
+            mCb = cb;
+            mCbObject = cbObject;
         }
 
         /// <summary>
         /// サーバースレッドが起動していたら終了、Join、削除します。
         /// </summary>
-        public void StopServer() {
-            Console.WriteLine("StopServer()");
+        public void ServerStop() {
+            //Console.WriteLine("ServerStop()");
             if (mServerStream == null) {
-                Console.WriteLine("StopServer() already stopped.");
+                Console.WriteLine("ServerStop() already stopped.");
                 return;
             }
 
@@ -168,7 +185,7 @@ namespace MultipleAppInstanceComm {
             mServerStopEvent.Dispose();
             mServerStopEvent = null;
 
-            Console.WriteLine("StopServer() success.");
+            //Console.WriteLine("ServerStop() success.");
         }
 
         // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -177,7 +194,7 @@ namespace MultipleAppInstanceComm {
         /// <summary>
         /// WaitForConnectionのキャンセル対応版。
         /// </summary>
-        private void WaitForConnection2(NamedPipeServerStream stream, ManualResetEvent cancelEvent) {
+        private static void WaitForConnection2(NamedPipeServerStream stream, ManualResetEvent cancelEvent) {
             Exception e = null;
             var connectEvent = new AutoResetEvent(false);
             stream.BeginWaitForConnection(ar => {
@@ -205,14 +222,85 @@ namespace MultipleAppInstanceComm {
             mServerStream = null;
         }
 
-        private void ServerThread(object data) {
-            Console.WriteLine("ServerThread started.");
+        /// <summary>
+        /// クライアントからのメッセージを受信。
+        /// </summary>
+        /// <returns>true:成功。false:途中で切断が起きたので失敗。</returns>
+        private bool ServerRecvMsg(out ReceivedMessage msg_return) {
+            msg_return = new ReceivedMessage();
+
+            try {
+                // データプロトコルはClientSendArgsToServer参照。
+
+                int version;
+                if (!StreamReadInt(mServerStream, out version)) {
+                    // バージョン番号取得失敗。
+                    // 切断する。
+                    Console.WriteLine("ServerRecvMsg Version number recv failed.");
+                    return false;
+                }
+
+                if (version != PROTOCOL_VERSION) {
+                    Console.WriteLine("ServerRecvMsg Pipe protocol protocolVersion mismatch {0}", version);
+                    return false;
+                }
+
+                //Console.WriteLine("ServerRecvMsg Protocol protocolVersion = {0}.", version);
+
+                int nString;
+                if (!StreamReadInt(mServerStream, out nString)) {
+                    // 文字列個数取得失敗。
+                    // 切断する。
+                    Console.WriteLine("ServerRecvMsg args.Length recv failed.");
+                    return false;
+                }
+
+                if (nString < 0) {
+                    Console.WriteLine("ServerRecvMsg args.Length out of range {0}", nString);
+                    return false;
+                }
+
+                //Console.WriteLine("ServerRecvMsg args.Length = {0}", nString);
+
+                // 受信データをapに入れる。
+                msg_return.protocolVersion = version;
+
+                if (0 < nString) {
+                    // コマンドライン引数があるので受信。
+                    for (int i = 0; i < nString; ++i) {
+                        string s;
+                        if (!StreamReadString(mServerStream, out s)) {
+                            // 受信失敗。
+                            Console.WriteLine("ServerRecvMsg ReadString {0} failed.", i);
+                            return false;
+                        }
+                        msg_return.args.Add(s);
+                        //Console.WriteLine("ServerRecvMsg args[{0}] = {1}", i, s);
+                    }
+                }
+
+                // すべて成功。
+                return true;
+            } catch (Exception e) {
+                Console.WriteLine("ServerRecvMsg Error: {0}", e.Message);
+            }
+
+            // 途中で例外が発生し失敗。
+            return false;
+        }
+
+        /// <summary>
+        /// 名前付きパイプの待ち受けサーバースレッド。
+        /// </summary>
+        private void NamedPipeServerThread(object data) {
+            Console.WriteLine("NamedPipeServerThread \"{0}\" started.", mPipeName);
 
             while (!mServerThreadEnd) {
-                System.Diagnostics.Debug.Assert(mServerStream == null);
+
+                Debug.Assert(mServerStream == null);
                 mServerStream = new NamedPipeServerStream(mPipeName, PipeDirection.InOut, NUM_THREADS, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
-                Console.WriteLine("ServerThread \"{0}\" Wait for connection...", mPipeName);
+                //Console.WriteLine("NamedPipeServerThread \"{0}\" Wait for connection...", mPipeName);
 
                 // ここでブロックします。
                 WaitForConnection2(mServerStream, mServerStopEvent);
@@ -223,162 +311,138 @@ namespace MultipleAppInstanceComm {
                 }
 
                 // クライアントが接続してきた。
-                Console.WriteLine("Client connected on ServerThread.");
-                try {
-                    int version;
-                    if (!StreamReadInt(mServerStream, out version)) {
-                        // バージョン番号取得失敗。
-                        // 切断する。
-                        Console.WriteLine("Version number recv failed.");
-                        ServerStreamClose();
-                        continue;
+                // メッセージを受信します。
+                //Console.WriteLine("Client connected on NamedPipeServerThread.");
+
+                ReceivedMessage msg;
+                if (ServerRecvMsg(out msg)) {
+                    // 受信成功。
+                    if (mCb != null) {
+                        mCb(mCbObject, msg);
                     }
-
-                    if (version != PROTOCOL_VERSION) {
-                        Console.WriteLine("Pipe protocol version mismatch {0}", version);
-                        ServerStreamClose();
-                        continue;
-                    }
-
-                    Console.WriteLine("Protocol version = {0}.", version);
-
-                    int nString;
-                    if (!StreamReadInt(mServerStream, out nString)) {
-                        // 文字列個数取得失敗。
-                        // 切断する。
-                        Console.WriteLine("args.Length recv failed.");
-                        ServerStreamClose();
-                        continue;
-                    }
-
-                    if (nString <= 0) {
-                        Console.WriteLine("nString out of range {0}", nString);
-                        ServerStreamClose();
-                        continue;
-                    }
-
-                    Console.WriteLine("args.Length = {0}", nString);
-
-                    var ss = new StreamString(mServerStream);
-
-                    bool recvSuccess = true;
-
-                    var ap = new ArgsParams();
-                    ap.version = version;
-                    for (int i = 0; i < nString; ++i) {
-                        string s;
-                        if (!ss.ReadString(out s)) {
-                            // 受信失敗。
-                            Console.WriteLine("ReadString failed.");
-                            ServerStreamClose();
-                            recvSuccess = false;
-                            break;
-                        }
-                        ap.args.Add(s);
-                        Console.WriteLine("args[{0}] = {1}", i, s);
-                    }
-
-                    if (recvSuccess) {
-                        // コマンドライン引数受信成功。
-                        if (mCb != null) {
-                            mCb(mCbObject, ap);
-                        }
-                    }
-                } catch (Exception e) {
-                    Console.WriteLine("ERROR: {0}", e.Message);
+                } else {
+                    // 受信失敗。
                 }
 
                 ServerStreamClose();
             }
 
-            Console.WriteLine("ServerThread end.");
+            Console.WriteLine("NamedPipeServerThread \"{0}\" end.", mPipeName);
         }
 
         // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
         // int32と文字列の送受信。
 
-        private static void StreamWriteInt(Stream stream, int v) {
-            var b = BitConverter.GetBytes(v);
-            stream.Write(b, 0, b.Length);
-        }
+        /// <summary>
+        /// 指定バイト数のbyte arrayを受信。
+        /// </summary>
+        /// <param name="bytes">必要バイト数</param>
+        /// <param name="b_inout">受信したデータの置き場。</param>
+        /// <returns>true: 受信成功。false:途中で接続が切断し失敗。</returns>
+        private static bool StreamRecvBytes(Stream stream, int bytes, out byte[] b_return) {
+            b_return = new byte[bytes];
 
-        private static bool StreamReadInt(Stream stream, out int v) {
-            v = 0;
+            // stream.readは指定バイト数よりも
+            // 少ないバイト数を受信して戻すことがある。
+            // bytes読むまで繰り返す。
 
-            var b = new byte[4];
-
-            // 4バイト読むまで繰り返す。
             int c = 0;
-            while (c < 4) {
-                int r = stream.Read(b, c, 4 - c);
+            while (c < bytes) {
+                int r = stream.Read(b_return, c, bytes - c);
                 if (r == 0) {
+                    // 接続が切断した場合。失敗。
                     return false;
                 }
                 c += r;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// int32を1個(4バイト)送出。
+        /// </summary>
+        private static void StreamWriteInt(Stream stream, int v) {
+            var b = BitConverter.GetBytes(v);
+            
+            Debug.Assert(b.Length == 4);
+
+            stream.Write(b, 0, b.Length);
+            stream.Flush();
+        }
+
+        /// <summary>
+        /// int32を1個(4バイト)受信。
+        /// </summary>
+        /// <returns>true:成功。false:途中で接続が切れたので失敗。</returns>
+        private static bool StreamReadInt(Stream stream, out int v) {
+            v = 0;
+
+            byte[] b;
+            if (!StreamRecvBytes(stream, 4, out b)) {
+                return false;
             }
 
             v = BitConverter.ToInt32(b, 0);
             return true;
         }
 
-        internal class StreamString {
-            private Stream mStream;
-            private UnicodeEncoding mEnc;
+        /// <summary>
+        /// 文字列を1個受信。
+        /// </summary>
+        /// <param name="s">受信した文字列。</param>
+        /// <returns>true:受信成功。false:失敗。</returns>
+        private static bool StreamReadString(Stream stream, out string s) {
+            s = "";
 
-            public StreamString(Stream ioStream) {
-                this.mStream = ioStream;
-                mEnc = new UnicodeEncoding();
+            int len;
+            if (!StreamReadInt(stream, out len) || len < 0) {
+                Console.WriteLine("StreamReadString failed to recv size.");
+                return false;
             }
 
-            /// <summary>
-            /// 文字列を1個受信する。
-            /// </summary>
-            /// <param name="s">受信した文字列。</param>
-            /// <returns>true:受信成功。false:失敗。</returns>
-            public bool ReadString(out string s) {
-                s = "";
-
-                int len;
-                if (!StreamReadInt(mStream, out len) || len < 0) {
-                    Console.WriteLine("ReadString failed 1");
-                    return false;
-                }
-
-                var inBuffer = new byte[len];
-                int count = 0;
-                while (count < len) {
-                    int r = mStream.Read(inBuffer, count, len -count);
-                    if (r == 0) {
-                        // 読めない。
-                        Console.WriteLine("ReadString failed 2");
-                        return false;
-                    }
-                    count += r;
-                }
-
-                s = mEnc.GetString(inBuffer);
+            if (len == 0) {
+                // 0バイトの文字列を受信した。
                 return true;
             }
 
-            /// <summary>
-            /// Streamに文字列を1個書き込む。
-            /// </summary>
-            /// <returns>出力したバイト数。</returns>
-            public int WriteString(string s) {
-                var b = mEnc.GetBytes(s);
-                int len = b.Length;
-                if (1024 * 1024 < len) {
-                    throw new ArgumentOutOfRangeException();
-                }
-
-                StreamWriteInt(mStream, len);
-                if (0 < len) {
-                    mStream.Write(b, 0, len);
-                }
-                mStream.Flush();
-
-                return b.Length + 4;
+            // 1バイト以上の文字列を受信。
+            byte[] b;
+            if (!StreamRecvBytes(stream, len, out b)) {
+                // 失敗。
+                Console.WriteLine("StreamReadString failed to recv string.");
+                return false;
             }
+
+            var enc = new UnicodeEncoding();
+            s = enc.GetString(b);
+            return true;
+        }
+
+        /// <summary>
+        /// 文字列を1個送信。
+        /// </summary>
+        /// <returns>出力したバイト数。</returns>
+        private static int StreamWriteString(Stream stream, string s) {
+            var enc = new UnicodeEncoding();
+            
+            var b = enc.GetBytes(s);
+
+            if (int.MaxValue - 4 < b.LongLength) {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            int len = b.Length;
+
+            StreamWriteInt(stream, len);
+
+            if (0 < len) {
+                stream.Write(b, 0, len);
+            }
+
+            stream.Flush();
+
+            return 4 + len;
         }
     }
 };
