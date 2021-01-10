@@ -31,6 +31,8 @@ public class Program {
 
         maim.ServerStop();
 
+        maim.Term();
+
         return 0;
     }
 

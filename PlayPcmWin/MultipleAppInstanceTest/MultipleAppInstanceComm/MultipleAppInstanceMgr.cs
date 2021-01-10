@@ -60,6 +60,10 @@ namespace MultipleAppInstanceComm {
             mCbObject = null;
         }
 
+        public void Term() {
+            ServerStop();
+        }
+
         /// <summary>
         /// このアプリが既に起動しているか調べる。
         /// </summary>
@@ -167,24 +171,25 @@ namespace MultipleAppInstanceComm {
         /// </summary>
         public void ServerStop() {
             //Console.WriteLine("ServerStop()");
-            if (mServerStream == null) {
-                Console.WriteLine("ServerStop() already stopped.");
-                return;
-            }
-
             // これ以降データを受信してもコールバックを呼ばない。
             mCb = null;
             mCbObject = null;
 
-            mServerThreadEnd = true;
-            mServerStopEvent.Set();
+            if (mServerThread != null) {
+                // サーバースレッドを止めます。
 
-            mServerThread.Join();
-            mServerThread = null;
+                mServerThreadEnd = true;
+                mServerStopEvent.Set();
 
-            mServerStopEvent.Dispose();
-            mServerStopEvent = null;
+                mServerThread.Join();
+                mServerThread = null;
 
+                mServerStopEvent.Dispose();
+                mServerStopEvent = null;
+            }
+
+            Debug.Assert(mServerStream == null);
+            
             //Console.WriteLine("ServerStop() success.");
         }
 

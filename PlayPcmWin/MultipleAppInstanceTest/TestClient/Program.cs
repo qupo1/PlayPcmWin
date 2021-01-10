@@ -18,6 +18,8 @@ namespace TestClient {
             // 既に起動しているインスタンスに接続し、コマンドライン引数を送ります。
             maim.ClientSendMsgToServer(args);
             // 送り終わったらプログラム終了。
+
+            maim.Term();
             return 0;
         }
 
