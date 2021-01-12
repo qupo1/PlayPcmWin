@@ -74,7 +74,7 @@ namespace PlayPcmWin {
             return result;
         }
 
-        private const string SUPPORTED_MUSICFILE_EXTENSIONS = @"(\.WAV|\.WAVE|\.FLAC|\.AIF|\.AIFF|\.AIFC|\.AIFFC)";
+        private const string SUPPORTED_MUSICFILE_EXTENSIONS = @"(\.WAV|\.WAVE|\.FLAC|\.AIF|\.AIFF|\.AIFC|\.AIFFC|\.MP3)";
 
         private void ParseOneLine(string line) {
             if (line.StartsWith("#", StringComparison.Ordinal)) {
