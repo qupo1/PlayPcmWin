@@ -91,9 +91,11 @@
                                 <ComboBoxItem Content="3x" />
                                 <ComboBoxItem Content="4x" />
                                 <ComboBoxItem Content="5x" />
+                                <ComboBoxItem Content="6x" />
                                 <ComboBoxItem Content="7x" />
                                 
                                 <ComboBoxItem Content="8x" />
+                                <ComboBoxItem Content="12x" />
                                 <ComboBoxItem Content="16x" />
                                 <ComboBoxItem Content="20x" />
                                 <ComboBoxItem Content="40x" />
@@ -137,9 +139,11 @@
                                 <ComboBoxItem Content="3x" />
                                 <ComboBoxItem Content="4x" />
                                 <ComboBoxItem Content="5x" />
+                                <ComboBoxItem Content="6x" />
                                 <ComboBoxItem Content="7x" />
                                 
                                 <ComboBoxItem Content="8x" />
+                                <ComboBoxItem Content="12x" />
                                 <ComboBoxItem Content="16x" />
                                 <ComboBoxItem Content="20x" />
                                 <ComboBoxItem Content="40x" />
