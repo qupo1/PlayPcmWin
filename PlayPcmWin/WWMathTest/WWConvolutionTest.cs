@@ -122,9 +122,10 @@ namespace WWMathTest
         [TestMethod()]
         public void ConvolutionContinuousFftTest() {
             var target = new WWConvolution();
-            var h = new WWComplex[256];
+
+            var h = new WWComplex[10];
             for (int i=0; i<h.Length; ++i) {
-                h[i] = new WWComplex(h.Length - i,0);
+                h[i] = new WWComplex(i+1,0);
             }
 
             var x = new WWComplex[65536];
@@ -132,20 +133,26 @@ namespace WWMathTest
                 x[i] = WWComplex.Unity();
             }
 
+            var time0 = DateTime.Now.Ticks;
+
+            var r0 = target.ConvolutionBruteForce(h, x);
+
             var time1 = DateTime.Now.Ticks;
 
-            var expected = target.ConvolutionFft(h, x);
+            //var r1 = target.ConvolutionFft(h, x);
 
             var time2 = DateTime.Now.Ticks;
             
-            var actual = target.ConvolutionContinuousFft(h, x, h.Length);
+            var r2 = target.ConvolutionContinuousFft(h, x, h.Length);
 
             var time3 = DateTime.Now.Ticks;
 
+            double elapsed0 = (time1 - time0) * 0.0001 * 0.001;
             double elapsed1 = (time2 - time1) * 0.0001 * 0.001;
             double elapsed2 = (time3 - time2) * 0.0001 * 0.001;
 
-            Assert.IsTrue(Compare(actual, expected));
+            //Assert.IsTrue(Compare(r0, r1));
+            Assert.IsTrue(Compare(r0, r2));
         }
     }
 }

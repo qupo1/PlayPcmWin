@@ -4,6 +4,10 @@ using System.Threading.Tasks;
 
 namespace WWMath {
     public class WWConvolution {
+
+        /// <summary>
+        /// 配列vの要素番号posの要素を戻す。範囲外の時0を戻す。
+        /// </summary>
         static WWComplex Get(WWComplex[] v, int pos) {
             if (pos < 0 || v.Length <= pos) {
                 return WWComplex.Zero();
@@ -14,7 +18,7 @@ namespace WWMath {
         /// <summary>
         /// Linear Convolution x ** h を計算。
         /// </summary>
-        /// <param name="h">コンボリューションカーネル。左右反転される。</param>
+        /// <param name="h">コンボリューションカーネル。</param>
         /// <param name="x">入力数列。</param>
         public WWComplex[] ConvolutionBruteForce(WWComplex[] h, WWComplex[] x) {
             var r = new WWComplex[h.Length + x.Length - 1];
@@ -23,7 +27,7 @@ namespace WWMath {
                 WWComplex v = WWComplex.Zero();
 
                 for (int j = 0; j < h.Length; ++j) {
-                    int hPos = h.Length - j - 1;
+                    int hPos = (h.Length - 1) - j; //< ←左右反転されている。
                     int xPos = i + j - (h.Length - 1);
                     v = WWComplex.Add(v, WWComplex.Mul(Get(h, hPos), Get(x, xPos)));
                 }
@@ -36,7 +40,7 @@ namespace WWMath {
         /// <summary>
         /// Linear Convolution x ** h を計算。
         /// </summary>
-        /// <param name="h">コンボリューションカーネル。左右反転される。</param>
+        /// <param name="h">コンボリューションカーネル。</param>
         /// <param name="x">入力数列。</param>
         public WWComplex[] ConvolutionFft(WWComplex[] h, WWComplex[] x) {
             var r = new WWComplex[h.Length + x.Length - 1];
@@ -69,11 +73,11 @@ namespace WWMath {
         /// <summary>
         /// 連続FFT オーバーラップアド法でLinear convolution x ** hする。
         /// </summary>
-        /// <param name="h">コンボリューションカーネル。左右反転される。</param>
+        /// <param name="h">コンボリューションカーネル。</param>
         /// <param name="x">入力数列。</param>
         /// <param name="fragmentSz">個々のFFTに入力するxの断片サイズ。</param>
         public WWComplex[] ConvolutionContinuousFft(WWComplex[] h, WWComplex[] x, int fragmentSz) {
-            System.Diagnostics.Debug.Assert(2 <= fragmentSz);
+            System.Diagnostics.Debug.Assert(4 <= fragmentSz);
 
             if (x.Length < h.Length) {
                 // swap x and h
@@ -82,18 +86,26 @@ namespace WWMath {
                 x = tmp;
             }
 
-            // h.Len <= x.Len
+            // h.Len <= x.Lenである。
 
-            int fullConvLen = h.Length + x.Length - 1;
+            // resultLen: 畳み込み結果の要素数。
+            // h: ／＼   x:┌─┐
+            //
+            //        ↓
+            //
+            //     ／￣￣＼
+            //     h  x   h
+            int resultLen = h.Length + x.Length - 1;
+            var r = WWComplex.ZeroArray(resultLen);
 
-            var r = new WWComplex[fullConvLen];
-            for (int i = 0; i < r.Length; ++i) {
-                r[i] = WWComplex.Zero();
-            }
+            // 最小FFTサイズを算出。
+            // xをfragment(xf)要素ずつ切り出して畳み込みする。
+            // すると、h + xf -1要素の結果が出る。
 
-            // hをFFTしてHを得る。
             int fragConvLen = h.Length + fragmentSz - 1;
             int fftSize = Functions.NextPowerOf2(fragConvLen);
+
+            // hをFFTしてHを得る。
             var h2 = new WWComplex[fftSize];
             Array.Copy(h, 0, h2, 0, h.Length);
             for (int i = h.Length; i < h2.Length; ++i) {
@@ -103,23 +115,27 @@ namespace WWMath {
             var H = fft.ForwardFft(h2);
 
             for (int offs = 0; offs < x.Length; offs += fragmentSz) {
-                // xFをFFTしてXを得る。
+                // xの断片xFをFFTしてXを得る。
                 var xF = WWComplex.ZeroArray(fftSize);
-                for (int i=0; i<fragmentSz; ++i) {
-                    if (i + offs < x.Length) {
-                        xF[i] = x[offs + i];
-                    } else {
-                        break;
-                    }
+                int copySz = fragmentSz;
+                if (x.Length < offs + copySz) {
+                    copySz = x.Length - offs;
                 }
+                Array.Copy(x, offs, xF, 0, copySz);
+
                 var X = fft.ForwardFft(xF);
 
+                // element wise mulする。
                 var Y = WWComplex.Mul(H, X);
+
+                // IFFTして時間ドメインに戻す。
                 var y = fft.InverseFft(Y);
 
                 // オーバーラップアド法。FFT結果を足し合わせる。
                 for (int i = 0; i <fragConvLen; ++i) {
-                    r[offs + i] = WWComplex.Add(r[offs + i], y[i]);
+                    if (offs + i < r.Length) {
+                        r[offs + i] = WWComplex.Add(r[offs + i], y[i]);
+                    }
                 }
             }
 
