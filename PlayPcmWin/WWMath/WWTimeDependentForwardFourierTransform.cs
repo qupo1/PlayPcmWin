@@ -20,9 +20,10 @@ namespace WWMath {
         private int        mProcessBlockSize;
         private WindowType mWindowType;
         private double[]   mWindow;
-        private int mOutputCounter;
         private WWRadix2Fft mFFT;
         private List<double[]> mInputList = new List<double[]>();
+        private WWComplex[] mOutAddBuf;
+        private WWComplex[] mOutFirstOverlapBuf = null;
 
         private double mGain = 1.0;
 
@@ -31,13 +32,13 @@ namespace WWMath {
         /// time domain data → freq domain data.
         /// </summary>
         /// <param name="processBlockSize">FFT size</param>
-        public WWTimeDependentForwardFourierTransform(int processBlockSize, WindowType windowType) {
+        public WWTimeDependentForwardFourierTransform(int processBlockSize, WindowType windowType = WindowType.Hann) {
             if (!Functions.IsPowerOfTwo(processBlockSize) || processBlockSize < 4) {
                 throw new ArgumentException("processBlockSize should be power of two and 4 or larger int");
             }
 
             mProcessBlockSize = processBlockSize;
-            mOutputCounter = 0;
+            mWindowType = windowType;
 
             PrepareWindow(processBlockSize + 1, windowType);
 
@@ -52,7 +53,6 @@ namespace WWMath {
         }
 
         private void PrepareWindow(int windowSize, WindowType windowType) {
-            mWindowType = windowType;
 
             switch (windowType) {
             case WindowType.Bartlett:
@@ -78,6 +78,10 @@ namespace WWMath {
             get { return mProcessBlockSize; }
         }
 
+        /// <summary>
+        /// mInputListのサンプル総数を戻す。
+        /// </summary>
+        /// <returns></returns>
         private int InputSampleCount() {
             int n = 0;
             foreach (var item in mInputList) {
@@ -125,19 +129,12 @@ namespace WWMath {
         }
 
         public WWComplex[] Process(double[] x) {
+            mInputList.Add(x);
+
             var outBuff = new List<WWComplex[]>();
 
-            {
-                var X = Process1(x);
-                if (0 < X.Length) {
-                    outBuff.Add(X);
-                } else {
-                    return new WWComplex[0];
-                }
-            }
-
-            while (ProcessSize <= InputSampleCount()) {
-                var X = ProcessNotFirst();
+            while (mProcessBlockSize <= InputSampleCount()) {
+                var X = Process1();
                 if (0 < X.Length) {
                     outBuff.Add(X);
                 }
@@ -147,50 +144,83 @@ namespace WWMath {
         }
 
         /// <summary>
-        /// 入力サンプルを与える。
         /// 必要量が揃ったら出力が出てくる。
         /// </summary>
-        private WWComplex[] Process1(double[] x) {
-            mInputList.Add(x);
-            int n = InputSampleCount();
-
-            if (mOutputCounter == 0) {
-                if (n < ProcessSize/2) {
-                    // 入力サンプル数が不足しているのでまだ処理を開始できない。
-                    return new WWComplex[0];
-                }
-
-                // 十分な入力データが集まった。
+        private WWComplex[] Process1() {
+            if (mOutFirstOverlapBuf == null) {
+                // 最初のFFT。
                 return ProcessFirst();
-            } else {
-                if (n < ProcessSize) {
-                    return new WWComplex[0];
-                }
-
-                // 十分な入力データが集まった。
-                return ProcessNotFirst();
             }
+
+            // 2回目以降のFFT。
+            return ProcessNotFirst();
         }
 
+        /// <summary>
+        /// 最初のFFT。
+        /// </summary>
         private WWComplex[] ProcessFirst() {
-            // 入力サンプル置き場から後半サンプルを取り出す。
-            var x = new double[ProcessSize];
-            var lastHalf = GetInputSamples(ProcessSize/2);
-
-            // 前半はclamp。
-            double firstValue = lastHalf[0];
-            for (int i = 0; i < ProcessSize / 2; ++i) {
-                x[i] = firstValue;
+            int n = InputSampleCount();
+            if (n < ProcessSize/2) {
+                // 入力サンプル数が不足しているのでまだ処理を開始できない。
+                return new WWComplex[0];
             }
 
-            Array.Copy(lastHalf, 0, x, ProcessSize / 2, ProcessSize / 2);
+            // 入力サンプル置き場からFFTサイズの半分のサンプルを取り出す。
+            var xIn = GetInputSamples(ProcessSize/2);
 
-            var X = Process2(x);
+            // x: 前半に最初のサンプルをclampして入れる。
+            // 後半に取り出したサンプルをセット。
+            var x = new double[ProcessSize];
+            for (int i = 0; i < ProcessSize / 2; ++i) {
+                x[i] = xIn[0];
+            }
+            //         src     dest
+            Array.Copy(xIn, 0, x, ProcessSize / 2, ProcessSize / 2);
+
+            var X = WindowedFFT(x);
+
+            // 結果Xの前半。保持する。
+            mOutFirstOverlapBuf = new WWComplex[ProcessSize / 2];
+            Array.Copy(X, 0, mOutFirstOverlapBuf, 0, ProcessSize / 2);
+
+            mOutAddBuf = new WWComplex[ProcessSize / 2];
+            Array.Copy(X, ProcessSize / 2, mOutAddBuf, 0, ProcessSize / 2);
+
+            // 入力サンプルを次回の前半データとして使用するので入力サンプル置き場に戻す。
+            mInputList.Insert(0, xIn);
+
+            return X;
+        }
+
+        private WWComplex[] ProcessNotFirst() {
+            if (InputSampleCount() < ProcessSize) {
+                return new WWComplex[0];
+            }
+
+            // 入力サンプル置き場から取り出す。
+            var x = GetInputSamples(ProcessSize);
+
+            // lastHalf: 入力後半サンプル。
+            var lastHalf = new double[ProcessSize / 2];
+            Array.Copy(x, ProcessSize / 2, lastHalf, 0, lastHalf.Length);
+
+            var X = WindowedFFT(x);
 
             // 後半サンプルを入力サンプル置き場に戻す。
             mInputList.Insert(0, lastHalf);
 
-            ++mOutputCounter;
+            return X;
+        }
+
+        private WWComplex[] WindowedFFT(double[] x) {
+            System.Diagnostics.Debug.Assert(x.Length == ProcessSize);
+
+            // 入力x に窓関数wを掛ける → xw。
+            var xw = Functions.Mul(x, 0, mWindow, 0, ProcessSize);
+
+            // FFTする。
+            var X = mFFT.ForwardFft(WWComplex.FromRealArray(xw), mGain);
 
             return X;
         }
@@ -227,34 +257,6 @@ namespace WWMath {
             }
 
             return WWUtil.ListUtils<WWComplex>.ArrayListToArray(outBuff);
-        }
-
-        private WWComplex[] ProcessNotFirst() {
-            // 入力サンプル置き場から取り出す。
-            var x = GetInputSamples(ProcessSize);
-            var lastHalf = new double[ProcessSize / 2];
-            Array.Copy(x, ProcessSize / 2, lastHalf, 0, lastHalf.Length);
-
-            var X = Process2(x);
-
-            // 後半サンプルを入力サンプル置き場に戻す。
-            mInputList.Insert(0, lastHalf);
-
-            ++mOutputCounter;
-
-            return X;
-        }
-
-        private WWComplex[] Process2(double[] x) {
-            System.Diagnostics.Debug.Assert(x.Length == ProcessSize);
-
-            // 入力x に窓関数wを掛ける → xw。
-            var xw = Functions.Mul(x, 0, mWindow, 0, ProcessSize);
-
-            // DFTする。
-            var X = mFFT.ForwardFft(WWComplex.FromRealArray(xw), mGain);
-
-            return X;
         }
 
     }

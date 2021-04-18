@@ -301,7 +301,7 @@
          PCM数据MD5 = {2}</value>
   </data>
   <data name="MD5SumValid" xml:space="preserve">
-    <value>MD5比对成功。{0}</value>
+    <value>MD5比对成功。{0} {1}</value>
   </data>
   <data name="MemoryExhausted" xml:space="preserve">
     <value>内存耗尽，请减少播放列表中的音乐文件。</value>

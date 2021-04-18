@@ -2336,7 +2336,8 @@ namespace PlayPcmWin
                 }
 
                 if (IsSucceeded) {
-                    return string.Format(CultureInfo.InvariantCulture, Properties.Resources.MD5SumValid, fileName) + Environment.NewLine;
+                    return string.Format(CultureInfo.InvariantCulture, Properties.Resources.MD5SumValid,
+                        fileName, MD5SumToStr(md5SumInMetadata)) + Environment.NewLine;
                 }
 
                 return string.Format(CultureInfo.InvariantCulture, Properties.Resources.MD5SumMismatch,

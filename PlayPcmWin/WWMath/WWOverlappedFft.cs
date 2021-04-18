@@ -6,12 +6,12 @@ namespace WWMath {
 
         /// <summary>
         /// 入力データが完全に復元できる特殊な窓関数を使用したオーバーラップ・アドFFT。
-        /// あらかじめSetNumSamples()を呼ぶと入出力サンプル数が一致する。
+        /// あらかじめSetNumOutSamples()を呼ぶと入出力サンプル数が一致する。
         /// </summary>
         /// <param name="fftLength">Forward FFT長。</param>
         /// <param name="ifftLength">Inverse FFT長。0のときForward FFT長を使用。</param>
         public WWOverlappedFft(int fftLength, int ifftLength=0) {
-            mFFTfwd = new WWTimeDependentForwardFourierTransform(fftLength, WWTimeDependentForwardFourierTransform.WindowType.Hann);
+            mFFTfwd = new WWTimeDependentForwardFourierTransform(fftLength);
 
             if (ifftLength == 0) {
                 ifftLength = fftLength;
@@ -20,8 +20,13 @@ namespace WWMath {
         }
 
         /// <summary>
-        /// 次のForwardFft()呼び出しに渡すサンプルの数をこの値にすると最もスムーズに処理が行われる。
+        /// 出力するサンプル数をセットする。
+        /// これを指定しない場合Drain()したデータをInverseFft()したとき最後のデータが多めに出てくる。
         /// </summary>
+        public void SetNumOutSamples(long n) {
+            mFFTinv.SetNumSamples(n);
+        }
+
         public long WantSamples {
             get {
                 return mFFTfwd.WantSamples;
@@ -40,14 +45,6 @@ namespace WWMath {
 
         public WWComplex[] ForwardFft(double[] timeDomain) {
             return mFFTfwd.Process(timeDomain);
-        }
-
-        /// <summary>
-        /// 出力するサンプル数をセットする。
-        /// これを指定しない場合Drain()したデータをInverseFft()したとき最後のデータが多めに出てくる。
-        /// </summary>
-        public void SetNumOutSamples(long n) {
-            mFFTinv.SetNumSamples(n);
         }
 
         /// <summary>

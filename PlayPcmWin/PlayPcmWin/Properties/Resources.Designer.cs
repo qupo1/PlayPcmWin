@@ -903,7 +903,7 @@ namespace PlayPcmWin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MD5sum validation succeeded. {0}.
+        ///   Looks up a localized string similar to MD5sum validation succeeded. {0} {1}.
         /// </summary>
         internal static string MD5SumValid {
             get {

@@ -577,7 +577,7 @@ Jcode.pm copyright is as follows: Copyright 1999-2005 Dan Kogai</value>
   MD5 from PCM data= {2}</value>
   </data>
   <data name="MD5SumValid" xml:space="preserve">
-    <value>MD5sum validation succeeded. {0}</value>
+    <value>MD5sum validation succeeded. {0} {1}</value>
   </data>
   <data name="DroppedDataIsNotFile" xml:space="preserve">
     <value>Some kind of data is dropped but the data is not file nor folder. Failed to process dropped items.</value>

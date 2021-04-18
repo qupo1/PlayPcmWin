@@ -577,7 +577,7 @@ Jcode.pmのCopyright: Copyright 1999-2005 Dan Kogai</value>
   MD5 from PCM data= {2}</value>
   </data>
   <data name="MD5SumValid" xml:space="preserve">
-    <value>PCMデータについて算出したMD5値がFLACメタデータの示すMD5値と一致。 {0}</value>
+    <value>PCMデータについて算出したMD5値がFLACメタデータの示すMD5値と一致。 {0} {1}</value>
   </data>
   <data name="DroppedDataIsNotFile" xml:space="preserve">
     <value>何かがドロップされましたが、ファイルでもフォルダでもないため処理できませんでした。</value>

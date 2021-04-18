@@ -60,7 +60,8 @@ namespace WWMathTest
         //
         #endregion
 
-        private void Test(WWTimeDependentForwardFourierTransform t, WWTimeDependentInverseFourierTransform f, double [] x, int fragmentSize) {
+        private void Test( WWTimeDependentForwardFourierTransform t,
+                WWTimeDependentInverseFourierTransform f, double [] x, int fragmentSize) {
             int iPos = 0;
             int oPos = 0;
 
