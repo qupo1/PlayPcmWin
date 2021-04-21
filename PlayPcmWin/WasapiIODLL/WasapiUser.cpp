@@ -8,6 +8,7 @@
 #include <mmsystem.h>
 #include <malloc.h>
 #include <stdint.h>
+#include <math.h>
 #include "WWCommonUtil.h"
 
 #define FOOTER_SEND_FRAME_NUM                   (2)
@@ -125,6 +126,8 @@ WasapiUser::WasapiUser(void)
     m_glitchCount     = 0;
     m_footerCount     = 0;
     m_captureCallback = nullptr;
+    m_renderCallback = nullptr;
+
     m_endpointVolume = nullptr;
 }
 
@@ -165,6 +168,7 @@ WasapiUser::Term(void)
     dprintf("D: %s() m_deviceToUse=%p m_mutex=%p\n", __FUNCTION__, m_deviceToUse, m_mutex);
 
     m_captureCallback = nullptr;
+    m_renderCallback = nullptr;
 
     m_audioFilterSequencer.Term();
 
@@ -326,10 +330,12 @@ end:
 
 HRESULT
 WasapiUser::Setup(IMMDevice *device, WWDeviceType deviceType, const WWPcmFormat &pcmFormat,
-        WWShareMode sm, WWDataFeedMode dfm, int latencyMillisec, bool isFormatSupportedCall)
+        WWShareMode sm, WWDataFeedMode dfm, int latencyMillisec, int flags)
 {
     HRESULT      hr          = 0;
     WAVEFORMATEX *waveFormat = nullptr;
+
+    bool isFormatSupportedCall = flags & 1;
 
     m_shareMode = sm;
     m_dataFeedMode = dfm;
@@ -561,8 +567,12 @@ WasapiUser::Start(void)
     switch (m_dataFlow) {
     case eRender:
         {
-            WWPcmData *pcm = m_pcmStream.GetPcm(WWPDUNowPlaying);
-            assert(pcm);
+            WWPcmData *pcm = nullptr;
+
+            if (!m_renderCallback) {
+                pcm = m_pcmStream.GetPcm(WWPDUNowPlaying);
+                assert(pcm);
+            }
 
             assert(nullptr == m_thread);
             m_thread = CreateThread(nullptr, 0, RenderEntry, this, 0, nullptr);
@@ -588,8 +598,10 @@ WasapiUser::Start(void)
 
             m_footerCount = 0;
 
-            m_audioFilterSequencer.UpdateSampleFormat(m_pcmFormat.sampleRate,
-                    pcm->SampleFormat(), pcm->StreamType(), pcm->Channels());
+            if (!m_renderCallback) {
+                m_audioFilterSequencer.UpdateSampleFormat(m_pcmFormat.sampleRate,
+                        pcm->SampleFormat(), pcm->StreamType(), pcm->Channels());
+            }
         }
         break;
 
@@ -883,6 +895,28 @@ WasapiUser::RenderEntry(LPVOID lpThreadParameter)
 int
 WasapiUser::CreateWritableFrames(BYTE *pData_return, int wantFrames)
 {
+    if (m_renderCallback) {
+        // アプリが再生PCMデータを供給する。
+#if 0
+        // テスト。float型のPCMデータを作る。
+        static float x = 0;
+        float *p = (float*)pData_return;
+        for (int i=0; i<wantFrames * m_deviceFormat.BytesPerFrame()/4; ++i) {
+            x += 3.14159265f / 100.0f;
+            while (3.14159265f < x) {
+                x -= 2.0f * 3.14159265f;
+            }
+
+            p[i] = sin(x);
+        }
+#else
+        assert(m_renderCallback);
+        m_renderCallback(pData_return, wantFrames * m_deviceFormat.BytesPerFrame());
+#endif
+
+        return wantFrames;
+    }
+
     int       pos      = 0;
     WWPcmData *pcmData = m_pcmStream.GetPcm(WWPDUNowPlaying);
 
@@ -966,7 +1000,9 @@ WasapiUser::AudioSamplesSendProc(bool &result)
     HRGR(m_renderClient->ReleaseBuffer(writableFrames, 0));
     to = nullptr;
 
-    if (nullptr == m_pcmStream.GetPcm(WWPDUNowPlaying)) {
+    if (!m_renderCallback && nullptr == m_pcmStream.GetPcm(WWPDUNowPlaying)) {
+        // 送出するPCMをm_pcmStreamから取得する場合。
+
         ++m_footerCount;
         if (m_footerNeedSendCount < m_footerCount) {
             // PCMを全て送信完了。

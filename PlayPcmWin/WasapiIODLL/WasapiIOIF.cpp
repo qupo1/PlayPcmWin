@@ -201,14 +201,17 @@ WasapiIO::AddPcmDataEnd(void)
 HRESULT
 WasapiIO::StartPlayback(int wavDataId)
 {
-    WWPcmData *p = playPcmGroup.FindPcmDataById(wavDataId);
-    if (nullptr == p) {
-        dprintf("%s(%d) PcmData is not found\n",
-            __FUNCTION__, wavDataId);
-        return E_FAIL;
+    if (0 <= wavDataId) {
+        WWPcmData *p = playPcmGroup.FindPcmDataById(wavDataId);
+        if (nullptr == p) {
+            dprintf("%s(%d) PcmData is not found\n",
+                __FUNCTION__, wavDataId);
+            return E_FAIL;
+        }
+
+        wasapi.UpdatePlayPcmData(*p);
     }
 
-    wasapi.UpdatePlayPcmData(*p);
     return wasapi.Start();
 }
 
@@ -357,7 +360,8 @@ WasapiIO_Setup(int instanceId, int deviceId, const WasapiIoSetupArgs &args)
     self->wasapi.TimerResolution().SetTimePeriodHundredNanosec(args.timePeriodHandledNanosec);
 
     return self->wasapi.Setup(device, (WWDeviceType)args.deviceType, pcmFormat,
-        (WWShareMode)args.shareMode, (WWDataFeedMode)args.dataFeedMode, (DWORD)args.latencyMillisec, !!args.isFormatSupportedCall);
+        (WWShareMode)args.shareMode, (WWDataFeedMode)args.dataFeedMode,
+        (DWORD)args.latencyMillisec, args.flags);
 }
 
 __declspec(dllexport)
@@ -668,6 +672,15 @@ WasapiIO_RegisterCaptureCallback(int instanceId, WWCaptureCallback callback)
     WasapiIO *self = Instance(instanceId);
     assert(self);
     self->wasapi.RegisterCaptureCallback(callback);
+}
+
+__declspec(dllexport)
+void __stdcall
+WasapiIO_RegisterRenderCallback(int instanceId, WWRenderCallback callback)
+{
+    WasapiIO *self = Instance(instanceId);
+    assert(self);
+    self->wasapi.RegisterRenderCallback(callback);
 }
 
 __declspec(dllexport)

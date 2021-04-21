@@ -90,7 +90,7 @@ namespace Wasapi {
             public int latencyMillisec;
             public int timePeriodHandledNanosec;
             public int zeroFlushMillisec;
-            public int isFormatSupportedCall;
+            public int flags;
         };
 
         [DllImport("WasapiIODLL.dll")]
@@ -240,6 +240,14 @@ namespace Wasapi {
 
         [DllImport("WasapiIODLL.dll")]
         private static extern void WasapiIO_RegisterCaptureCallback(int instanceId, NativeCaptureCallback callback);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate void NativeRenderCallback(IntPtr data, int bytes);
+
+        public delegate byte [] RenderCallback(int wantBytes);
+
+        [DllImport("WasapiIODLL.dll")]
+        private static extern void WasapiIO_RegisterRenderCallback(int instanceId, NativeRenderCallback callback);
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         internal struct WasapiIoWorkerThreadSetupResult {
@@ -511,14 +519,18 @@ namespace Wasapi {
         private NativeCaptureCallback mNativeCaptureCallback;
         private CaptureCallback mCaptureCallback;
 
+        private NativeRenderCallback mNativeRenderCallback;
+        private RenderCallback mRenderCallback;
+
         public int Init() {
             return WasapiIO_Init(ref mId);
         }
 
         public void Term() {
+            RegisterCaptureCallback(null);
+            RegisterRenderCallback(null);
+
             WasapiIO_Term(mId);
-            mNativeCaptureCallback = null;
-            mCaptureCallback = null;
         }
 
         public void RegisterStateChangedCallback(StateChangedCallback callback) {
@@ -542,6 +554,25 @@ namespace Wasapi {
             mNativeCaptureCallback = new NativeCaptureCallback(NativeCaptureCallbackImpl);
             mCaptureCallback = cb;
             WasapiIO_RegisterCaptureCallback(mId, mNativeCaptureCallback);
+        }
+
+        private void NativeRenderCallbackImpl(IntPtr ptr, int bytes) {
+            var data = mRenderCallback(bytes);
+            System.Diagnostics.Debug.Assert(data.Length == bytes);
+            Marshal.Copy(data, 0, ptr, bytes);
+        }
+
+        public void RegisterRenderCallback(RenderCallback cb) {
+            if (cb == null) {
+                mNativeRenderCallback = null;
+                mRenderCallback = null;
+                WasapiIO_RegisterRenderCallback(mId, null);
+                return;
+            }
+
+            mNativeRenderCallback = new NativeRenderCallback(NativeRenderCallbackImpl);
+            mRenderCallback = cb;
+            WasapiIO_RegisterRenderCallback(mId, mNativeRenderCallback);
         }
 
         public int EnumerateDevices(DeviceType t) {
@@ -594,6 +625,19 @@ namespace Wasapi {
                 this.numChannels = numChannels;
                 this.dwChannelMask = dwChannelMask;
             }
+
+            public bool IsTheSameTo(MixFormat a) {
+                return sampleRate == a.sampleRate
+                    && sampleFormat == a.sampleFormat
+                    && numChannels == a.numChannels
+                    && dwChannelMask == a.dwChannelMask;
+            }
+
+            public int UseBytesPerFrame {
+                get {
+                    return SampleFormatTypeToUseBitsPerSample(sampleFormat) * numChannels;
+                }
+            }
         };
 
         public MixFormat GetMixFormat(int deviceId) {
@@ -628,7 +672,8 @@ namespace Wasapi {
             return new DevicePeriod(args.defaultPeriod, args.minimumPeriod);
         }
 
-        public int InspectDevice(int deviceId, DeviceType dt, int sampleRate, SampleFormatType format, int numChannels, int dwChannelMask) {
+        public int InspectDevice(int deviceId, DeviceType dt, int sampleRate, SampleFormatType format,
+                int numChannels, int dwChannelMask) {
             var args = new InspectArgs();
             args.deviceType = (int)dt;
             args.sampleRate = sampleRate;
@@ -660,7 +705,7 @@ namespace Wasapi {
             args.latencyMillisec = latencyMillisec;
             args.timePeriodHandledNanosec = timePeriodHandredNanosec;
             args.zeroFlushMillisec = zeroFlushMillisec;
-            args.isFormatSupportedCall = isFormatSupportedCall ? 1 : 0;
+            args.flags = (isFormatSupportedCall ? 1 : 0);
             return WasapiIO_Setup(mId, deviceId, ref args);
         }
 
@@ -819,7 +864,8 @@ namespace Wasapi {
             public int TimePeriodHandledNanosec { get; set; }
             public int EndpointBufferFrameNum { get; set; }
 
-            public SessionStatus(StreamType streamType, int pcmDataSampleRate, int deviceSampleRate, SampleFormatType deviceSampleFormat,
+            public SessionStatus(StreamType streamType, int pcmDataSampleRate, int deviceSampleRate,
+                    SampleFormatType deviceSampleFormat,
                     int deviceBytesPerFrame, int deviceNumChannels, int timePeriodHandledNanosec, int bufferFrameNum) {
                 StreamType = streamType;
                 PcmDataSampleRate = pcmDataSampleRate;
@@ -837,7 +883,8 @@ namespace Wasapi {
             if (!WasapiIO_GetSessionStatus(mId, out s)) {
                 return null;
             }
-            return new SessionStatus((StreamType)s.streamType, s.pcmDataSampleRate, s.deviceSampleRate, (SampleFormatType)s.deviceSampleFormat,
+            return new SessionStatus((StreamType)s.streamType, s.pcmDataSampleRate, s.deviceSampleRate,
+                    (SampleFormatType)s.deviceSampleFormat,
                     s.deviceBytesPerFrame, s.deviceNumChannels, s.timePeriodHandledNanosec, s.bufferFrameNum);
         }
 
@@ -873,7 +920,7 @@ namespace Wasapi {
             var p = new WasapiIoWorkerThreadSetupResult();
             WasapiIO_GetWorkerThreadSetupResult(mId, out p);
             return new WorkerThreadSetupResult(p.dwmEnableMMCSSResult, p.avSetMmThreadCharacteristicsResult!=0,
-                p.avSetMmThreadPriorityResult!=0);
+                    p.avSetMmThreadPriorityResult!=0);
         }
 
         public void ClearAudioFilter() {
@@ -909,7 +956,8 @@ namespace Wasapi {
         public int GetVolumeParams(out VolumeParams volumeParams) {
             var vp = new WasapiIoVolumeParams();
             int hr = WasapiIO_GetVolumeParams(mId, out vp);
-            volumeParams = new VolumeParams(vp.levelMinDB, vp.levelMaxDB, vp.volumeIncrementDB, vp.defaultLevel, vp.hardwareSupport);
+            volumeParams = new VolumeParams(vp.levelMinDB, vp.levelMaxDB, vp.volumeIncrementDB,
+                    vp.defaultLevel, vp.hardwareSupport);
             return hr;
         }
 

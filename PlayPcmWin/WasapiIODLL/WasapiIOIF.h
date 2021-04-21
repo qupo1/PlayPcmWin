@@ -100,7 +100,7 @@ struct WasapiIoSetupArgs {
     int latencyMillisec;
     int timePeriodHandledNanosec;
     int zeroFlushMillisec;
-    int isFormatSupportedCall;
+    int flags; //< 1: isFormatSupportedCall
 };
 #pragma pack(pop)
 
@@ -228,6 +228,10 @@ WasapiIO_ScalePcmAmplitude(int instanceId, double scale);
 __declspec(dllexport)
 void __stdcall
 WasapiIO_RegisterCaptureCallback(int instanceId, WWCaptureCallback callback);
+
+__declspec(dllexport)
+void __stdcall
+WasapiIO_RegisterRenderCallback(int instanceId, WWRenderCallback callback);
 
 #pragma pack(push, 4)
 struct WasapiIoWorkerThreadSetupResult {

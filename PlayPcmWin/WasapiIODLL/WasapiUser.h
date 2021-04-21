@@ -17,6 +17,7 @@
 /// @param data captured data
 /// @param dataBytes captured data size in bytes
 typedef void (__stdcall WWCaptureCallback)(unsigned char *data, int dataBytes);
+typedef void (__stdcall WWRenderCallback)(unsigned char *data, int dataBytes);
 
 enum WWDataFeedMode {
     WWDFMEventDriven,
@@ -66,7 +67,8 @@ public:
 
     /// @param format sampleRate pcm data sample rate. On WASAPI shared mode, device sample rate cannot be changed so
     ///        you need to resample pcm to DeviceSampleRate
-    HRESULT Setup(IMMDevice *device, WWDeviceType deviceType, const WWPcmFormat &pcmFormat, WWShareMode sm, WWDataFeedMode dfm, int latencyMillisec, bool isFormatSupportedCall);
+    HRESULT Setup(IMMDevice *device, WWDeviceType deviceType, const WWPcmFormat &pcmFormat,
+            WWShareMode sm, WWDataFeedMode dfm, int latencyMillisec, int flags);
 
     void Unsetup(void);
 
@@ -85,6 +87,11 @@ public:
     /// cb is called when recording buffer is filled
     void RegisterCaptureCallback(WWCaptureCallback cb) {
         m_captureCallback = cb;
+    }
+
+    /// Used only when appPlayThread == true. cb is called when playback buffer should be filled
+    void RegisterRenderCallback(WWRenderCallback cb) {
+        m_renderCallback = cb;
     }
 
     HRESULT Start(void);
@@ -158,6 +165,7 @@ private:
     int64_t      m_glitchCount;
     int          m_footerCount;
     WWCaptureCallback *m_captureCallback;
+    WWRenderCallback  *m_renderCallback;
 
     WWPcmStream m_pcmStream;
     WWTimerResolution m_timerResolution;
