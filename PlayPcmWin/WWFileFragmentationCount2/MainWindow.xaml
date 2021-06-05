@@ -4,9 +4,9 @@
         Title="WWFileFragmentationCount2" Height="600" Width="800"  AllowDrop="True" >
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="60*" />
+            <RowDefinition Height="60" />
             <RowDefinition Height="32" />
-            <RowDefinition Height="417*" />
+            <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
         <GroupBox Margin="4" Header="Settings" Name="groupBoxSettings" >
             <Grid>
