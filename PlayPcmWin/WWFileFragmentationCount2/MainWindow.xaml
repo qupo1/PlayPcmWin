@@ -8,7 +8,7 @@
             <RowDefinition Height="32" />
             <RowDefinition Height="417*" />
         </Grid.RowDefinitions>
-        <GroupBox Header="Settings" Name="groupBoxSettings" >
+        <GroupBox Margin="4" Header="Settings" Name="groupBoxSettings" >
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*" />
@@ -21,7 +21,7 @@
             </Grid>
         </GroupBox>
         <Button Content="_Start" Grid.Row="1" Margin="12,0,12,0" Name="buttonStart" VerticalAlignment="Center" Click="buttonStart_Click" />
-        <GroupBox Grid.Row="2" Header="Result" Name="groupBoxResult" >
+        <GroupBox Margin="4" Grid.Row="2" Header="Result" Name="groupBoxResult" >
             <Grid>
                 <TextBox Name="textBoxResult" AcceptsReturn="True" AcceptsTab="True" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" />
             </Grid>
