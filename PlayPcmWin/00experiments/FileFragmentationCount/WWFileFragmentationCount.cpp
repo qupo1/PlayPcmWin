@@ -1,11 +1,7 @@
+// “ú–{ŒêB
 #include "WWFileFragmentationCount.h"
-
 #include <string>
 #include <Windows.h>
-
-extern "C" {
-
-
 
 
 static void
@@ -268,5 +264,4 @@ WWFileFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &ffi_r
     return hr;
 }
 
-}; //< extern "C"
 

@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-extern "C" {
-
 struct LcnVcn {
     int64_t lcn;
     int64_t nextVcn;
@@ -23,6 +21,4 @@ struct WWFileFragmentationInfo {
 
 int
 WWFileFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &ffi_return);
-
-}; //< extern "C"
 
