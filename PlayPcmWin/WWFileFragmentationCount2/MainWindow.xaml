@@ -1,0 +1,30 @@
+﻿<Window x:Class="WWFileFragmentationCount2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WWFileFragmentationCount2" Height="600" Width="800"  AllowDrop="True" >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60*" />
+            <RowDefinition Height="32" />
+            <RowDefinition Height="417*" />
+        </Grid.RowDefinitions>
+        <GroupBox Header="Settings" Name="groupBoxSettings" >
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Label Content="File name (full path, on NTFS file system) :" HorizontalAlignment="Right" Name="labelFileName" VerticalAlignment="Center" />
+                <TextBox Grid.Column="1" Margin="0" Name="textBoxFileName" VerticalAlignment="Center" Text="C:\audio\output.wav" DragEnter="textBoxFileName_DragEnter" Drop="textBoxFileName_Drop" PreviewDragOver="textBoxFileName_PreviewDragOver" />
+                <Button Content="_Browse..." Grid.Column="2" Margin="6,0,15,0" Name="buttonBrowse" VerticalAlignment="Center" Click="buttonBrowse_Click" />
+            </Grid>
+        </GroupBox>
+        <Button Content="_Start" Grid.Row="1" Margin="12,0,12,0" Name="buttonStart" VerticalAlignment="Center" Click="buttonStart_Click" />
+        <GroupBox Grid.Row="2" Header="Result" Name="groupBoxResult" >
+            <Grid>
+                <TextBox Name="textBoxResult" AcceptsReturn="True" AcceptsTab="True" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" />
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>

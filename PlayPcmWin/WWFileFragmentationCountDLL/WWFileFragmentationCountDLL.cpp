@@ -3,10 +3,6 @@
 #include <string>
 #include <Windows.h>
 
-extern "C" {
-
-
-
 
 static void
 PrintRetrievalPointersBuffer(const RETRIEVAL_POINTERS_BUFFER *p)
@@ -246,7 +242,9 @@ end:
     return hr;
 }
 
-int
+
+extern "C" __declspec(dllexport)
+int __stdcall
 WWFileFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &ffi_return)
 {
     HRESULT hr = E_FAIL;
@@ -267,6 +265,3 @@ WWFileFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &ffi_r
 
     return hr;
 }
-
-}; //< extern "C"
-
