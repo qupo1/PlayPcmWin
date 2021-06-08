@@ -81,7 +81,7 @@ public:
     void PrintMixFormat(void);
     int Inspect(const WWInspectArg & arg);
 
-    int GetPosFrame(void);
+    int64_t GetPosFrame(void);
     int64_t GetTotalFrameNum(void);
     bool SetPosFrame(int v);
 

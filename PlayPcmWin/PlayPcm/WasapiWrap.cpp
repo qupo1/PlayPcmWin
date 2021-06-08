@@ -560,10 +560,10 @@ WasapiWrap::GetTotalFrameNum(void)
     return m_pcmData->nFrames;
 }
 
-int
+int64_t
 WasapiWrap::GetPosFrame(void)
 {
-    int result = 0;
+    int64_t result = 0;
 
     assert(m_mutex);
 

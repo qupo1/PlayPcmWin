@@ -19,7 +19,7 @@ struct WWPcmData {
     int nSamplesPerSec;
     int nChannels;
     int64_t nFrames;
-    int posFrame;
+    int64_t posFrame;
     WWPcmDataStreamAllocType allocType;
 
     unsigned char *stream;

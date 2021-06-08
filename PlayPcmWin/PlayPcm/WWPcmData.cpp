@@ -56,7 +56,7 @@ AllocStreamMemory(WWPcmDataStreamAllocType t, int64_t bytes)
 
             result = (unsigned char *)VirtualAlloc(nullptr, allocBytes, MEM_COMMIT | MEM_LARGE_PAGES, PAGE_READWRITE);
             if (nullptr == result) {
-                printf("VirtualAlloc(%x) failed %x\n", allocBytes, GetLastError());
+                printf("VirtualAlloc(%lld) failed %d\n", allocBytes, GetLastError());
             }
         }
         break;

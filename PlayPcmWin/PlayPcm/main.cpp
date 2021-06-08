@@ -119,7 +119,7 @@ Run(const Settings &settings, WWPcmData &pcm)
     ww.Start();
 
     while (!ww.Run(1000)) {
-        printf("%d / %d\n", ww.GetPosFrame(), ww.GetTotalFrameNum());
+        printf("%lld / %lld\n", ww.GetPosFrame(), ww.GetTotalFrameNum());
     }
     hr = S_OK;
 
