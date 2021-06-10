@@ -27,7 +27,7 @@ namespace WWFileFragmentationCount2 {
                 sb.AppendFormat("File data total cluster count: {0}\n", r.nClusters);
 
                 if (r.nFragmentCount <= 1) {
-                    sb.AppendFormat("File data is not fragmented. It is stored continuously from logical cluster number {0} to {1} of the volume {2} !\n",
+                    sb.AppendFormat("File data is not fragmented. It is stored contiguously from logical cluster number {0} to {1} of the volume {2} .\n",
                         r.lcnVcn[0].startLcn, r.lcnVcn[0].startLcn + r.nClusters - 1, driveLetter);
                 } else {
                     sb.AppendFormat("File data is fragmented. Total {0} fragments.\n", r.nFragmentCount);

@@ -48,6 +48,7 @@ Open Visual Studio x64 Win64 command prompt and enter following commands to crea
  sn -k FIRFilterConsole\FIRFilterConsole.snk
  sn -k SCPIAcquisition\SCPIAcquisition.snk
  sn -k WWSoundRouter\WWSoundRouter.snk
+ sn -k WWFileFragmentationCount2\WWFileFragmentationCount2.snk
  
 Open PlayPcmWin\PlayPcmWin.sln to build/run PlayPcmWin (choose Release x64 build target)
 
