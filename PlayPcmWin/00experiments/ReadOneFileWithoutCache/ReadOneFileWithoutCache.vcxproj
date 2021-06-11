@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E3905E2A-CC49-442D-B4CB-B95F76065364}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ReadOneFile</RootNamespace>
+    <RootNamespace>ReadOneFileWithoutCache</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

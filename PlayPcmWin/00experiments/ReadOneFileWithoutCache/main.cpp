@@ -5,7 +5,7 @@
 static void
 PrintUsage(void)
 {
-    printf("Usage: ReadOneFile filename\n");
+    printf("Usage: ReadOneFileWithoutCache filename\n");
 }
 
 static HRESULT

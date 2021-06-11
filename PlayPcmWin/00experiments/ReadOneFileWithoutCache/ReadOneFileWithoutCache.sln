@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReadOneFile", "ReadOneFile.vcxproj", "{E3905E2A-CC49-442D-B4CB-B95F76065364}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReadOneFileWithoutCache", "ReadOneFileWithoutCache.vcxproj", "{E3905E2A-CC49-442D-B4CB-B95F76065364}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
