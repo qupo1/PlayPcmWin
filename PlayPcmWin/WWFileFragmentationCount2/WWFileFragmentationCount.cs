@@ -20,7 +20,7 @@ namespace WWFileFragmentationCount2 {
             public LcnVcn[] lcnVcn;
         };
 
-        // C++層で256個までコピーして戻してくる。
+        // C++層の WW_VCN_LCN_COUNT と同じ数にする。
         public const int TRUNCATE_FRAGMENT_NUM = 256;
 
         public FileFragmentationInfo Run(string filePath) {

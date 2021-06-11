@@ -15,8 +15,13 @@ PrintRetrievalPointersBuffer(const RETRIEVAL_POINTERS_BUFFER *p)
 
     int64_t startVcn = p->StartingVcn.QuadPart;
     for (size_t i=0; i<p->ExtentCount; ++i) {
-        printf("  Extent[%d] VCN from %lld to %lld is stored from LCN %lld\n",
-            i, startVcn, p->Extents[i].NextVcn.QuadPart-1, p->Extents[i].Lcn.QuadPart);
+        if (startVcn + 1 == p->Extents[i].NextVcn.QuadPart) {
+            printf("  VCN %lld is stored on LCN %lld\n",
+                startVcn, p->Extents[i].Lcn.QuadPart);
+        } else {
+            printf("  VCN from %lld to %lld is stored from LCN %lld\n",
+                startVcn, p->Extents[i].NextVcn.QuadPart-1, p->Extents[i].Lcn.QuadPart);
+        }
         startVcn = p->Extents[i].NextVcn.QuadPart;
     }
 }
@@ -120,7 +125,7 @@ GetNtfsVolumeData(const wchar_t *filePath, NTFS_VOLUME_DATA_BUFFER &nvdb_return)
     if (br) {
         // 成功。
         //printf("D: DeviceIoControl FSCTL_GET_NTFS_VOLUME_DATA %d bytes\n", retBytes);
-        PrintNtfsVolumeData(&nvdb_return);
+        //PrintNtfsVolumeData(&nvdb_return);
         hr = S_OK;
     } else {
         // エラー。
@@ -145,7 +150,7 @@ GetFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &fi_r)
     BOOL br = FALSE;
     HANDLE fh = INVALID_HANDLE_VALUE;
     PRETRIEVAL_POINTERS_BUFFER pr = nullptr;
-    DWORD sz = sizeof(RETRIEVAL_POINTERS_BUFFER) + 4096;
+    DWORD sz = sizeof(RETRIEVAL_POINTERS_BUFFER) + 65536 * (16);
     STARTING_VCN_INPUT_BUFFER svi = {};
     FILE_STANDARD_INFO fsi = {};
 
@@ -164,7 +169,7 @@ GetFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &fi_r)
 
     hr = GetFileStandardInfo(fh, fsi);
     if (FAILED(hr)) {
-        printf("Error: GetFileStandardInfo failed %d\n", hr);
+        printf("Error: GetFragmentationCount GetFileStandardInfo failed %d\n", hr);
         goto end;
     }
     PrintFileStandardInfo(&fsi);
@@ -173,6 +178,11 @@ GetFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &fi_r)
 
     do {
         pr = (PRETRIEVAL_POINTERS_BUFFER)malloc(sz);
+        if (nullptr == pr) {
+            hr = E_OUTOFMEMORY;
+            printf("Error: GetFragmentationCount malloc failed\n");
+            goto end;
+        }
         DWORD retBytes = 0;
 
         br = DeviceIoControl(fh,
@@ -183,12 +193,16 @@ GetFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &fi_r)
                 sz,
                 &retBytes,
                 nullptr);
+        hr = GetLastError();
+
+        // ERROR_MORE_DATA: outバッファーサイズよりも多くのデータがある。
+
         if (br) {
             // 成功。
             //printf("D: DeviceIoControl FSCTL_GET_RETRIEVAL_POINTERS %d bytes\n", retBytes);
             hr = S_OK;
 
-            PrintRetrievalPointersBuffer(pr);
+            //PrintRetrievalPointersBuffer(pr);
 
             // fi_rにコピーします。
             fi_r.nFragmentCount = pr->ExtentCount;
@@ -203,17 +217,15 @@ GetFragmentationCount(const wchar_t *filePath, WWFileFragmentationInfo &fi_r)
             }
             fi_r.nClusters = fsi.AllocationSize.QuadPart / fi_r.bytesPerCluster;
 
-            printf("   total Clusters = %lld\n", fi_r.nClusters);
+            printf("   Total Clusters = %lld.\n", fi_r.nClusters);
 
             hr = S_OK;
             break;
         }
 
         if (!br) {
-            hr = GetLastError();
-
             if (hr == ERROR_MORE_DATA) {
-                // バッファーサイズが小さすぎるので増やしてリトライする。
+                // ERROR_MORE_DATA: outバッファーサイズよりも多くのデータがある。
 
                 free(pr);
                 pr = nullptr;

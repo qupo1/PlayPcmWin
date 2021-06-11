@@ -1,10 +1,13 @@
 ﻿using System.Text;
 using System.Windows;
+using System;
 
 namespace WWFileFragmentationCount2 {
     public partial class MainWindow : Window {
         public MainWindow() {
             InitializeComponent();
+
+            //Console.WriteLine("Console Window for WWFileFragmentationCount2.");
         }
 
         private void buttonStart_Click(object sender, RoutedEventArgs e) {
@@ -41,8 +44,13 @@ namespace WWFileFragmentationCount2 {
                     for (int i = 0; i < r.lcnVcn.Length; ++i) {
                         var l= r.lcnVcn[i];
                         var cn = l.nextVcn - startVcn;
-                        sb.AppendFormat("  Fragment#{0}: VCN {1} to {2}, size={5} bytes, is stored from Logical cluster number {3} to {4} of the volume {6}\n",
-                            i, startVcn, l.nextVcn - 1, l.startLcn, l.startLcn + cn - 1, cn * r.bytesPerCluster, driveLetter);
+                        if (cn == 1) {
+                            sb.AppendFormat("  Fragment#{0}: VCN {1}, size={5} bytes, is stored on Logical cluster number {3} of the volume {6}\n",
+                                i, startVcn, l.nextVcn - 1, l.startLcn, l.startLcn + cn - 1, cn * r.bytesPerCluster, driveLetter);
+                        } else {
+                            sb.AppendFormat("  Fragment#{0}: VCN {1} to {2}, size={5} bytes, is stored from Logical cluster number {3} to {4} of the volume {6}\n",
+                                i, startVcn, l.nextVcn - 1, l.startLcn, l.startLcn + cn - 1, cn * r.bytesPerCluster, driveLetter);
+                        }
                         startVcn = l.nextVcn;
                     }
                 }
