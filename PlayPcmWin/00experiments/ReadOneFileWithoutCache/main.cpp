@@ -9,14 +9,14 @@ PrintUsage(void)
 }
 
 static HRESULT
-ReadOneFile(const wchar_t *path, uint8_t *buf, const DWORD bufBytes, int64_t &fileBytes)
+ReadOneFile(const wchar_t *path, uint8_t *buf, const DWORD bufBytes, int64_t &fileBytes_return)
 {
     HRESULT hr        = S_OK;
     HANDLE  fh        = INVALID_HANDLE_VALUE;
     DWORD   readBytes = 0;
     int     count     = 0;
 
-    fileBytes = 0;
+    fileBytes_return = 0;
 
     fh = CreateFile(path,
             GENERIC_READ,     //< dwDesiredAccess
@@ -51,7 +51,7 @@ ReadOneFile(const wchar_t *path, uint8_t *buf, const DWORD bufBytes, int64_t &fi
             goto end;
         }
 
-        fileBytes += readBytes;
+        fileBytes_return += readBytes;
     }
 
 end:
