@@ -11,10 +11,11 @@ PrintUsage(void)
 static HRESULT
 ReadOneFile(const wchar_t *path, uint8_t *buf, const DWORD bufBytes, int64_t &fileBytes)
 {
-    HRESULT hr = S_OK;
-    HANDLE fh = INVALID_HANDLE_VALUE;
-    DWORD readBytes = 0;
-    int count = 0;
+    HRESULT hr        = S_OK;
+    HANDLE  fh        = INVALID_HANDLE_VALUE;
+    DWORD   readBytes = 0;
+    int     count     = 0;
+
     fileBytes = 0;
 
     fh = CreateFile(path,
@@ -64,15 +65,15 @@ end:
 int
 wmain(int argc, wchar_t *argv[])
 {
-    HRESULT hr = E_FAIL;
-    LARGE_INTEGER freqTick;
-    LARGE_INTEGER startTick;
-    LARGE_INTEGER endTick;
-    double recipFreq;
-    uint8_t *buf = nullptr;
-    const DWORD bufBytes = 1024 * 1024;
-    int64_t fileBytes = 0;
-    double elapsedSec = 0;
+    HRESULT       hr         = E_FAIL;
+    LARGE_INTEGER freqTick   = {};
+    LARGE_INTEGER startTick  = {};
+    LARGE_INTEGER endTick    = {};
+    double        recipFreq  = 0;
+    uint8_t       *buf       = nullptr;
+    const DWORD   bufBytes   = 1024 * 1024;
+    int64_t       fileBytes  = 0;
+    double        elapsedSec = 0;
 
     if (argc < 2) {
         PrintUsage();
@@ -101,7 +102,7 @@ wmain(int argc, wchar_t *argv[])
     QueryPerformanceCounter(&endTick);
 
     if (FAILED(hr)) {
-        printf("ReadOneFile Failed: %S\n", path);
+        printf("ReadOneFile Failed: %d %S\n", hr, path);
         goto end;
     }
 
