@@ -43,9 +43,11 @@ ReadOneFile(const wchar_t *path, uint8_t *buf, const DWORD bufBytes, int64_t &fi
         // printf("%d\n", count++);
 
         if (b == 0) {
+            // ReadFile failed.
             hr = GetLastError();
         }
-        if (b == 0 || FAILED(hr) || readBytes == 0) {
+        if (b == 0 || readBytes == 0) {
+            // ReadFile failed or EOF reached.
             goto end;
         }
 
