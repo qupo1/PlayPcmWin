@@ -36,6 +36,8 @@ ReadOneFile(const wchar_t *path,
     }
 
     while (true) {
+        // printf("%d\n", count++);
+
         BOOL b = ReadFile(fh,
                 buf,
                 bufBytes,
@@ -52,8 +54,6 @@ ReadOneFile(const wchar_t *path,
         }
 
         fileBytes_return += readBytes;
-
-        // printf("%d\n", count++);
     }
 
 end:
