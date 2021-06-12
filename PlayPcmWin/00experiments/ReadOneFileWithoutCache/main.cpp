@@ -42,8 +42,6 @@ ReadOneFile(const wchar_t *path,
                 &readBytes,
                 nullptr);
 
-        // printf("%d\n", count++);
-
         if (b == 0) {
             // ReadFile failed.
             hr = GetLastError();
@@ -54,6 +52,8 @@ ReadOneFile(const wchar_t *path,
         }
 
         fileBytes_return += readBytes;
+
+        // printf("%d\n", count++);
     }
 
 end:
