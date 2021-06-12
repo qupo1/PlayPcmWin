@@ -9,7 +9,9 @@ PrintUsage(void)
 }
 
 static HRESULT
-ReadOneFile(const wchar_t *path, uint8_t *buf, const DWORD bufBytes, int64_t &fileBytes_return)
+ReadOneFile(const wchar_t *path,
+        uint8_t *buf, const DWORD bufBytes,
+        int64_t &fileBytes_return)
 {
     HRESULT hr        = S_OK;
     HANDLE  fh        = INVALID_HANDLE_VALUE;
