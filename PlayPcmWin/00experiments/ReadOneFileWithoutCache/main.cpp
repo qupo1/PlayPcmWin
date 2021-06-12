@@ -69,7 +69,7 @@ end:
 int
 wmain(int argc, wchar_t *argv[])
 {
-    HRESULT       hr         = E_FAIL;
+    HRESULT       hr         = S_OK;
     LARGE_INTEGER freqTick   = {};
     LARGE_INTEGER startTick  = {};
     LARGE_INTEGER endTick    = {};
@@ -81,6 +81,7 @@ wmain(int argc, wchar_t *argv[])
 
     if (argc < 2) {
         PrintUsage();
+        hr = E_FAIL;
         return 1;
     }
 
@@ -89,6 +90,7 @@ wmain(int argc, wchar_t *argv[])
     buf = (uint8_t*)malloc(bufBytes);
     if (buf == nullptr) {
         printf("Error: memory exhausted\n");
+        hr = E_OUTOFMEMORY;
         goto end;
     }
     memset(buf, 0, bufBytes);
