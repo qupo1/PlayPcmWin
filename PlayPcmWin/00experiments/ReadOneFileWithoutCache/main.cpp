@@ -16,7 +16,7 @@ ReadOneFile(const wchar_t *path,
     HRESULT hr        = S_OK;
     HANDLE  fh        = INVALID_HANDLE_VALUE;
     DWORD   readBytes = 0;
-    int     count     = 0;
+    //int     count     = 0;
 
     fileBytes_return = 0;
 
