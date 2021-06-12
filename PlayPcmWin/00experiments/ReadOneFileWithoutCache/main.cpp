@@ -78,7 +78,6 @@ Run(const wchar_t *path)
     double        recipFreq  = 0;
     double        elapsedSec = 0;
 
-
     buf = (uint8_t*)malloc(bufBytes);
     if (buf == nullptr) {
         printf("Error: memory exhausted\n");
