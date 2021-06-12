@@ -1,4 +1,4 @@
-#include <Windows.h>
+ï»¿#include <Windows.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -18,12 +18,12 @@ ReadOneFile(const wchar_t *path, uint8_t *buf, const DWORD bufBytes, int64_t &fi
     fileBytes = 0;
 
     fh = CreateFile(path,
-            GENERIC_READ, //< dwDesiredAccess
-            FILE_SHARE_READ, //< dwShareMode
-            nullptr, //< lpSecurityAttributes
-            OPEN_EXISTING, //< dwCreationDisposition 
+            GENERIC_READ,     //< dwDesiredAccess
+            FILE_SHARE_READ,  //< dwShareMode
+            nullptr,          //< lpSecurityAttributes
+            OPEN_EXISTING,    //< dwCreationDisposition 
             FILE_ATTRIBUTE_NORMAL | FILE_FLAG_NO_BUFFERING, //< dwFlagsAndAttributes
-            nullptr //< hTemplateFile
+            nullptr           //< hTemplateFile
             );
 
     if (INVALID_HANDLE_VALUE == fh) {
@@ -88,16 +88,16 @@ wmain(int argc, wchar_t *argv[])
     }
     memset(buf, 0, bufBytes);
 
-    // ƒpƒtƒH[ƒ}ƒ“ƒXƒJƒEƒ“ƒ^B
+    // ãƒ‘ãƒ•ã‚©ãƒ¼ãƒžãƒ³ã‚¹ã‚«ã‚¦ãƒ³ã‚¿ã€‚
     QueryPerformanceFrequency(&freqTick);
     recipFreq = 1.0 / freqTick.QuadPart;
 
-    // Œv‘ªŠJŽnB
+    // è¨ˆæ¸¬é–‹å§‹ã€‚
     QueryPerformanceCounter(&startTick);
 
     hr = ReadOneFile(path, buf, bufBytes, fileBytes);
 
-    // Œv‘ªI—¹B
+    // è¨ˆæ¸¬çµ‚äº†ã€‚
     QueryPerformanceCounter(&endTick);
 
     if (FAILED(hr)) {
@@ -105,7 +105,7 @@ wmain(int argc, wchar_t *argv[])
         goto end;
     }
 
-    // Œo‰ßŽžŠÔ•\Ž¦B
+    // çµŒéŽæ™‚é–“è¡¨ç¤ºã€‚
     elapsedSec = ((double)(endTick.QuadPart - startTick.QuadPart)) * recipFreq;
     printf("%f seconds. %f MB/s\n", elapsedSec, fileBytes / elapsedSec / 1000.0 / 1000.0);
 
