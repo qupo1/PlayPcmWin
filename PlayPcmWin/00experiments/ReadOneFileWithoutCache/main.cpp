@@ -65,27 +65,19 @@ end:
     return hr;
 }
 
-
-int
-wmain(int argc, wchar_t *argv[])
+static HRESULT
+Run(const wchar_t *path)
 {
     HRESULT       hr         = S_OK;
+    uint8_t       *buf       = nullptr;
+    const DWORD   bufBytes   = 1024 * 1024;
+    int64_t       fileBytes  = 0;
     LARGE_INTEGER freqTick   = {};
     LARGE_INTEGER startTick  = {};
     LARGE_INTEGER endTick    = {};
     double        recipFreq  = 0;
-    uint8_t       *buf       = nullptr;
-    const DWORD   bufBytes   = 1024 * 1024;
-    int64_t       fileBytes  = 0;
     double        elapsedSec = 0;
 
-    if (argc < 2) {
-        PrintUsage();
-        hr = E_FAIL;
-        return 1;
-    }
-
-    const wchar_t *path = argv[1];
 
     buf = (uint8_t*)malloc(bufBytes);
     if (buf == nullptr) {
@@ -119,6 +111,22 @@ wmain(int argc, wchar_t *argv[])
 end:
     free(buf);
     buf = nullptr;
+
+    return hr;
+}
+
+
+int
+wmain(int argc, wchar_t *argv[])
+{
+    if (argc < 2) {
+        PrintUsage();
+        return 1;
+    }
+
+    const wchar_t *path = argv[1];
+
+    HRESULT hr = Run(path);
 
     return SUCCEEDED(hr) ? 0 : 1;
 }
