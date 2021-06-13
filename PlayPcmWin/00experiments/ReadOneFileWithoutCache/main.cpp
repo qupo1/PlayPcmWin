@@ -47,9 +47,11 @@ ReadOneFile(const wchar_t *path,
         if (b == 0) {
             // ReadFile failed.
             hr = GetLastError();
+            goto end;
         }
-        if (b == 0 || readBytes == 0) {
-            // ReadFile failed or EOF reached.
+        if (readBytes == 0) {
+            // EOF reached.
+            hr = S_OK;
             goto end;
         }
 
