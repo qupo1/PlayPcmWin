@@ -11,14 +11,14 @@ PrintUsage(void)
 static HRESULT
 ReadOneFile(const wchar_t *path,
         uint8_t *buf, const DWORD bufBytes,
-        int64_t &fileBytes_return)
+        int64_t *fileBytes_return)
 {
     HRESULT hr        = S_OK;
     HANDLE  fh        = INVALID_HANDLE_VALUE;
     DWORD   readBytes = 0;
     //int     count     = 0;
 
-    fileBytes_return = 0;
+    *fileBytes_return = 0;
 
     fh = CreateFile(path,
             GENERIC_READ,     //< dwDesiredAccess
@@ -53,7 +53,7 @@ ReadOneFile(const wchar_t *path,
             goto end;
         }
 
-        fileBytes_return += readBytes;
+        *fileBytes_return += readBytes;
     }
 
 end:
@@ -93,7 +93,7 @@ Run(const wchar_t *path)
     // 計測開始。
     QueryPerformanceCounter(&startTick);
 
-    hr = ReadOneFile(path, buf, bufBytes, fileBytes);
+    hr = ReadOneFile(path, buf, bufBytes, &fileBytes);
 
     // 計測終了。
     QueryPerformanceCounter(&endTick);
