@@ -432,7 +432,7 @@ namespace PlayPcmWin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Next.
+        ///   Looks up a localized string similar to Ne_xt.
         /// </summary>
         internal static string MainButtonNext {
             get {
@@ -459,7 +459,7 @@ namespace PlayPcmWin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prev.
+        ///   Looks up a localized string similar to Pr_ev.
         /// </summary>
         internal static string MainButtonPrev {
             get {

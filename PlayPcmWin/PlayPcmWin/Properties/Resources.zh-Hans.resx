@@ -164,7 +164,7 @@
     <value>列出支持的格式(_I)</value>
   </data>
   <data name="MainButtonNext" xml:space="preserve">
-    <value>下一首</value>
+    <value>下一首(_X)</value>
   </data>
   <data name="MainButtonPause" xml:space="preserve">
     <value>暂停(_U)</value>
@@ -173,7 +173,7 @@
     <value>播放(_P)</value>
   </data>
   <data name="MainButtonPrev" xml:space="preserve">
-    <value>前一首</value>
+    <value>前一首(_E)</value>
   </data>
   <data name="MainButtonResume" xml:space="preserve">
     <value>继续(_U)</value>

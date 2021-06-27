@@ -365,7 +365,7 @@ Jcode.pm copyright is as follows: Copyright 1999-2005 Dan Kogai</value>
     <value>L_ist supported formats</value>
   </data>
   <data name="MainButtonNext" xml:space="preserve">
-    <value>Next</value>
+    <value>Ne_xt</value>
   </data>
   <data name="MainButtonPause" xml:space="preserve">
     <value>Pa_use</value>
@@ -374,7 +374,7 @@ Jcode.pm copyright is as follows: Copyright 1999-2005 Dan Kogai</value>
     <value>_Play</value>
   </data>
   <data name="MainButtonPrev" xml:space="preserve">
-    <value>Prev</value>
+    <value>Pr_ev</value>
   </data>
   <data name="MainButtonSettings" xml:space="preserve">
     <value>_Detailed settings...</value>
