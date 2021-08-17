@@ -8,7 +8,7 @@ static void ShowMemoryStat(void)
     st.dwLength = sizeof (st);
     GlobalMemoryStatusEx (&st);
 
-    printf("%.1f GB free / %.1f GB total.\r",
+    printf("%.1f GB free / %.1f GB total.\n",
             st.ullAvailPhys / 1024.0 / 1024.0 / 1024.0,
             st.ullTotalPhys / 1024.0 / 1024.0 / 1024.0);
 }
@@ -23,10 +23,6 @@ int main(void)
     printf("Press CTRL+C to stop.\n");
 
     while (true) {
-        Sleep(10* 1000);
-
-        ShowMemoryStat();
-
         DWORD nProcBytes = 0;
         int nProc = 0;
         BOOL b = EnumProcesses(processIdArray, MAX_PROCESS*sizeof(DWORD), &nProcBytes);
@@ -66,6 +62,9 @@ int main(void)
             goto end;
         } else {
         }
+
+        ShowMemoryStat();
+        Sleep(10* 1000);
     }
 
 end:
