@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <new>
 
 struct WaveFormatInfo {
     int bitsPerSample;
@@ -41,7 +42,7 @@ ReadWaveChunk(FILE *fp, WaveFormatInfo &wfi)
         return false;
     }
 
-    unsigned char *buff = new unsigned char[chunkSize];
+    unsigned char *buff = new (std::nothrow) unsigned char[chunkSize];
     if (nullptr == buff) {
         printf("E: memory allocation failed\n");
         return false;
