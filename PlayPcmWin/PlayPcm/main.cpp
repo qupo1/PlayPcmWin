@@ -95,7 +95,7 @@ end:
 struct Settings {
     int deviceId;
     int latencyMillisec;
-    const char *path;
+    const wchar_t *path;
     WWPcmDataStreamAllocType allocType;
 
     Settings(void) : deviceId(-1), latencyMillisec(LATENCY_MILLISEC_DEFAULT), path(nullptr), allocType(WWPDSA_Normal) {
@@ -199,17 +199,17 @@ enum CommandlineOptionType {
     COT_NUM
 };
 
-const char *gCommandLineStrArray[] = {
-    "-d",
-    "-l",
-    "-uselargememory",
+const wchar_t *gCommandLineStrArray[] = {
+    L"-d",
+    L"-l",
+    L"-uselargememory",
 };
 
 static CommandlineOptionType
-StringToCommandlineOptionType(const char *s)
+StringToCommandlineOptionType(const wchar_t *s)
 {
     for (int i=0; i<COT_NUM; ++i) {
-        if (0 == strcmp(s, gCommandLineStrArray[i])) {
+        if (0 == wcscmp(s, gCommandLineStrArray[i])) {
             return (CommandlineOptionType)i;
         }
     }
@@ -218,7 +218,7 @@ StringToCommandlineOptionType(const char *s)
 
 /// @return false: not need to continue program, true: continue program execution
 static bool
-ParseCommandline(int argc, char *argv[], Settings &settings_return)
+ParseCommandline(int argc, wchar_t *argv[], Settings &settings_return)
 {
     for (int i=1; i<argc; ++i) {
         CommandlineOptionType cot = StringToCommandlineOptionType(argv[i]);
@@ -233,11 +233,11 @@ ParseCommandline(int argc, char *argv[], Settings &settings_return)
             settings_return.path = argv[i];
             return true;
         case COT_DEVICE:
-            settings_return.deviceId = atoi(argv[i+1]);
+            settings_return.deviceId = _wtoi(argv[i+1]);
             ++i;
             break;
         case COT_LATENCY:
-            settings_return.latencyMillisec = atoi(argv[i+1]);
+            settings_return.latencyMillisec = _wtoi(argv[i+1]);
             ++i;
             break;
         case COT_LARGEMEM:
@@ -261,7 +261,7 @@ ParseCommandline(int argc, char *argv[], Settings &settings_return)
 }
 
 int
-main(int argc, char *argv[])
+wmain(int argc, wchar_t *argv[])
 {
     WWPcmData *pcmData = nullptr;
     Settings settings;
@@ -293,7 +293,7 @@ main(int argc, char *argv[])
         if (nullptr == pcmData) {
             pcmData = WWReadDsdiffFile(settings.path, bitsPerSampleType, settings.allocType);
             if (nullptr == pcmData) {
-                printf("E: read file failed %s\n", settings.path);
+                printf("E: read file failed %ls\n", settings.path);
                 goto end;
             }
         }

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <new>
 
 #define DSD_CHUNK_FOURCC  "DSD "
 #define FMT_CHUNK_FOURCC  "fmt "
@@ -131,7 +132,7 @@ struct DsfDataChunk {
 };
 
 WWPcmData *
-WWReadDsfFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmDataStreamAllocType allocType)
+WWReadDsfFile(const wchar_t *path, WWBitsPerSampleType bitsPerSampleType, WWPcmDataStreamAllocType allocType)
 {
     WWPcmData *pcmData = nullptr;
     char fourCC[4];
@@ -151,7 +152,7 @@ WWReadDsfFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmData
     }
 
     FILE *fp = nullptr;
-    fopen_s(&fp, path, "rb");
+    _wfopen_s(&fp, path, L"rb");
     if (nullptr == fp) {
         return nullptr;
     }
@@ -174,7 +175,7 @@ WWReadDsfFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmData
         goto end;
     }
 
-    pcmData = new WWPcmData();
+    pcmData = new (std::nothrow) WWPcmData();
     if (nullptr == pcmData) {
         goto end;
     }
@@ -190,14 +191,14 @@ WWReadDsfFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmData
     pcmData->posFrame       = 0;
 
     streamBytes = (pcmData->bitsPerSample/8) * pcmData->nFrames * pcmData->nChannels;
-    stream = new unsigned char[streamBytes];
+    stream = new (std::nothrow) unsigned char[streamBytes];
     if (nullptr == stream) {
         goto end;
     }
     memset(stream, 0, streamBytes);
 
     blockNum = (uint32_t)((dataChunk.chunkBytes-12)/fmtChunk.blockSizePerChannel);
-    blockData = new unsigned char[fmtChunk.blockSizePerChannel * fmtChunk.channelNum];
+    blockData = new (std::nothrow) unsigned char[fmtChunk.blockSizePerChannel * fmtChunk.channelNum];
     if (nullptr == blockData) {
         goto end;
     }

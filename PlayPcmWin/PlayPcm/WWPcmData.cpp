@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <new>
 
 void
 WWPcmData::Init(WWPcmDataStreamAllocType t)
@@ -46,7 +47,7 @@ AllocStreamMemory(WWPcmDataStreamAllocType t, int64_t bytes)
     unsigned char *result = nullptr;
     switch (t) {
     case WWPDSA_Normal:
-        result = new unsigned char[bytes];
+        result = new (std::nothrow) unsigned char[bytes];
         break;
     case WWPDSA_LargeMemory:
         {
@@ -65,7 +66,6 @@ AllocStreamMemory(WWPcmDataStreamAllocType t, int64_t bytes)
         break;
     }
 
-    assert(result);
     return result;
 }
 

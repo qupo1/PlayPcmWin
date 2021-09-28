@@ -2,4 +2,4 @@
 
 #include "WWPcmData.h"
 
-WWPcmData * WWReadWavFile(const char *path, WWPcmDataStreamAllocType t = WWPDSA_Normal);
+WWPcmData * WWReadWavFile(const wchar_t *path, WWPcmDataStreamAllocType t = WWPDSA_Normal);

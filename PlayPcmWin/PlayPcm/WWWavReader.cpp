@@ -97,7 +97,7 @@ end:
 }
 
 WWPcmData *
-WWReadWavFile(const char *path, WWPcmDataStreamAllocType t)
+WWReadWavFile(const wchar_t *path, WWPcmDataStreamAllocType t)
 {
     unsigned char buff[12];
     WWPcmData *result = nullptr;
@@ -106,7 +106,7 @@ WWReadWavFile(const char *path, WWPcmDataStreamAllocType t)
     memset(&wfi, 0, sizeof wfi);
 
     FILE *fp = nullptr;
-    fopen_s(&fp, path, "rb");
+    _wfopen_s(&fp, path, L"rb");
     if (nullptr == fp) {
         return nullptr;
     }
@@ -131,7 +131,7 @@ WWReadWavFile(const char *path, WWPcmDataStreamAllocType t)
     }
 
     if (wfi.data) {
-        result = new WWPcmData();
+        result = new (std::nothrow) WWPcmData();
         if (nullptr == result) {
             goto end;
         }

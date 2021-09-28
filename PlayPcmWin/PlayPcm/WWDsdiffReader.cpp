@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <new>
 
 #define FORM_DSD_FORM_TYPE           "DSD "
 #define PROPERTY_CHUNK_PROPERTY_TYPE "SND "
@@ -290,7 +291,7 @@ struct DsdiffUnknownChunk {
 };
 
 WWPcmData *
-WWReadDsdiffFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmDataStreamAllocType allocType)
+WWReadDsdiffFile(const wchar_t *path, WWBitsPerSampleType bitsPerSampleType, WWPcmDataStreamAllocType allocType)
 {
     WWPcmData *pcmData = nullptr;
     uint32_t fourCC;
@@ -315,9 +316,9 @@ WWReadDsdiffFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmD
     }
 
     FILE *fp = nullptr;
-    fopen_s(&fp, path, "rb");
+    _wfopen_s(&fp, path, L"rb");
     if (nullptr == fp) {
-        printf("file open error %s\n", path);
+        printf("file open error %ls\n", path);
         return nullptr;
     }
 
@@ -383,7 +384,7 @@ WWReadDsdiffFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmD
         goto end;
     }
 
-    pcmData = new WWPcmData();
+    pcmData = new (std::nothrow) WWPcmData();
     if (nullptr == pcmData) {
         printf("no memory\n");
         goto end;
@@ -400,7 +401,7 @@ WWReadDsdiffFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmD
     pcmData->posFrame       = 0;
 
     streamBytes = pcmData->bitsPerSample/8 * pcmData->nFrames * pcmData->nChannels;
-    stream = new unsigned char[streamBytes];
+    stream = new (std::nothrow) unsigned char[streamBytes];
     if (nullptr == stream) {
         printf("no memory\n");
         goto end;
@@ -411,7 +412,7 @@ WWReadDsdiffFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmD
     // L channel byte, R channel byte, L channel byte ...
     // Most significant bit is the oldest bit in time.
 
-    dsdData = new unsigned char[pcmData->nChannels * 2];
+    dsdData = new (std::nothrow) unsigned char[pcmData->nChannels * 2];
     if (nullptr == dsdData) {
         printf("no memory\n");
         goto end;

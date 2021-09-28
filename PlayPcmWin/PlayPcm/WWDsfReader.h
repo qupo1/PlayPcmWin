@@ -2,4 +2,4 @@
 
 #include "WWPcmData.h"
 
-WWPcmData * WWReadDsfFile(const char *path, WWBitsPerSampleType bitsPerSampleType, WWPcmDataStreamAllocType t = WWPDSA_Normal);
+WWPcmData * WWReadDsfFile(const wchar_t *path, WWBitsPerSampleType bitsPerSampleType, WWPcmDataStreamAllocType t = WWPDSA_Normal);
