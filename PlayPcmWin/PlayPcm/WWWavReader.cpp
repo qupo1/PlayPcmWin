@@ -86,7 +86,6 @@ ReadWaveChunk(FILE *fp, WaveFormatInfo &wfi)
         result = false;
     } else {
         // skip unknown chunk
-        fseek(fp, chunkSize, SEEK_CUR);
         result = true;
     }
 
