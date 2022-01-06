@@ -8,15 +8,16 @@ import numpy as np
 parser = argparse.ArgumentParser()
 parser.add_argument('inWavPath', type=pathlib.Path)
 parser.add_argument('outCsvPath', type=pathlib.Path)
-
+parser.add_argument('--filterSz', type=int, default=4095)
+parser.add_argument('--magScale', type=int, default=6)
+parser.add_argument('--saveStart', type=int, default=4095)
+parser.add_argument('--saveSamples', type=int, default=50)
 args = parser.parse_args()
 
 samplerate, pcm = wavfile.read(args.inWavPath)
 
-filterSz=4095
-magScale=20
-
-procSamples=50
+filterSz=args.filterSz
+magScale=args.magScale
 
 halfSz=filterSz//2
 
@@ -25,12 +26,12 @@ halfSz=filterSz//2
 fc = []
 for i in range(filterSz):
     x = i - halfSz
-    xn = x * 3.14159265 / magScale
+    xn = x * math.pi / magScale
     s = 1.0
     if x != 0:
         s = math.sin(xn) / xn
     
-    h = (1.0 + math.cos(3.14159265 * x / halfSz) ) / 2.0
+    h = (1.0 + math.cos(math.pi * x / halfSz) ) / 2.0
     
     r = s * h
     fc.append(r)
@@ -41,28 +42,30 @@ nfs = np.array(fc)
 
 nPCM = np.array(pcm)
 
-print(nPCM.shape)
+#print(nPCM.shape)
 
 nLch = nPCM[:,0]
 
-print(nLch.shape)
+#print(nLch.shape)
 
-print(nfs.shape)
+#print(nfs.shape)
 
 LchC2 = []
-for s in range(magScale * procSamples):
+for s in range(nLch.shape[0]):
     v = nLch[s]
     for i in range(magScale):
         LchC2.append(v)
 
 nLchC2 = np.array(LchC2)
 
-print(nLchC2.shape)
+#print(nLchC2.shape)
 
 ncr = np.convolve(nLchC2, nfs, mode='same')
 
-print(ncr.shape)
+#print(ncr.shape)
 
-df = pd.DataFrame(ncr)
+ncrSave = ncr[args.saveStart:args.saveStart+args.saveSamples]
 
-df.to_csv(args.outCsvPath)
+df = pd.DataFrame(ncrSave)
+df.to_csv(args.outCsvPath, sep ='\t')
+
