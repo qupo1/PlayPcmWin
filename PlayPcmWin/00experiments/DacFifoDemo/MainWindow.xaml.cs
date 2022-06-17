@@ -27,14 +27,19 @@ namespace DacFifoDemo {
         //private double mUsbMicroFrameFreqHz = 20000.0;
 
         /// <summary>
+        /// シミュレーションの刻み。(秒)
+        /// </summary>
+        //private double mSimulationTickSec = 1.0 / (mPcmSampleFreqHz * 2.0 * mUIUpdateFreqHz);
+
+        /// <summary>
         /// UI再描画頻度。 
         /// </summary>
         private const int mUIUpdateFreqHz = 30;
 
         /// <summary>
-        /// シミュレーションの刻み。(秒)
+        /// シミュレーションの刻み累計回数。
         /// </summary>
-        //private double mSimulationTickSec = 1.0 / (mPcmSampleFreqHz * 2.0 * mUIUpdateFreqHz);
+        private int mSimulationTickCounter = 0;
 
         /// <summary>
         /// 出力アナログサイン波の周波数。
@@ -72,44 +77,44 @@ namespace DacFifoDemo {
         private double mAnalogWaveDispOffsX = 0;
 
         /// <summary>
-        /// HCが送出したマイクロフレームのHC滞在時間。
+        /// HCが送出したマイクロフレームのHC滞在時間(実時間)。
         /// </summary>
-        private double HC_TRANSITION_SEC = 0.2;
+        private const double HC_TRANSITION_SEC = 0.2;
 
         /// <summary>
-        /// HCから出てFIFOに届くまでの時間。
+        /// HCから出てFIFOに届くまでのトランジション・アニメーション時間。
         /// </summary>
-        private double HC_TO_FIFO_TRANSITION_SEC = 0.5;
+        private const double HC_TO_FIFO_TRANSITION_SEC = 0.5;
 
         /// <summary>
-        /// FIFOから出てDACに届くまでの時間。
+        /// FIFOから出てDACに届くまでのトランジション・アニメーション時間。
         /// </summary>
-        private double FIFO_TO_DAC_TRANSITION_SEC = 0.5;
+        private const double FIFO_TO_DAC_TRANSITION_SEC = 0.5;
 
         /// <summary>
         /// FIFOサンプルデータの表示Y座標。
         /// </summary>
-        private int Y_FIFO_SAMPLEDATA = 420;
+        private const int Y_FIFO_SAMPLEDATA = 420;
 
         /// <summary>
         /// HC生成時サンプル表示位置Y。
         /// </summary>
-        private int Y_HC_SAMPLEDATA = 355;
+        private const int Y_HC_SAMPLEDATA = 355;
 
         /// <summary>
         /// HCの出力端X座標。
         /// </summary>
-        private int X_HC_END = 250;
+        private const int X_HC_END = 250;
 
         /// <summary>
         /// サンプルデータ1個の幅。
         /// </summary>
-        private int W_SAMPLEDATA = 40;
+        private const int W_SAMPLEDATA = 40;
 
         /// <summary>
         /// FIFOの出力単X座標。
         /// </summary>
-        private int X_FIFO_END = 830;
+        private const int X_FIFO_END = 830;
 
         /// <summary>
         /// 各クロックのスクロール開始Y座標。
@@ -441,6 +446,10 @@ namespace DacFifoDemo {
                 GenerateFB();
             }
             UpdateFB();
+
+            // 時間表示更新。
+            mLabelElapsedTimeSec.Content = string.Format("{0,8:0.0} μs", 1000.0 * 1000.0 * mSimulationTickCounter * mSliderSimTick.Value);
+            ++mSimulationTickCounter;
         }
 
         private enum SampleEvent {
