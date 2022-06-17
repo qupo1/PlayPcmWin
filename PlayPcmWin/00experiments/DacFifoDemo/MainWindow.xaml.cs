@@ -87,7 +87,7 @@ namespace DacFifoDemo {
         private const double HC_TO_FIFO_TRANSITION_SEC = 0.5;
 
         /// <summary>
-        /// FIFOから出てDACに届くまでのトランジション・アニメーション時間。
+        /// FIFOから出てDACに届くまでのトランジション・アニメーション時間(秒)。
         /// </summary>
         private const double FIFO_TO_DAC_TRANSITION_SEC = 0.5;
 
@@ -145,7 +145,7 @@ namespace DacFifoDemo {
         /// <summary>
         /// FIFOからDACまでの移動量(px)。
         /// </summary>
-        private const double W_FIFO_TO_DAC = 150;
+        private const double W_FIFO_TO_DAC = 950-(X_FIFO_END + W_SAMPLEDATA);
 
         /// <summary>
         /// FIFOに収容できる最大サンプル数。
