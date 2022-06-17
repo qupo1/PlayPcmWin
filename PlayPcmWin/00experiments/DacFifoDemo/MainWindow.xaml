@@ -81,7 +81,7 @@
             <Slider Grid.Row="1" x:Name="mSliderSimTick" Grid.Column="1" VerticalAlignment="Center" Minimum="1e-7" Maximum="1e-6" Value="3.4722222222222e-7" SmallChange="1E-08" LargeChange="1E-07" TickFrequency="1E-07" ValueChanged="mSliderSimTick_ValueChanged" />
             <Label Grid.Row="1" x:Name="mLabelSimTick" Grid.Column="2" Content="0.0000005" VerticalAlignment="Center" HorizontalAlignment="Left" />
 
-            <Label Grid.Row="2" Grid.Column="0" Content="USB clock:" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            <Label Grid.Row="2" Grid.Column="0" Content="USB SOF Freq:" VerticalAlignment="Center" HorizontalAlignment="Right" />
             <Slider Grid.Row="2" x:Name="mSliderUsbMFClockHz" Grid.Column="1" VerticalAlignment="Center" Minimum="16000" Maximum="48000" SmallChange="1" LargeChange="1000" TickFrequency="1000" Value="20000" ValueChanged="mSliderUsbMFClockHz_ValueChanged" />
             <Label Grid.Row="2" x:Name="mLabelUsbMFClockHz" Grid.Column="2" Content="20000" VerticalAlignment="Center" HorizontalAlignment="Left" />
         </Grid>
