@@ -1,0 +1,69 @@
+﻿<Window x:Class="DacFifoDemo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DacFifoDemo"
+        mc:Ignorable="d"
+        Title="Asynchronous USB DAC FIFO simulator" Height="680" Width="1300" Background="White" Loaded="Window_Loaded">
+    <Canvas x:Name="mCanvas">
+        <Rectangle HorizontalAlignment="Left" Height="450" Margin="5,40,0,0" Stroke="Black" VerticalAlignment="Top" Width="320" Fill="#FFCCCCCC"/>
+        <Rectangle HorizontalAlignment="Left" Width="670" Height="450" Margin="490,40,0,0" Stroke="Black" VerticalAlignment="Top" Fill="#FFCCCCCC"/>
+
+        <TextBlock Text="PC" Canvas.Left="137" Canvas.Top="495" FontSize="24"/>
+        <TextBlock Text="USB Cable" Canvas.Left="330" Canvas.Top="400" FontSize="16"/>
+        <TextBlock Text="(Bi-directional link)" Canvas.Left="330" Canvas.Top="420" FontSize="16"/>
+        <TextBlock Text="DAC" Canvas.Left="802" Canvas.Top="495" FontSize="24"/>
+        <TextBlock Text="Analog Output" Canvas.Left="1170" Canvas.Top="440" FontSize="16"/>
+
+        <Line X1="320" Y1="380" X2="500" Y2="380" Stroke="Black" StrokeThickness="4" Panel.ZIndex="-1"/>
+
+        <Line X1="900" Y1="425" X2="950" Y2="425" Stroke="Black" StrokeThickness="4" />
+
+        <Line X1="1150" Y1="418" X2="1300" Y2="418" Stroke="Black" StrokeThickness="1" />
+
+        <Image x:Name="mClockToHC" Height="256" Canvas.Left="250" Canvas.Top="100" Width="32" Source="/RectWaveb.png"/>
+        <Image x:Name="mClockToRcv" Height="256" Canvas.Left="830" Canvas.Top="100" Width="32" Source="/RectWaveb.png"/>
+        <Image x:Name="mClockToDac" Height="256" Canvas.Left="1000" Canvas.Top="100" Width="32" Source="/RectWaveb.png"/>
+        <Image x:Name="mAnalogSignal" Height="256" Canvas.Left="950" Canvas.Top="290" Width="512" Source="/SineWave2.png"/>
+
+        <Rectangle HorizontalAlignment="Left" Height="130" Margin="110,100,0,0" Stroke="Black" VerticalAlignment="Top" Width="200" Fill="White"/>
+        <TextBlock Text="USB Clock" Canvas.Left="156" Canvas.Top="149" FontSize="24"/>
+
+        <Rectangle HorizontalAlignment="Left" Width="290" Height="60" Margin="10,350,0,0" Stroke="Black" VerticalAlignment="Top" Fill="White"/>
+        <TextBlock Text="USB Host Controller" Canvas.Left="10" Canvas.Top="316" FontSize="24"/>
+        <TextBlock Text="Next frame to send:" Canvas.Left="15" Canvas.Top="355" FontSize="14"/>
+        <TextBlock Text="Flow-Control Feedback:" Canvas.Left="50" Canvas.Top="380" FontSize="14" Panel.ZIndex="3"/>
+        <Rectangle HorizontalAlignment="Left" Width="140" Height="26" Margin="150,353,0,0" Stroke="Black" VerticalAlignment="Top" Fill="White"/>
+
+
+        <Rectangle HorizontalAlignment="Left" Height="130" Margin="500,350,0,0" Stroke="Black" VerticalAlignment="Top" Width="400" Fill="White"/>
+        <TextBlock Text="USB Receiver" Canvas.Left="631" Canvas.Top="316" FontSize="24"/>
+
+        <Rectangle HorizontalAlignment="Left" Width="320" Height="40" Margin="550,405,0,0" Stroke="Black" VerticalAlignment="Top" Fill="White"/>
+        <TextBlock Text="FIFO" Canvas.Left="676" Canvas.Top="440" FontSize="24"/>
+        <TextBlock Text="Full" Canvas.Left="513" Canvas.Top="440" FontSize="24"/>
+        <TextBlock Text="Empty" Canvas.Left="830" Canvas.Top="440" FontSize="24"/>
+        <TextBlock Text="Queue status:" Canvas.Left="600" Canvas.Top="380" FontSize="16" Panel.ZIndex="3"/>
+        <TextBlock x:Name="mQueueStatusTB" Text="Short" Canvas.Left="700" Canvas.Top="380" FontSize="16" Panel.ZIndex="3" Background="White"/>
+
+        <Rectangle HorizontalAlignment="Left" Height="130" Margin="730,100,0,0" Stroke="Black" VerticalAlignment="Top" Width="400" Fill="White"/>
+        <TextBlock Text="DAC Clock" Canvas.Left="815" Canvas.Top="149" FontSize="24"/>
+
+        <Rectangle HorizontalAlignment="Left" Width="203" Height="130" Margin="950,350,0,0" Stroke="Black" VerticalAlignment="Top"  Fill="White" Panel.ZIndex="2"/>
+        <TextBlock Text="DAC Chip" Canvas.Left="999" Canvas.Top="399" FontSize="24" Panel.ZIndex="3"/>
+
+        <Line X1="828" Y1="405" X2="828" Y2="445" Stroke="Gray" StrokeThickness="1" />
+        <Line X1="788" Y1="405" X2="788" Y2="445" Stroke="Gray" StrokeThickness="1" />
+        <Line X1="748" Y1="405" X2="748" Y2="445" Stroke="Gray" StrokeThickness="1" />
+        <Line X1="708" Y1="405" X2="708" Y2="445" Stroke="Gray" StrokeThickness="1" />
+        <Line X1="668" Y1="405" X2="668" Y2="445" Stroke="Gray" StrokeThickness="1" />
+        <Line X1="628" Y1="405" X2="628" Y2="445" Stroke="Gray" StrokeThickness="1" />
+        <Line X1="588" Y1="405" X2="588" Y2="445" Stroke="Gray" StrokeThickness="1" />
+
+        <TextBlock Text="Note: 16-bit PCM sample data is expressed as a 4-digit hexadecimal number such as:" Canvas.Left="50" Canvas.Top="600" FontSize="16"  />
+        <TextBlock Text="3A82" Canvas.Left="660" Canvas.Top="600" FontSize="16" Background="LightYellow" />
+
+
+    </Canvas>
+</Window>
