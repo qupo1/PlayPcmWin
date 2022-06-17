@@ -24,7 +24,7 @@ namespace DacFifoDemo {
         /// <summary>
         /// USB microframe frequency 48000/3より大きく、48000より小さくする。
         /// </summary>
-        private double mUsbMicroFrameFreqHz = 20000.0;
+        //private double mUsbMicroFrameFreqHz = 20000.0;
 
         /// <summary>
         /// UI再描画頻度。 
@@ -34,7 +34,7 @@ namespace DacFifoDemo {
         /// <summary>
         /// シミュレーションの刻み。(秒)
         /// </summary>
-        private double mSimulationTickSec = 1.0 / (mPcmSampleFreqHz * 2.0 * mUIUpdateFreqHz);
+        //private double mSimulationTickSec = 1.0 / (mPcmSampleFreqHz * 2.0 * mUIUpdateFreqHz);
 
         /// <summary>
         /// 出力アナログサイン波の周波数。
@@ -134,7 +134,7 @@ namespace DacFifoDemo {
         /// <summary>
         /// HCからFIFOまでの移動量(px)。
         /// </summary>
-        private const double W_HC_TO_FIFO = 620-160;
+        private const double W_HC_TO_FIFO = 588-160;
 
 
         /// <summary>
@@ -187,11 +187,11 @@ namespace DacFifoDemo {
 
         class Fifo {
             public enum BufferState {
-                Starved,
+                Short,
                 OK,
-                Full,
+                Long,
             };
-            public BufferState mBufferState = BufferState.Starved;
+            public BufferState mBufferState = BufferState.Short;
         }
 
         private Fifo mFifo = new Fifo();
@@ -255,21 +255,21 @@ namespace DacFifoDemo {
             case Fifo.BufferState.OK:
             default:
                 return "Adequate";
-            case Fifo.BufferState.Full:
+            case Fifo.BufferState.Long:
                 return "Long";
-            case Fifo.BufferState.Starved:
+            case Fifo.BufferState.Short:
                 return "Short";
             }
         }
         private string FifoBufferStateToFBStr() {
             switch (mFifo.mBufferState) {
-            case Fifo.BufferState.Full:
-                return "Smaller";
+            case Fifo.BufferState.Long:
+                return "Shorter";
             case Fifo.BufferState.OK:
             default:
                 return "Moderate";
-            case Fifo.BufferState.Starved:
-                return "Larger";
+            case Fifo.BufferState.Short:
+                return "Longer";
             }
         }
 
@@ -292,10 +292,10 @@ namespace DacFifoDemo {
                 default:
                     mFB.mFeedBackMsg = HC.SampleAmount.Moderate;
                     break;
-                case Fifo.BufferState.Full:
+                case Fifo.BufferState.Long:
                     mFB.mFeedBackMsg = HC.SampleAmount.Less;
                     break;
-                case Fifo.BufferState.Starved:
+                case Fifo.BufferState.Short:
                     mFB.mFeedBackMsg = HC.SampleAmount.More;
                     break;
                 }
@@ -325,7 +325,7 @@ namespace DacFifoDemo {
 
             for (int i = 0; i < (int)sampleCount; ++i) {
                 double x = 2.0 * Math.PI * mSineFreqHz * mPcmSampleCounter / mPcmSampleFreqHz;
-                Trace.WriteLine(string.Format("{0} {1}", mPcmSampleCounter, x));
+                //Trace.WriteLine(string.Format("{0} {1}", mPcmSampleCounter, x));
 
                 double y = Math.Sin(x);
                 string text = string.Format("{0:X4}", (short)(32767 * y));
@@ -380,7 +380,7 @@ namespace DacFifoDemo {
         private void Update() {
             { 
                 // DACクロックをスクロール・アニメーションします。
-                mDacClockDispOffsY += H_CLOCK_PERIOD * mSimulationTickSec * mPcmSampleFreqHz;
+                mDacClockDispOffsY += H_CLOCK_PERIOD * mSliderSimTick.Value * mPcmSampleFreqHz;
                 if (H_CLOCK_PERIOD < mDacClockDispOffsY) {
                     mDacClockDispOffsY -= H_CLOCK_PERIOD;
                     ++mDacClockCounter;
@@ -393,7 +393,7 @@ namespace DacFifoDemo {
 
             {
                 // USBクロックをスクロール・アニメーションします。
-                mUsbClockDispOffsY += H_CLOCK_PERIOD * mSimulationTickSec * mUsbMicroFrameFreqHz;
+                mUsbClockDispOffsY += H_CLOCK_PERIOD * mSliderSimTick.Value * mSliderUsbMFClockHz.Value;
                 if (H_CLOCK_PERIOD < mUsbClockDispOffsY) {
                     mUsbClockDispOffsY -= H_CLOCK_PERIOD;
                     ++mUsbMicroFrameCounter;
@@ -405,7 +405,7 @@ namespace DacFifoDemo {
 
             {
                 // 出力正弦波波形をスクロールします。
-                mAnalogWaveDispOffsX += W_ANALOG_PERIOD * mSimulationTickSec * mSineFreqHz;
+                mAnalogWaveDispOffsX += W_ANALOG_PERIOD * mSliderSimTick.Value * mSineFreqHz;
                 while (W_ANALOG_PERIOD < mAnalogWaveDispOffsX) {
                     mAnalogWaveDispOffsX -= W_ANALOG_PERIOD;
                 }
@@ -428,9 +428,9 @@ namespace DacFifoDemo {
 
             // FIFOの状態更新。
             if (FifoSampleCount() < FIFO_SAMPLE_MAX / 2) {
-                mFifo.mBufferState = Fifo.BufferState.Starved;
-            } else if (FIFO_SAMPLE_MAX - 1 <= FifoSampleCount()) {
-                mFifo.mBufferState = Fifo.BufferState.Full;
+                mFifo.mBufferState = Fifo.BufferState.Short;
+            } else if (FIFO_SAMPLE_MAX - 2 <= FifoSampleCount()) {
+                mFifo.mBufferState = Fifo.BufferState.Long;
             } else {
                 mFifo.mBufferState = Fifo.BufferState.OK;
             }
@@ -508,7 +508,13 @@ namespace DacFifoDemo {
             return ev;
         }
 
+        private bool mInitialized = false;
+
         private void Window_Loaded(object sender, RoutedEventArgs e) {
+            mInitialized = true;
+            UpdateLabelSimTick();
+            UpdateLabelUsbMFClockHz();
+
             HCCreateSendUSBFrame();
 
             mTimer = new DispatcherTimer();
@@ -523,5 +529,26 @@ namespace DacFifoDemo {
             CommandManager.InvalidateRequerySuggested();
         }
 
+        private void UpdateLabelSimTick() {
+            mLabelSimTick.Content = string.Format("{0:0.####} μs", 1000.0 * 1000.0 * mSliderSimTick.Value);
+        }
+
+        private void UpdateLabelUsbMFClockHz() {
+            mLabelUsbMFClockHz.Content = string.Format("{0} Hz", (int)mSliderUsbMFClockHz.Value);
+        }
+
+        private void mSliderSimTick_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
+            if (!mInitialized) {
+                return;
+            }
+            UpdateLabelSimTick();
+        }
+
+        private void mSliderUsbMFClockHz_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
+            if (!mInitialized) {
+                return;
+            }
+            UpdateLabelUsbMFClockHz();
+        }
     }
 }

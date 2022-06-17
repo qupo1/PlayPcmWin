@@ -63,6 +63,24 @@
 
         <TextBlock Text="Note: 16-bit PCM sample data is expressed as a 4-digit hexadecimal number such as:" Canvas.Left="50" Canvas.Top="600" FontSize="16"  />
         <TextBlock Text="3A82" Canvas.Left="660" Canvas.Top="600" FontSize="16" Background="LightYellow" />
+        <Grid Height="75" Canvas.Left="950" Canvas.Top="570" Width="300">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+            <Label Grid.Column="0" Content="Sim Tick:" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            <Slider x:Name="mSliderSimTick" Grid.Column="1" VerticalAlignment="Center" Minimum="1e-7" Maximum="1e-6" Value="3.4722222222222e-7" SmallChange="1E-08" LargeChange="1E-07" TickFrequency="1E-07" ValueChanged="mSliderSimTick_ValueChanged" />
+            <Label x:Name="mLabelSimTick" Grid.Column="2" Content="0.0000005" VerticalAlignment="Center" HorizontalAlignment="Left" />
+
+            <Label Grid.Row="1" Grid.Column="0" Content="USB clock:" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            <Slider x:Name="mSliderUsbMFClockHz" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Minimum="16000" Maximum="48000" SmallChange="1" LargeChange="1000" TickFrequency="1000" Value="20000" ValueChanged="mSliderUsbMFClockHz_ValueChanged" />
+            <Label x:Name="mLabelUsbMFClockHz" Grid.Row="1" Grid.Column="2" Content="20000" VerticalAlignment="Center" HorizontalAlignment="Left" />
+        </Grid>
 
 
     </Canvas>
