@@ -509,6 +509,15 @@ namespace PlayPcmWin
 
         private void Window_Loaded(object wSender, RoutedEventArgs we) {
             {
+                var tc = new DarkModeCtrl();
+                if (!tc.IsDarkMode()) {
+                    // Dark mode
+
+
+                }
+            }
+
+            {
                 // slider1のTrackをクリックしてThumbがクリック位置に移動した時Thumbがつままれた状態になるようにする
                 slider1.ApplyTemplate();
                 (slider1.Template.FindName("PART_Track", slider1) as Track).Thumb.MouseEnter += new MouseEventHandler((sliderSender, se) => {
