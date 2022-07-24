@@ -58,6 +58,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">All</AssemblerOutput>
+      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -69,9 +70,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyMemcpy64.h" />
+    <ClInclude Include="PCM16to32.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MyMemcpy64a.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\ml64" /DWIN_X64 /Zi /c /Cp /Fl /Fo $(IntDir)\%(FileName).obj %(FileName).asm </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\%(Filename).obj</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="PCM16to32.asm">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\ml64" /DWIN_X64 /Zi /c /Cp /Fl /Fo $(IntDir)\%(FileName).obj %(FileName).asm </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\%(Filename).obj</Outputs>
