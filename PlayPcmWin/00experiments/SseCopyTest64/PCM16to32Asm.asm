@@ -1,15 +1,15 @@
-public PCM16to32
+public PCM16to32Asm
 
 .code
 
 ; save不要のレジスタ: RAX RCX RDX R8 R9 R10 R11 XMM0 XMM1 XMM2 XMM3 XMM4 XMM5
 
-; PCM16to32(const short *src, int *dst, int64_t count)
+; PCM16to32Asm(const short *src, int *dst, int64_t count)
 ; src      --> rcx
 ; dst      --> rdx
 ; count    --> r8
 align 8
-PCM16to32 proc frame
+PCM16to32Asm proc frame
    .endprolog
     ; dstBytesを算出し、dstバッファ、srcバッファの終わりのアドレスを算出。
     mov r10, rcx  ; r10: src address
@@ -42,6 +42,6 @@ LabelBegin:
     jnz LabelBegin
     ret
 align 8
-PCM16to32 endp
+PCM16to32Asm endp
 end
 
