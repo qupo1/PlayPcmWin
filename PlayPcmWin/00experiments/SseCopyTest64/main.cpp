@@ -5,7 +5,7 @@
 #include <assert.h> //< assert()
 #include "MyMemcpy64.h"
 #include "PCM16to32.h"
-#include <stdint.h>
+#include "PCM16toF32.h"
 
 #define BUFFER_SIZE (8192)
 
@@ -139,6 +139,7 @@ TestMemcpy(void)
     from = nullptr;
 }
 
+/// ASMとの性能比較用C++実装。
 static void
 Pcm16to32CPP(const short *from, int *to, int64_t numOfItems)
 {
@@ -147,54 +148,149 @@ Pcm16to32CPP(const short *from, int *to, int64_t numOfItems)
     }
 }
 
+static void
+Pcm16toF32CPP(const short *from, float *to, int64_t numOfItems)
+{
+    for (int64_t i=0; i<numOfItems; ++i) {
+        to[i] = from[i] * (1.0f / 32768.0f);
+    }
+}
+
 
 static void
-TestPcmConv(void)
+TestPcmConv16to32(void)
 {
     PerfCount pc;
-    int64_t numOfItems = 1000LL * 1000 * 1000;
+    int64_t numOfItems = 1000LL * 1000 * 1000 + 7;
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
     short *fromS = (short*)_aligned_malloc(numOfItems*2, 16);
-    int   *toD   = (int*)_aligned_malloc(numOfItems*4, 16);
+    int   *toAsm   = (int*)_aligned_malloc(numOfItems*4, 16);
+    int   *toCpp   = (int*)_aligned_malloc(numOfItems*4, 16);
 
-    for (int i=0; i<numOfItems; ++i) {
-        fromS[i] = i;
-        toD[i] = 0;
+    for (int64_t i=0; i<numOfItems; ++i) {
+        fromS[i] = (short)(i+1);
+        toAsm[i] = 0;
+        toCpp[i] = 0;
     }
 
     pc.Start();
-    PCM16to32(fromS, toD, numOfItems);
+    PCM16to32(fromS, toAsm, numOfItems);
     double elapsedSecAsm = pc.ElapsedSeconds();
 
     printf("ASM PCM 1G sample conversion in %f sec. %f Gsamples/sec\n",
         elapsedSecAsm, 1.0 / elapsedSecAsm);
 
-    /*
-    int printCounts = 16;
-    for (int i=0; i<printCounts; ++i) {
-        printf("%04x %08x\n", i, toD[i]);
-    }
-    */
-
     pc.Start();
-    Pcm16to32CPP(fromS, toD, numOfItems);
+    Pcm16to32CPP(fromS, toCpp, numOfItems);
     double elapsedSecCpp = pc.ElapsedSeconds();
 
     printf("C++ PCM 1G sample conversion in %f sec. %f Gsamples/sec\n",
         elapsedSecCpp, 1.0 / elapsedSecCpp);
 
-    _aligned_free(toD);
-    toD = nullptr;
+    // Compare two results.
+    for (int64_t i=0; i<numOfItems; ++i) {
+        if (toAsm[i] != toCpp[i]) {
+            printf("Error: %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+        }
+    }
+
+    _aligned_free(toCpp);
+    toCpp = nullptr;
+    _aligned_free(toAsm);
+    toAsm = nullptr;
     _aligned_free(fromS);
     fromS = nullptr;
+}
+
+static void
+TestPcmConv16toF32(void)
+{
+    PerfCount pc;
+    int64_t numOfItems = 1000LL * 1000 * 1000 + 7;
+
+    // numOfItems個のshort値PCMをint値PCMに変換します。
+    short *fromS = (short*)_aligned_malloc(numOfItems*2, 16);
+    float   *toAsm   = (float*)_aligned_malloc(numOfItems*4, 16);
+    float   *toCpp   = (float*)_aligned_malloc(numOfItems*4, 16);
+
+    for (int64_t i=0; i<numOfItems; ++i) {
+        fromS[i] = (short)(i+1);
+        toAsm[i] = 0;
+        toCpp[i] = 0;
+    }
+
+    pc.Start();
+    PCM16toF32(fromS, toAsm, numOfItems);
+    double elapsedSecAsm = pc.ElapsedSeconds();
+
+    printf("ASM PCM 1G sample conversion in %f sec. %f Gsamples/sec\n",
+        elapsedSecAsm, 1.0 / elapsedSecAsm);
+
+    pc.Start();
+    Pcm16toF32CPP(fromS, toCpp, numOfItems);
+    double elapsedSecCpp = pc.ElapsedSeconds();
+
+    printf("C++ PCM 1G sample conversion in %f sec. %f Gsamples/sec\n",
+        elapsedSecCpp, 1.0 / elapsedSecCpp);
+
+    // Compare two results.
+    for (int64_t i=0; i<numOfItems; ++i) {
+        if (toAsm[i] != toCpp[i]) {
+            printf("Error: %04x %f %f\n", i, toAsm[i], toCpp[i]);
+        }
+    }
+
+    _aligned_free(toCpp);
+    toCpp = nullptr;
+    _aligned_free(toAsm);
+    toAsm = nullptr;
+    _aligned_free(fromS);
+    fromS = nullptr;
+}
+
+static bool
+DumpDataToFile(const char *buf, int bytes, const char *path)
+{
+    bool rv = false;
+
+    FILE* fp = nullptr;
+    errno_t e = fopen_s(&fp, path, "wb");
+    if (e != 0 || fp == nullptr) {
+        printf("E: DumpDataToFile fopen failed %s\n", path);
+        return false;
+    }
+
+    int r = fwrite(buf, 1, bytes, fp);
+    if (r != bytes) {
+        printf("E: DumpDataToFile fwrite failed %s\n", path);
+        fclose(fp);
+        goto end;
+    }
+
+    rv = true;
+
+end:
+    fclose(fp);
+    fp = nullptr;
+
+    return rv;
 }
 
 int
 main(void)
 {
+    /*
+    {
+        float v = 1.0f / 32768.0f / 65536.0f;
+        DumpDataToFile((const char *)&v, 4, "div_constant.bin");
+        // it is 0x30000000
+    }
+    */
+
     //TestMemcpy();
-    TestPcmConv();
+    //TestPcmConv16to32();
+    TestPcmConv16toF32();
 
     return 0;
 }

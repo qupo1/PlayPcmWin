@@ -1,8 +1,8 @@
-﻿#include "PCM16to32.h"
-#include "PCM16to32Asm.h"
+﻿#include "PCM16toF32.h"
+#include "PCM16toF32Asm.h"
 
 int64_t
-PCM16to32(const short *src, int *dst, int64_t pcmCount)
+PCM16toF32(const short *src, float *dst, int64_t pcmCount)
 {
     if (pcmCount <= 0) {
         return 0;
@@ -12,10 +12,12 @@ PCM16to32(const short *src, int *dst, int64_t pcmCount)
     int countRemainder = pcmCount % 8;
     int64_t countAsm = pcmCount - countRemainder;
 
-    PCM16to32Asm(src, dst, countAsm);
+    PCM16toF32Asm(src, dst, countAsm);
 
     for (int i=0; i<countRemainder; ++i) {
-        dst[countAsm+i] = src[countAsm+i] << 16;
+        int v = src[countAsm+i] << 16;
+        float f = ((float)v) * (1.0f / 0x80000000);
+        dst[countAsm+i] = f;
     }
 
     return pcmCount;
