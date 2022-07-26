@@ -15,8 +15,8 @@ PCM16toF32(const short *src, float *dst, int64_t pcmCount)
     PCM16toF32Asm(src, dst, countAsm);
 
     for (int i=0; i<countRemainder; ++i) {
-        int v = src[countAsm+i] << 16;
-        float f = ((float)v) * (1.0f / 0x80000000);
+        short v = src[countAsm+i];
+        float f = ((float)v) * (1.0f / 32768.0f);
         dst[countAsm+i] = f;
     }
 
