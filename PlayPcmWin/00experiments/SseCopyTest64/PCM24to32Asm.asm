@@ -49,17 +49,17 @@ public PCM24to32Asm
 align 8
 PCM24to32Asm proc frame
     .endprolog
-    ;
-    ; dstBytesを算出し、dstバッファ、srcバッファの終わりのアドレスを算出。
+
+    ; srcBytesを算出し、srcバッファの終わりのアドレスを算出。
     mov r10, rcx  ; r10: src address
     mov r11, rdx  ; r11: dst address
-    ;
+
     mov rax, r8   ; calc srcBytes, that is count*3
     mov rcx, 3    ;
     mul rcx       ; rax: srcBytes , rdx:rax := rax * 3
     mov r9, rax   ; r9: srcBytes
     add r10, rax  ; now r10 points the end of src buffer
-    ;
+
     mov rcx, r9   ; rcx: srcBytes
     neg rcx       ; now r10+rcx points the start of the src buffer
     mov rdx, r11  ; rdx: dst
@@ -82,7 +82,7 @@ LoopBegin:
     ; 2組目の4 PCM:                   7777 77oo 6666 66oo 5555 55oo 4444 44oo
     movdqa xmm3, xmmword ptr mask0_1
     pshufb xmm0, xmm3         ; xmm0: oooo oooo oooo oooo oooo 55oo 4444 44oo
-    ;
+
     movdqa xmm3, xmmword ptr mask1_1
     movdqa xmm4, xmm1         ; xmm4: aaaa 9999 9988 8888 7777 7766 6666 5555
     pshufb xmm4, xmm3         ; xmm4: 7777 77oo 6666 6600 5555 oooo oooo oooo
@@ -92,7 +92,7 @@ LoopBegin:
     ; 3組目の4 PCM:                   bbbb bboo aaaa aaoo 9999 99oo 8888 88oo
     movdqa xmm3, xmmword ptr mask1_2
     pshufb xmm1, xmm3         ; xmm1: oooo oooo ooaa aaoo 9999 99oo 8888 88oo
-    ;
+
     movdqa xmm3, xmmword ptr mask2_2
     movdqa xmm4, xmm2         ; xmm4: ffff ffee eeee dddd ddcc cccc bbbb bbaa
     pshufb xmm4, xmm3         ; xmm4: bbbb bboo aaoo oooo oooo oooo oooo oooo

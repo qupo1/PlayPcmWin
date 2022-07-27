@@ -12,7 +12,7 @@ align 8
 PCM16to32Asm proc frame
     .endprolog
    
-    ; dstBytesを算出し、dstバッファ、srcバッファの終わりのアドレスを算出。
+    ; dstBytesを算出し、srcバッファ、dstバッファの終わりのアドレスを算出。
 
     mov r10, rcx  ; r10: src address
     mov r11, rdx  ; r11: dst address
