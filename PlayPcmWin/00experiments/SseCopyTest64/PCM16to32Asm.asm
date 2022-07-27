@@ -32,6 +32,7 @@ PCM16to32Asm proc frame
 
 align 8
 LoopBegin:
+
     movdqa xmm1, [r10+rcx]   ; xmm1: 8 16bitPCM samples (total 16 bytes of data)
 
     pxor xmm0, xmm0          ; xmm0: all zero
@@ -47,6 +48,7 @@ LoopBegin:
     jnz LoopBegin            ; if rcx != 0 then jump
 
     ret
+
 align 8
 PCM16to32Asm endp
 end

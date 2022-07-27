@@ -35,6 +35,7 @@ PCM16toF32Asm proc frame
 
 align 8
 LoopBegin:
+
     movdqa xmm0, [r10+rcx]   ; xmm0: 8 16bitPCM samples
 
     pmovzxwd xmm1, xmm0      ; rightmost 4 word data of xmm0 are expanded to 4 dword data on xmm1.

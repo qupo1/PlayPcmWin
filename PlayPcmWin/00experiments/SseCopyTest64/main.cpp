@@ -7,11 +7,12 @@
 #include "PCM16to32.h"
 #include "PCM16toF32.h"
 #include "PCM24to32.h"
+#include "PCM24toF32.h"
 
 #define BUFFER_SIZE (8192)
 
 
-/// ASMとの性能比較用C++実装。
+// ASMとの性能比較用C++実装。
 static void
 Pcm16to32CPP(const short *from, int *to, int64_t numOfItems)
 {
@@ -35,6 +36,17 @@ Pcm24to32CPP(const unsigned char *src, int *dst, int64_t numOfItems)
         dst[i] = (src[i*3+2] << 24)
                + (src[i*3+1] << 16)
                + (src[i*3+0] << 8);
+    }
+}
+
+static void
+Pcm24toF32CPP(const unsigned char *src, float *dst, int64_t numOfItems)
+{
+    for (int i=0; i<numOfItems; ++i) {
+        int v = (src[i*3+2] << 24)
+              + (src[i*3+1] << 16)
+              + (src[i*3+0] << 8);
+        dst[i] = ((float)v) / (32768.0f * 65536.0f);
     }
 }
 
@@ -176,8 +188,8 @@ TestPcmConv16to32(void)
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
     short *fromS = (short*)_aligned_malloc(numOfItems*2, 16);
-    int   *toAsm   = (int*)_aligned_malloc(numOfItems*4, 16);
-    int   *toCpp   = (int*)_aligned_malloc(numOfItems*4, 16);
+    int   *toAsm = (int*)  _aligned_malloc(numOfItems*4, 16);
+    int   *toCpp = (int*)  _aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
         fromS[i] = (short)(i+1);
@@ -221,9 +233,9 @@ TestPcmConv16toF32(void)
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
-    short *fromS = (short*)_aligned_malloc(numOfItems*2, 16);
-    float   *toAsm   = (float*)_aligned_malloc(numOfItems*4, 16);
-    float   *toCpp   = (float*)_aligned_malloc(numOfItems*4, 16);
+    short *fromS   = (short*)_aligned_malloc(numOfItems*2, 16);
+    float   *toAsm = (float*)_aligned_malloc(numOfItems*4, 16);
+    float   *toCpp = (float*)_aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
         fromS[i] = (short)(i+1);
@@ -268,8 +280,8 @@ TestPcmConv24to32(void)
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
     unsigned char *from24 = (unsigned char*)_aligned_malloc(numOfItems*3, 16);
-    int           *toAsm  = (int*)_aligned_malloc(numOfItems*4, 16);
-    int           *toCpp  = (int*)_aligned_malloc(numOfItems*4, 16);
+    int           *toAsm  = (int*)          _aligned_malloc(numOfItems*4, 16);
+    int           *toCpp  = (int*)          _aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
         int v = (int)i*3 + 1;
@@ -292,6 +304,57 @@ TestPcmConv24to32(void)
     double elapsedSecCpp = pc.ElapsedSeconds();
 
     printf("C++ PCM24to32  100M sample conversion in %f sec. %f Gsamples/sec\n",
+        elapsedSecCpp, 0.1 / elapsedSecCpp);
+
+    // Compare two results.
+    for (int64_t i=0; i<numOfItems; ++i) {
+        if (toAsm[i] != toCpp[i]) {
+            printf("Error: %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+        } else {
+            //printf("OK:    %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+        }
+    }
+
+    _aligned_free(toCpp);
+    toCpp = nullptr;
+    _aligned_free(toAsm);
+    toAsm = nullptr;
+    _aligned_free(from24);
+    from24 = nullptr;
+}
+
+static void
+TestPcmConv24toF32(void)
+{
+    PerfCount pc;
+    int64_t numOfItems = 100LL * 1000 * 1000 + 7;
+
+    // numOfItems個のshort値PCMをint値PCMに変換します。
+    unsigned char *from24 = (unsigned char*)_aligned_malloc(numOfItems*3, 16);
+    float         *toAsm  = (float*)        _aligned_malloc(numOfItems*4, 16);
+    float         *toCpp  = (float*)        _aligned_malloc(numOfItems*4, 16);
+
+    for (int64_t i=0; i<numOfItems; ++i) {
+        int v = (int)i*3 + 1;
+        from24[i*3+0] = (unsigned char)(v);
+        from24[i*3+1] = (unsigned char)(v+1);
+        from24[i*3+2] = (unsigned char)(v+2);
+        toAsm[i] = 0;
+        toCpp[i] = 0;
+    }
+
+    pc.Start();
+    PCM24toF32(from24, toAsm, numOfItems);
+    double elapsedSecAsm = pc.ElapsedSeconds();
+
+    printf("ASM PCM24toF32 100M sample conversion in %f sec. %f Gsamples/sec\n",
+        elapsedSecAsm, 0.1 / elapsedSecAsm);
+
+    pc.Start();
+    Pcm24toF32CPP(from24, toCpp, numOfItems);
+    double elapsedSecCpp = pc.ElapsedSeconds();
+
+    printf("C++ PCM24toF32 100M sample conversion in %f sec. %f Gsamples/sec\n",
         elapsedSecCpp, 0.1 / elapsedSecCpp);
 
     // Compare two results.
@@ -351,6 +414,7 @@ main(void)
     */
 
     //TestMemcpy();
+    TestPcmConv24toF32();
     TestPcmConv16toF32();
     TestPcmConv24to32();
     TestPcmConv16to32();

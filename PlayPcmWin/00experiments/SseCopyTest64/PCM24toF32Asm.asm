@@ -36,18 +36,18 @@ mask2_2H DQ 0302018000808080H
 mask2_3  DQ 0908078006050480H
 mask2_3H DQ 0f0e0d800c0b0a80H
 
-public PCM24to32Asm
+public PCM24toF32Asm
 
 .code
 
 ; save不要のレジスタ: RAX RCX RDX R8 R9 R10 R11 XMM0 XMM1 XMM2 XMM3 XMM4 XMM5
 
-; PCM24to32Asm(const char *src, int *dst, int64_t count)
+; PCM24toF32Asm(const char *src, float *dst, int64_t count)
 ; src      --> rcx
 ; dst      --> rdx
 ; count    --> r8
 align 8
-PCM24to32Asm proc frame
+PCM24toF32Asm proc frame
     .endprolog
 
     ; srcBytesを算出し、srcバッファの終わりのアドレスを算出。
@@ -64,6 +64,11 @@ PCM24to32Asm proc frame
     neg rcx       ; now r10+rcx points the start of the src buffer
     mov rdx, r11  ; rdx: dst
 
+    ; xmm5に1.0f / (32768.0f * 65536.0f)を4個置く。
+    mov    rax,  30000000h
+    movd   xmm5, rax
+    shufps xmm5, xmm5, 0
+
 align 8
 LoopBegin:
 
@@ -77,6 +82,8 @@ LoopBegin:
     movdqa xmm3, xmmword ptr mask0_0
     movdqa xmm4, xmm0         ; xmm4: 5544 4444 3333 3322 2222 1111 1100 0000
     pshufb xmm4, xmm3         ; xmm4: 3333 33oo 2222 22oo 1111 11oo 0000 00oo
+    cvtdq2ps xmm4, xmm4       ; xmm4: 4 float values from signed int values.
+    mulps xmm4, xmm5          ; xmm4 = xmm4 * xmm5, scale float value to [-1 1)
     movdqa [rdx], xmm4        ; store 4 qword data.
 
     ; 2組目の4 PCM:                   7777 77oo 6666 66oo 5555 55oo 4444 44oo
@@ -87,6 +94,8 @@ LoopBegin:
     movdqa xmm4, xmm1         ; xmm4: aaaa 9999 9988 8888 7777 7766 6666 5555
     pshufb xmm4, xmm3         ; xmm4: 7777 77oo 6666 6600 5555 oooo oooo oooo
     paddb  xmm0, xmm4         ; xmm0 := xmm0 + xmm4
+    cvtdq2ps xmm0, xmm0       ; xmm0: 4 float values from signed int values.
+    mulps xmm0, xmm5          ; xmm0 = xmm4 * xmm5, scale float value to [-1 1)
     movdqa [rdx+16], xmm0     ; store 4 qword data.
 
     ; 3組目の4 PCM:                   bbbb bboo aaaa aaoo 9999 99oo 8888 88oo
@@ -97,11 +106,15 @@ LoopBegin:
     movdqa xmm4, xmm2         ; xmm4: ffff ffee eeee dddd ddcc cccc bbbb bbaa
     pshufb xmm4, xmm3         ; xmm4: bbbb bboo aaoo oooo oooo oooo oooo oooo
     paddb  xmm1, xmm4         ; xmm1 := xmm1 + xmm4
+    cvtdq2ps xmm1, xmm1       ; xmm1: 4 float values from signed int values.
+    mulps xmm1, xmm5          ; xmm1 = xmm4 * xmm5, scale float value to [-1 1)
     movdqa [rdx+32], xmm1     ; store 4 qword data.
 
     ; 4組目の4 PCM:                   ffff ffoo eeee eeoo dddd ddoo cccc ccoo
     movdqa xmm3, xmmword ptr mask2_3
     pshufb xmm2, xmm3         ; xmm2: ffff ffoo eeee eeoo dddd ddoo cccc ccoo
+    cvtdq2ps xmm2, xmm2       ; xmm2: 4 float values from signed int values.
+    mulps xmm2, xmm5          ; xmm2 = xmm4 * xmm5, scale float value to [-1 1)
     movdqa [rdx+48], xmm2     ; store 4 qword data.
 
     add rdx, 64
@@ -111,6 +124,6 @@ LoopBegin:
     ret
 
 align 8
-PCM24to32Asm endp
+PCM24toF32Asm endp
 end
 
