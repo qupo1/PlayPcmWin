@@ -189,14 +189,14 @@ TestPcmConv16to32(void)
     PCM16to32(fromS, toAsm, numOfItems);
     double elapsedSecAsm = pc.ElapsedSeconds();
 
-    printf("ASM PCM16to32 100M sample conversion in %f sec. %f Gsamples/sec\n",
+    printf("ASM PCM16to32  100M sample conversion in %f sec. %f Gsamples/sec\n",
         elapsedSecAsm, 0.1 / elapsedSecAsm);
 
     pc.Start();
     Pcm16to32CPP(fromS, toCpp, numOfItems);
     double elapsedSecCpp = pc.ElapsedSeconds();
 
-    printf("C++ PCM16to32 100M sample conversion in %f sec. %f Gsamples/sec\n",
+    printf("C++ PCM16to32  100M sample conversion in %f sec. %f Gsamples/sec\n",
         elapsedSecCpp, 0.1 / elapsedSecCpp);
 
     // Compare two results.
@@ -284,14 +284,14 @@ TestPcmConv24to32(void)
     PCM24to32(from24, toAsm, numOfItems);
     double elapsedSecAsm = pc.ElapsedSeconds();
 
-    printf("ASM PCM24to32 100M sample conversion in %f sec. %f Gsamples/sec\n",
+    printf("ASM PCM24to32  100M sample conversion in %f sec. %f Gsamples/sec\n",
         elapsedSecAsm, 0.1 / elapsedSecAsm);
 
     pc.Start();
     Pcm24to32CPP(from24, toCpp, numOfItems);
     double elapsedSecCpp = pc.ElapsedSeconds();
 
-    printf("C++ PCM24to32 100M sample conversion in %f sec. %f Gsamples/sec\n",
+    printf("C++ PCM24to32  100M sample conversion in %f sec. %f Gsamples/sec\n",
         elapsedSecCpp, 0.1 / elapsedSecCpp);
 
     // Compare two results.
@@ -351,9 +351,9 @@ main(void)
     */
 
     //TestMemcpy();
-    //TestPcmConv16to32();
-    //TestPcmConv16toF32();
+    TestPcmConv16toF32();
     TestPcmConv24to32();
+    TestPcmConv16to32();
 
     return 0;
 }
