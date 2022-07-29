@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 /// @param dst must be aligned by 16 bytes
 /// @param src must be aligned by 16 bytes

@@ -1,4 +1,4 @@
-#include <Windows.h> //< QueryPerformanceCounter()
+ï»¿#include <Windows.h> //< QueryPerformanceCounter()
 #include <stdio.h>  //< printf()
 #include <string.h> //< memset()
 #include <malloc.h> //< _aligned_malloc()
@@ -14,7 +14,7 @@
 #define BUFFER_SIZE (8192)
 
 
-// ASM‚Æ‚Ì«”\”äŠr—pC++ŽÀ‘•B
+// ASMã¨ã®æ€§èƒ½æ¯”è¼ƒç”¨C++å®Ÿè£…ã€‚
 static void
 Pcm16to32CPP(const int16_t *from, int32_t *to, int64_t numOfItems)
 {
@@ -200,7 +200,7 @@ TestPcmConv16to32(void)
     PerfCount pc;
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
-    // numOfItemsŒÂ‚Ìshort’lPCM‚ðint’lPCM‚É•ÏŠ·‚µ‚Ü‚·B
+    // numOfItemså€‹ã®shortå€¤PCMã‚’intå€¤PCMã«å¤‰æ›ã—ã¾ã™ã€‚
     int16_t *fromS = (int16_t*)_aligned_malloc(numOfItems*2, 16);
     int32_t *toAsm = (int32_t*)_aligned_malloc(numOfItems*4, 16);
     int32_t *toCpp = (int32_t*)_aligned_malloc(numOfItems*4, 16);
@@ -246,7 +246,7 @@ TestPcmConv16toF32(void)
     PerfCount pc;
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
-    // numOfItemsŒÂ‚Ìshort’lPCM‚ðint’lPCM‚É•ÏŠ·‚µ‚Ü‚·B
+    // numOfItemså€‹ã®shortå€¤PCMã‚’intå€¤PCMã«å¤‰æ›ã—ã¾ã™ã€‚
     int16_t *fromS = (int16_t*)_aligned_malloc(numOfItems*2, 16);
     float   *toAsm = (float*)  _aligned_malloc(numOfItems*4, 16);
     float   *toCpp = (float*)  _aligned_malloc(numOfItems*4, 16);
@@ -292,7 +292,7 @@ TestPcmConv24to32(void)
     PerfCount pc;
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
-    // numOfItemsŒÂ‚Ìshort’lPCM‚ðint’lPCM‚É•ÏŠ·‚µ‚Ü‚·B
+    // numOfItemså€‹ã®shortå€¤PCMã‚’intå€¤PCMã«å¤‰æ›ã—ã¾ã™ã€‚
     uint8_t *from24 = (uint8_t*)_aligned_malloc(numOfItems*3, 16);
     int32_t *toAsm  = (int32_t*)_aligned_malloc(numOfItems*4, 16);
     int32_t *toCpp  = (int32_t*)_aligned_malloc(numOfItems*4, 16);
@@ -343,7 +343,7 @@ TestPcmConv24toF32(void)
     PerfCount pc;
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
-    // numOfItemsŒÂ‚Ìshort’lPCM‚ðint’lPCM‚É•ÏŠ·‚µ‚Ü‚·B
+    // numOfItemså€‹ã®shortå€¤PCMã‚’intå€¤PCMã«å¤‰æ›ã—ã¾ã™ã€‚
     uint8_t *from24 = (uint8_t*)_aligned_malloc(numOfItems*3, 16);
     float   *toAsm  = (float*)  _aligned_malloc(numOfItems*4, 16);
     float   *toCpp  = (float*)  _aligned_malloc(numOfItems*4, 16);
@@ -394,7 +394,7 @@ TestPcmConv16to24(void)
     PerfCount pc;
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
-    // numOfItemsŒÂ‚Ìshort’lPCM‚ð24bitPCM‚É•ÏŠ·‚µ‚Ü‚·B
+    // numOfItemså€‹ã®shortå€¤PCMã‚’24bitPCMã«å¤‰æ›ã—ã¾ã™ã€‚
     int16_t *from  = (int16_t*) _aligned_malloc(numOfItems*2, 16);
     uint8_t *toAsm = (uint8_t*) _aligned_malloc(numOfItems*3, 16);
     uint8_t *toCpp = (uint8_t*) _aligned_malloc(numOfItems*3, 16);
@@ -484,14 +484,14 @@ main(void)
 
         GetCpuCapability(&cc, &ac);
 
-        // https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#AVX-512 ‚Ì‡‚É•\Ž¦B
+        // https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#AVX-512 ã®é †ã«è¡¨ç¤ºã€‚
         if (cc.SSE3) { printf("SSE3 "); }
         if (cc.SSSE3) { printf("SSSE3 "); }
         if (cc.SSE41) { printf("SSE4.1 "); }
         if (cc.SSE42) { printf("SSE4.2 "); }
         if (cc.AVX) { printf("AVX "); }
         if (cc.AVX2) { printf("AVX2 "); }
-        if (cc.AVXVNNI) { printf("AVXVNNI "); } //< AVX-VNNI‚ÍAVX512-VNNI‚Æ‚Í•Ê‚Ì‹@”\‚ÅA‚æ‚èV‚µ‚¢B
+        if (cc.AVXVNNI) { printf("AVXVNNI "); } //< AVX-VNNIã¯AVX512-VNNIã¨ã¯åˆ¥ã®æ©Ÿèƒ½ã§ã€ã‚ˆã‚Šæ–°ã—ã„ã€‚
 
         if (ac.AVX512F) {
             printf("AVX512( F ");

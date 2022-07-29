@@ -1,7 +1,7 @@
-#pragma once
+ï»¿#pragma once
 
 struct CpuCapability {
-    // x64 CPU‚É‚ÍAMMX, SSE, SSE2‚ª•K‚¸‚ ‚éB
+    // x64 CPUã«ã¯ã€MMX, SSE, SSE2ãŒå¿…ãšã‚ã‚‹ã€‚
 
     bool SSE3;
     bool SSSE3;
@@ -10,7 +10,7 @@ struct CpuCapability {
 
     bool AVX;
     bool AVX2;
-    bool AVXVNNI; //< Alder-Lake (AVX512-VNNI‚æ‚è‚àV‚µ‚¢B)
+    bool AVXVNNI; //< Alder-Lake (AVX512-VNNIã‚ˆã‚Šã‚‚æ–°ã—ã„ã€‚)
 };
 
 struct Avx512Capability {

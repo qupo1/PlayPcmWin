@@ -1,4 +1,4 @@
-#include "CpuCapability.h"
+﻿#include "CpuCapability.h"
 #include <intrin.h>
 #include <stdint.h>
 

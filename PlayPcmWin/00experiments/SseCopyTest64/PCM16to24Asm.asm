@@ -28,7 +28,7 @@ public PCM16to24Asm
 
 .code
 
-; save不要のレジスタ: RAX RCX RDX R8 R9 R10 R11 XMM0 XMM1 XMM2 XMM3 XMM4 XMM5
+; save不要のレジスタ: RAX RCX RDX R8 R9 R10 R11 XMM0 to XMM5
 
 ; SSSE3使用。
 

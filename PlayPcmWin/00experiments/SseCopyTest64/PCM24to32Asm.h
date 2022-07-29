@@ -1,12 +1,12 @@
-#pragma once
+ï»¿#pragma once
 
-// ‚±‚Ìƒtƒ@ƒCƒ‹‚Å‚Í‚È‚­APCM24to32.h‚ğƒCƒ“ƒNƒ‹[ƒh‚µ‚Äg—p‚µ‚Ä‰º‚³‚¢B
+// ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ãªãã€PCM24to32.hã‚’ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ã—ã¦ä½¿ç”¨ã—ã¦ä¸‹ã•ã„ã€‚
 
 #include <stdint.h>
 
-/// @param src ƒAƒ‰ƒCƒ“•s—vB
+/// @param src ã‚¢ãƒ©ã‚¤ãƒ³ä¸è¦ã€‚
 /// @param dst must be aligned by 16 bytes
 /// @param pcmCount must be multiply of 16
-/// SSSE3g—pB
+/// SSSE3ä½¿ç”¨ã€‚
 extern "C" void PCM24to32Asm(const uint8_t *src, int32_t *dst, int64_t pcmCount);
 
