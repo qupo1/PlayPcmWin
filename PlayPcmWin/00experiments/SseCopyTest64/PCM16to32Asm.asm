@@ -37,7 +37,7 @@ LoopBegin:
 
     ; 1ループで8個処理します。
 
-    movdqa xmm1, [r10+rcx]   ; xmm1: 8 16bitPCM samples (total 16 bytes of data)
+    movdqu xmm1, [r10+rcx]   ; xmm1: 8 16bitPCM samples (total 16 bytes of data)
 
     pxor xmm0, xmm0          ; xmm0: all zero
     punpcklwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from lower 4 16bit samples of xmm1

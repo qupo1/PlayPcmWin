@@ -59,8 +59,8 @@ LoopBegin:
 
     ; 1ループで16個処理します。
                               ;        f e  d c  b a  9 8  7 6  5 4  3 2  1 0
-    movdqa xmm0, [r10+rcx]    ; xmm0: 0707 0606 0505 0404 0303 0202 0101 0000
-    movdqa xmm1, [r10+rcx+16] ; xmm1: 0f0f 0e0e 0d0d 0c0c 0b0b 0a0a 0909 0808
+    movdqu xmm0, [r10+rcx]    ; xmm0: 0707 0606 0505 0404 0303 0202 0101 0000
+    movdqu xmm1, [r10+rcx+16] ; xmm1: 0f0f 0e0e 0d0d 0c0c 0b0b 0a0a 0909 0808
 
     ; 1組目の4 PCM:                   oo04 04oo 0303 oo02 02oo 0101 oo00 00oo
     movdqa xmm2, xmmword ptr mask0_0

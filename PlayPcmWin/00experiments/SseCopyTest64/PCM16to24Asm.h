@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-/// @param src must be aligned by 16 bytes
+/// @param src アライン不要。
 /// @param dst must be aligned by 16 bytes
 /// @param pcmCount must be multiply of 16
 /// SSSE3を使用。

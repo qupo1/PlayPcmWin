@@ -10,7 +10,7 @@ PCM24to32(const uint8_t *src, int32_t *dst, int64_t pcmCount)
     }
 
     // ASM実装は16の倍数サンプル単位の処理。端数をC++で処理します。
-    int countRemainder = pcmCount % 16;
+    int64_t countRemainder = pcmCount % 16;
     int64_t countAsm = pcmCount - countRemainder;
 
     CpuCapability cc;
