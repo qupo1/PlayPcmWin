@@ -202,8 +202,8 @@ TestPcmConv16to32(void)
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
     int16_t *fromS = (int16_t*)_aligned_malloc(numOfItems*2, 16);
-    int32_t *toAsm = (int32_t*)  _aligned_malloc(numOfItems*4, 16);
-    int32_t *toCpp = (int32_t*)  _aligned_malloc(numOfItems*4, 16);
+    int32_t *toAsm = (int32_t*)_aligned_malloc(numOfItems*4, 16);
+    int32_t *toCpp = (int32_t*)_aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
         fromS[i] = (int16_t)(i+1);
@@ -294,8 +294,8 @@ TestPcmConv24to32(void)
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
     uint8_t *from24 = (uint8_t*)_aligned_malloc(numOfItems*3, 16);
-    int32_t       *toAsm  = (int32_t*)      _aligned_malloc(numOfItems*4, 16);
-    int32_t       *toCpp  = (int32_t*)      _aligned_malloc(numOfItems*4, 16);
+    int32_t *toAsm  = (int32_t*)_aligned_malloc(numOfItems*4, 16);
+    int32_t *toCpp  = (int32_t*)_aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
         int32_t v = (int32_t)i*3 + 1;
@@ -345,8 +345,8 @@ TestPcmConv24toF32(void)
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
     uint8_t *from24 = (uint8_t*)_aligned_malloc(numOfItems*3, 16);
-    float         *toAsm  = (float*)        _aligned_malloc(numOfItems*4, 16);
-    float         *toCpp  = (float*)        _aligned_malloc(numOfItems*4, 16);
+    float   *toAsm  = (float*)  _aligned_malloc(numOfItems*4, 16);
+    float   *toCpp  = (float*)  _aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
         int32_t v = (int32_t)i*3 + 1;
@@ -395,7 +395,7 @@ TestPcmConv16to24(void)
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
     // numOfItems個のshort値PCMを24bitPCMに変換します。
-    int16_t       *from  = (int16_t*)       _aligned_malloc(numOfItems*2, 16);
+    int16_t *from  = (int16_t*) _aligned_malloc(numOfItems*2, 16);
     uint8_t *toAsm = (uint8_t*) _aligned_malloc(numOfItems*3, 16);
     uint8_t *toCpp = (uint8_t*) _aligned_malloc(numOfItems*3, 16);
 
