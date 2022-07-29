@@ -4,6 +4,8 @@ public PCM16to32Asm
 
 ; save不要のレジスタ: RAX RCX RDX R8 R9 R10 R11 XMM0 XMM1 XMM2 XMM3 XMM4 XMM5
 
+; SSE2
+
 ; PCM16to32Asm(const char *src, int *dst, int64_t count)
 ; src      --> rcx
 ; dst      --> rdx
@@ -33,7 +35,7 @@ PCM16to32Asm proc frame
 align 8
 LoopBegin:
 
-	; 1ループで8個処理します。
+    ; 1ループで8個処理します。
 
     movdqa xmm1, [r10+rcx]   ; xmm1: 8 16bitPCM samples (total 16 bytes of data)
 

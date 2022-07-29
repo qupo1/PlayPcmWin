@@ -2,7 +2,7 @@
 #include "PCM16to32Asm.h"
 
 int64_t
-PCM16to32(const short *src, int *dst, int64_t pcmCount)
+PCM16to32(const int16_t *src, int32_t *dst, int64_t pcmCount)
 {
     if (pcmCount <= 0) {
         return 0;
@@ -12,6 +12,7 @@ PCM16to32(const short *src, int *dst, int64_t pcmCount)
     int countRemainder = pcmCount % 8;
     int64_t countAsm = pcmCount - countRemainder;
 
+    // SSE2実装なので必ず実行できる。
     PCM16to32Asm(src, dst, countAsm);
 
     for (int i=0; i<countRemainder; ++i) {

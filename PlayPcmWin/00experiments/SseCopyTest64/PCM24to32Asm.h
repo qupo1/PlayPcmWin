@@ -7,5 +7,6 @@
 /// @param src must be aligned by 16 bytes
 /// @param dst must be aligned by 16 bytes
 /// @param pcmCount must be multiply of 16
-extern "C" void PCM24to32Asm(const unsigned char *src, int *dst, int64_t pcmCount);
+/// SSSE3égópÅB
+extern "C" void PCM24to32Asm(const uint8_t *src, int32_t *dst, int64_t pcmCount);
 

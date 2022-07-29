@@ -4,17 +4,19 @@
 #include <malloc.h> //< _aligned_malloc()
 #include <assert.h> //< assert()
 #include "MyMemcpy64.h"
+#include "PCM16to24.h"
 #include "PCM16to32.h"
 #include "PCM16toF32.h"
 #include "PCM24to32.h"
 #include "PCM24toF32.h"
+#include "CpuCapability.h"
 
 #define BUFFER_SIZE (8192)
 
 
 // ASMとの性能比較用C++実装。
 static void
-Pcm16to32CPP(const short *from, int *to, int64_t numOfItems)
+Pcm16to32CPP(const int16_t *from, int32_t *to, int64_t numOfItems)
 {
     for (int64_t i=0; i<numOfItems; ++i) {
         to[i] = from[i] << 16;
@@ -22,7 +24,7 @@ Pcm16to32CPP(const short *from, int *to, int64_t numOfItems)
 }
 
 static void
-Pcm16toF32CPP(const short *from, float *to, int64_t numOfItems)
+Pcm16toF32CPP(const int16_t *from, float *to, int64_t numOfItems)
 {
     for (int64_t i=0; i<numOfItems; ++i) {
         to[i] = from[i] * (1.0f / 32768.0f);
@@ -30,7 +32,19 @@ Pcm16toF32CPP(const short *from, float *to, int64_t numOfItems)
 }
 
 static void
-Pcm24to32CPP(const unsigned char *src, int *dst, int64_t numOfItems)
+Pcm16to24CPP(const int16_t *src, uint8_t *dst, int64_t numOfItems)
+{
+    for (int i=0; i<numOfItems; ++i) {
+        uint16_t v = src[i];
+
+        dst[i *3 + 0] = 0;
+        dst[i *3 + 1] = v & 0xff;
+        dst[i *3 + 2] = (v>>8) & 0xff;
+    }
+}
+
+static void
+Pcm24to32CPP(const uint8_t *src, int32_t *dst, int64_t numOfItems)
 {
     for (int i=0; i<numOfItems; ++i) {
         dst[i] = (src[i*3+2] << 24)
@@ -40,10 +54,10 @@ Pcm24to32CPP(const unsigned char *src, int *dst, int64_t numOfItems)
 }
 
 static void
-Pcm24toF32CPP(const unsigned char *src, float *dst, int64_t numOfItems)
+Pcm24toF32CPP(const uint8_t *src, float *dst, int64_t numOfItems)
 {
     for (int i=0; i<numOfItems; ++i) {
-        int v = (src[i*3+2] << 24)
+        int32_t v = (src[i*3+2] << 24)
               + (src[i*3+1] << 16)
               + (src[i*3+0] << 8);
         dst[i] = ((float)v) / (32768.0f * 65536.0f);
@@ -187,12 +201,12 @@ TestPcmConv16to32(void)
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
-    short *fromS = (short*)_aligned_malloc(numOfItems*2, 16);
-    int   *toAsm = (int*)  _aligned_malloc(numOfItems*4, 16);
-    int   *toCpp = (int*)  _aligned_malloc(numOfItems*4, 16);
+    int16_t *fromS = (int16_t*)_aligned_malloc(numOfItems*2, 16);
+    int32_t *toAsm = (int32_t*)  _aligned_malloc(numOfItems*4, 16);
+    int32_t *toCpp = (int32_t*)  _aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
-        fromS[i] = (short)(i+1);
+        fromS[i] = (int16_t)(i+1);
         toAsm[i] = 0;
         toCpp[i] = 0;
     }
@@ -233,12 +247,12 @@ TestPcmConv16toF32(void)
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
-    short *fromS   = (short*)_aligned_malloc(numOfItems*2, 16);
-    float   *toAsm = (float*)_aligned_malloc(numOfItems*4, 16);
-    float   *toCpp = (float*)_aligned_malloc(numOfItems*4, 16);
+    int16_t *fromS = (int16_t*)_aligned_malloc(numOfItems*2, 16);
+    float   *toAsm = (float*)  _aligned_malloc(numOfItems*4, 16);
+    float   *toCpp = (float*)  _aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
-        fromS[i] = (short)(i+1);
+        fromS[i] = (int16_t)(i+1);
         toAsm[i] = 0;
         toCpp[i] = 0;
     }
@@ -279,15 +293,15 @@ TestPcmConv24to32(void)
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
-    unsigned char *from24 = (unsigned char*)_aligned_malloc(numOfItems*3, 16);
-    int           *toAsm  = (int*)          _aligned_malloc(numOfItems*4, 16);
-    int           *toCpp  = (int*)          _aligned_malloc(numOfItems*4, 16);
+    uint8_t *from24 = (uint8_t*)_aligned_malloc(numOfItems*3, 16);
+    int32_t       *toAsm  = (int32_t*)      _aligned_malloc(numOfItems*4, 16);
+    int32_t       *toCpp  = (int32_t*)      _aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
-        int v = (int)i*3 + 1;
-        from24[i*3+0] = (unsigned char)(v);
-        from24[i*3+1] = (unsigned char)(v+1);
-        from24[i*3+2] = (unsigned char)(v+2);
+        int32_t v = (int32_t)i*3 + 1;
+        from24[i*3+0] = (uint8_t)(v);
+        from24[i*3+1] = (uint8_t)(v+1);
+        from24[i*3+2] = (uint8_t)(v+2);
         toAsm[i] = 0;
         toCpp[i] = 0;
     }
@@ -330,15 +344,15 @@ TestPcmConv24toF32(void)
     int64_t numOfItems = 100LL * 1000 * 1000 + 7;
 
     // numOfItems個のshort値PCMをint値PCMに変換します。
-    unsigned char *from24 = (unsigned char*)_aligned_malloc(numOfItems*3, 16);
+    uint8_t *from24 = (uint8_t*)_aligned_malloc(numOfItems*3, 16);
     float         *toAsm  = (float*)        _aligned_malloc(numOfItems*4, 16);
     float         *toCpp  = (float*)        _aligned_malloc(numOfItems*4, 16);
 
     for (int64_t i=0; i<numOfItems; ++i) {
-        int v = (int)i*3 + 1;
-        from24[i*3+0] = (unsigned char)(v);
-        from24[i*3+1] = (unsigned char)(v+1);
-        from24[i*3+2] = (unsigned char)(v+2);
+        int32_t v = (int32_t)i*3 + 1;
+        from24[i*3+0] = (uint8_t)(v);
+        from24[i*3+1] = (uint8_t)(v+1);
+        from24[i*3+2] = (uint8_t)(v+2);
         toAsm[i] = 0;
         toCpp[i] = 0;
     }
@@ -374,8 +388,59 @@ TestPcmConv24toF32(void)
     from24 = nullptr;
 }
 
+static void
+TestPcmConv16to24(void)
+{
+    PerfCount pc;
+    int64_t numOfItems = 100LL * 1000 * 1000 + 7;
+
+    // numOfItems個のshort値PCMを24bitPCMに変換します。
+    int16_t       *from  = (int16_t*)       _aligned_malloc(numOfItems*2, 16);
+    uint8_t *toAsm = (uint8_t*) _aligned_malloc(numOfItems*3, 16);
+    uint8_t *toCpp = (uint8_t*) _aligned_malloc(numOfItems*3, 16);
+
+    uint8_t *fromB = (uint8_t*)from;
+
+    for (int64_t i=0; i<numOfItems; ++i) {
+        int32_t v = (int32_t)(i*2) + 1;
+        fromB[i*2+0] = (uint8_t)(v);
+        fromB[i*2+1] = (uint8_t)(v+1);
+    }
+
+    pc.Start();
+    PCM16to24(from, toAsm, numOfItems);
+    double elapsedSecAsm = pc.ElapsedSeconds();
+
+    printf("ASM PCM16to24  100M sample conversion in %f sec. %f Gsamples/sec\n",
+        elapsedSecAsm, 0.1 / elapsedSecAsm);
+
+    pc.Start();
+    Pcm16to24CPP(from, toCpp, numOfItems);
+    double elapsedSecCpp = pc.ElapsedSeconds();
+
+    printf("C++ PCM16to24  100M sample conversion in %f sec. %f Gsamples/sec\n",
+        elapsedSecCpp, 0.1 / elapsedSecCpp);
+
+    // Compare two results.
+    for (int64_t i=0; i<numOfItems; ++i) {
+        if (toAsm[i] != toCpp[i]) {
+            printf("Error: %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+        } else {
+            //printf("OK:    %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+        }
+    }
+
+    _aligned_free(toCpp);
+    toCpp = nullptr;
+    _aligned_free(toAsm);
+    toAsm = nullptr;
+    _aligned_free(from);
+    from = nullptr;
+    fromB = nullptr;
+}
+
 static bool
-DumpDataToFile(const char *buf, int bytes, const char *path)
+DumpDataToFile(const char *buf, int32_t bytes, const char *path)
 {
     bool rv = false;
 
@@ -413,9 +478,48 @@ main(void)
     }
     */
 
+    {
+        CpuCapability cc;
+        Avx512Capability ac;
+
+        GetCpuCapability(&cc, &ac);
+
+        // https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#AVX-512 の順に表示。
+        if (cc.SSE3) { printf("SSE3 "); }
+        if (cc.SSSE3) { printf("SSSE3 "); }
+        if (cc.SSE41) { printf("SSE4.1 "); }
+        if (cc.SSE42) { printf("SSE4.2 "); }
+        if (cc.AVX) { printf("AVX "); }
+        if (cc.AVX2) { printf("AVX2 "); }
+        if (cc.AVXVNNI) { printf("AVXVNNI "); } //< AVX-VNNIはAVX512-VNNIとは別の機能で、より新しい。
+
+        if (ac.AVX512F) {
+            printf("AVX512( F ");
+            if (ac.AVX512CD) { printf("CD "); }
+            if (ac.AVX512VPOPCNTDQ) { printf("VPOPCNTDQ "); }
+            if (ac.AVX512VL) { printf("VL "); }
+            if (ac.AVX512DQ) { printf("DQ "); }
+            if (ac.AVX512BW) { printf("BW "); }
+            if (ac.AVX512IFMA) { printf("IFMA "); }
+            if (ac.AVX512VBMI) { printf("VBMI "); }
+            if (ac.AVX512VBMI2) { printf("VBMI2 "); }
+            if (ac.AVX512BITALG) { printf("BITALG "); }
+            if (ac.AVX512VNNI) { printf("AVX512-VNNI "); }
+            if (ac.AVX512BF16) { printf("BF16 "); }
+            if (ac.AVX512VPCLMULQDQ) { printf("VPCLMULQDQ "); }
+            if (ac.AVX512GFNI) { printf("GFNI "); }
+            if (ac.AVX512VAES) { printf("VAES "); }
+            if (ac.AVX512VP2INTERSECT) { printf("VP2INTERSECT "); }
+            printf(")");
+        }
+
+        printf ("\n");
+    }
+
     //TestMemcpy();
-    TestPcmConv24toF32();
     TestPcmConv16toF32();
+    TestPcmConv16to24();
+    TestPcmConv24toF32();
     TestPcmConv24to32();
     TestPcmConv16to32();
 

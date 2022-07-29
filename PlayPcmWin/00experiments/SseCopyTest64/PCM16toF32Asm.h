@@ -7,5 +7,6 @@
 /// @param src must be aligned by 16 bytes
 /// @param dst must be aligned by 16 bytes
 /// @param pcmCount must be multiply of 8
-extern "C" void PCM16toF32Asm(const short *src, float *dst, int64_t pcmCount);
+/// SSE2
+extern "C" void PCM16toF32Asm(const int16_t *src, float *dst, int64_t pcmCount);
 

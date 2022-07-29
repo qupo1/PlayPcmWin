@@ -67,7 +67,7 @@ PCM24to32Asm proc frame
 align 8
 LoopBegin:
 
-	; 1ループで16個処理します。
+    ; 1ループで16個処理します。
                               ;        f e  d c  b a  9 8  7 6  5 4  3 2  1 0
     movdqa xmm0, [r10+rcx]    ; xmm0: 5544 4444 3333 3322 2222 1111 1100 0000
     movdqa xmm1, [r10+rcx+16] ; xmm1: aaaa 9999 9988 8888 7777 7766 6666 5555

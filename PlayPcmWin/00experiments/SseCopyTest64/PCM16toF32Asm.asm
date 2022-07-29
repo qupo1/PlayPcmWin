@@ -4,7 +4,9 @@ public PCM16toF32Asm
 
 ; save不要のレジスタ: RAX RCX RDX R8 R9 R10 R11 XMM0 XMM1 XMM2 XMM3 XMM4 XMM5
 
-; PCM16toF32Asm(const short *src, float *dst, int64_t count)
+; SSE2
+
+; PCM16toF32Asm(const int16_t *src, float *dst, int64_t count)
 ; src      --> rcx
 ; dst      --> rdx
 ; count    --> r8
@@ -34,28 +36,28 @@ PCM16toF32Asm proc frame
     shufps xmm3, xmm3, 0
 
 align 8
+
 LoopBegin:
 
-	; 1ループで8個処理します。
+    ; 1ループで8個処理します。
 
-    movdqa xmm0, [r10+rcx]   ; xmm0: 8 16bitPCM samples
+    movdqa xmm1, [r10+rcx]   ; xmm1: 8 16bitPCM samples (total 16 bytes of data)
 
-    pmovzxwd xmm1, xmm0      ; rightmost 4 word data of xmm0 are expanded to 4 dword data on xmm1.
-    pslld xmm1, 16           ; 16bit left shift to get 4 signed int values.
-    cvtdq2ps xmm2, xmm1      ; xmm2: 4 float values from signed int values.
-    mulps xmm2, xmm3         ; xmm2 = xmm2 * xmm3, scale float value to [-1 1)
-    movdqa [r11 + rcx*2], xmm2 ; store 4 float data to memory.
+    pxor xmm0, xmm0          ; xmm0: all zero
+    punpcklwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from lower 4 16bit samples of xmm1
+    cvtdq2ps xmm0, xmm0      ; xmm0: 4 float values from signed int values.
+    mulps xmm0, xmm3         ; xmm0 = xmm0 * xmm3, scale float value to [-1 1)
+    movdqa [r11+rcx*2], xmm0 ; store 4 32bitPCM to dst memory
 
-    psrldq xmm0, 8           ; shift right by 8 bytes to get upper half data of xmm0
-    pmovzxwd xmm1, xmm0      ; 4 word → 4 dword.
-    pslld xmm1, 16           ; 16bit left shift.
-    cvtdq2ps xmm2, xmm1      ; xmm2: 4 float values from signed int values.
-    mulps xmm2, xmm3         ; xmm2 = xmm2 * xmm3, scale float value to [-1 1)
-    movdqa [r11 + rcx*2 + 16], xmm2 ; store 4 float data to memory.
+    pxor xmm0, xmm0          ; xmm0: all zero
+    punpckhwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from higher 4 16bit samples of xmm1
+    cvtdq2ps xmm0, xmm0      ; xmm0: 4 float values from signed int values.
+    mulps xmm0, xmm3         ; xmm0 = xmm0 * xmm3, scale float value to [-1 1)
+    movdqa [r11+rcx*2+16], xmm0 ; store 4 32bitPCM to dst memory
 
-    add rcx, 16
+    add rcx, 16              ; move src pointer
 
-    jnz LoopBegin
+    jnz LoopBegin            ; if rcx != 0 then jump
 
     ret
 
