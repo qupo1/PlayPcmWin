@@ -228,7 +228,7 @@ TestPcmConv16to32(void)
     // Compare two results.
     for (int64_t i=0; i<numOfItems; ++i) {
         if (toAsm[i] != toCpp[i]) {
-            printf("Error: %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+            printf("Error: %llx %08x %08x\n", i, toAsm[i], toCpp[i]);
         }
     }
 
@@ -274,7 +274,7 @@ TestPcmConv16toF32(void)
     // Compare two results.
     for (int64_t i=0; i<numOfItems; ++i) {
         if (toAsm[i] != toCpp[i]) {
-            printf("Error: %04x %f %f\n", i, toAsm[i], toCpp[i]);
+            printf("Error: %llx %f %f\n", i, toAsm[i], toCpp[i]);
         }
     }
 
@@ -323,9 +323,9 @@ TestPcmConv24to32(void)
     // Compare two results.
     for (int64_t i=0; i<numOfItems; ++i) {
         if (toAsm[i] != toCpp[i]) {
-            printf("Error: %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+            printf("Error: %llx %08x %08x\n", i, toAsm[i], toCpp[i]);
         } else {
-            //printf("OK:    %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+            //printf("OK:    %llx %08x %08x\n", i, toAsm[i], toCpp[i]);
         }
     }
 
@@ -374,9 +374,9 @@ TestPcmConv24toF32(void)
     // Compare two results.
     for (int64_t i=0; i<numOfItems; ++i) {
         if (toAsm[i] != toCpp[i]) {
-            printf("Error: %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+            printf("Error: %llx %g %g\n", i, toAsm[i], toCpp[i]);
         } else {
-            //printf("OK:    %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+            //printf("OK:    %llx %08x %08x\n", i, toAsm[i], toCpp[i]);
         }
     }
 
@@ -422,11 +422,11 @@ TestPcmConv16to24(void)
         elapsedSecCpp, 0.1 / elapsedSecCpp);
 
     // Compare two results.
-    for (int64_t i=0; i<numOfItems; ++i) {
+    for (int64_t i=0; i<numOfItems*3; ++i) {
         if (toAsm[i] != toCpp[i]) {
-            printf("Error: %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+            printf("Error: %llx %02x %02x\n", i, toAsm[i], toCpp[i]);
         } else {
-            //printf("OK:    %04x %08x %08x\n", i, toAsm[i], toCpp[i]);
+            // printf("OK:    %llx %02x %02x\n", i, toAsm[i], toCpp[i]);
         }
     }
 
