@@ -46,7 +46,7 @@ public PCM24toF32Asm
 ; src      --> rcx
 ; dst      --> rdx
 ; count    --> r8
-align 8
+align 16
 PCM24toF32Asm proc frame
     .endprolog
 
@@ -69,7 +69,7 @@ PCM24toF32Asm proc frame
     movd   xmm5, rax
     shufps xmm5, xmm5, 0
 
-align 8
+align 16
 LoopBegin:
 
     ; 1ループで16個処理します。
@@ -84,7 +84,7 @@ LoopBegin:
     pshufb xmm4, xmm3         ; xmm4: 3333 33oo 2222 22oo 1111 11oo 0000 00oo
     cvtdq2ps xmm4, xmm4       ; xmm4: 4 float values from signed int values.
     mulps xmm4, xmm5          ; xmm4 = xmm4 * xmm5, scale float value to [-1 1)
-    movdqa [rdx], xmm4        ; store 4 qword data.
+    movntdq [rdx], xmm4        ; store 4 qword data.
 
     ; 2組目の4 PCM:                   7777 77oo 6666 66oo 5555 55oo 4444 44oo
     movdqa xmm3, xmmword ptr mask0_1
@@ -96,7 +96,7 @@ LoopBegin:
     paddb  xmm0, xmm4         ; xmm0 := xmm0 + xmm4
     cvtdq2ps xmm0, xmm0       ; xmm0: 4 float values from signed int values.
     mulps xmm0, xmm5          ; xmm0 = xmm4 * xmm5, scale float value to [-1 1)
-    movdqa [rdx+16], xmm0     ; store 4 qword data.
+    movntdq [rdx+16], xmm0     ; store 4 qword data.
 
     ; 3組目の4 PCM:                   bbbb bboo aaaa aaoo 9999 99oo 8888 88oo
     movdqa xmm3, xmmword ptr mask1_2
@@ -108,14 +108,14 @@ LoopBegin:
     paddb  xmm1, xmm4         ; xmm1 := xmm1 + xmm4
     cvtdq2ps xmm1, xmm1       ; xmm1: 4 float values from signed int values.
     mulps xmm1, xmm5          ; xmm1 = xmm4 * xmm5, scale float value to [-1 1)
-    movdqa [rdx+32], xmm1     ; store 4 qword data.
+    movntdq [rdx+32], xmm1     ; store 4 qword data.
 
     ; 4組目の4 PCM:                   ffff ffoo eeee eeoo dddd ddoo cccc ccoo
     movdqa xmm3, xmmword ptr mask2_3
     pshufb xmm2, xmm3         ; xmm2: ffff ffoo eeee eeoo dddd ddoo cccc ccoo
     cvtdq2ps xmm2, xmm2       ; xmm2: 4 float values from signed int values.
     mulps xmm2, xmm5          ; xmm2 = xmm4 * xmm5, scale float value to [-1 1)
-    movdqa [rdx+48], xmm2     ; store 4 qword data.
+    movntdq [rdx+48], xmm2     ; store 4 qword data.
 
     add rdx, 64
     add rcx, 48
@@ -123,7 +123,7 @@ LoopBegin:
     jnz LoopBegin
     ret
 
-align 8
+align 16
 PCM24toF32Asm endp
 end
 

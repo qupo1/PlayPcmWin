@@ -10,7 +10,7 @@ public PCM16toF32Asm
 ; src      --> rcx
 ; dst      --> rdx
 ; count    --> r8
-align 8
+align 16
 PCM16toF32Asm proc frame
    .endprolog
 
@@ -35,7 +35,7 @@ PCM16toF32Asm proc frame
     movd   xmm3, rax
     shufps xmm3, xmm3, 0
 
-align 8
+align 16
 
 LoopBegin:
 
@@ -47,13 +47,13 @@ LoopBegin:
     punpcklwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from lower 4 16bit samples of xmm1
     cvtdq2ps xmm0, xmm0      ; xmm0: 4 float values from signed int values.
     mulps xmm0, xmm3         ; xmm0 = xmm0 * xmm3, scale float value to [-1 1)
-    movdqa [r11+rcx*2], xmm0 ; store 4 32bitPCM to dst memory
+    movntdq [r11+rcx*2], xmm0 ; store 4 32bitPCM to dst memory
 
     pxor xmm0, xmm0          ; xmm0: all zero
     punpckhwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from higher 4 16bit samples of xmm1
     cvtdq2ps xmm0, xmm0      ; xmm0: 4 float values from signed int values.
     mulps xmm0, xmm3         ; xmm0 = xmm0 * xmm3, scale float value to [-1 1)
-    movdqa [r11+rcx*2+16], xmm0 ; store 4 32bitPCM to dst memory
+    movntdq [r11+rcx*2+16], xmm0 ; store 4 32bitPCM to dst memory
 
     add rcx, 16              ; move src pointer
 
@@ -61,7 +61,7 @@ LoopBegin:
 
     ret
 
-align 8
+align 16
 PCM16toF32Asm endp
 end
 

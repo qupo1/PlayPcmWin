@@ -36,7 +36,7 @@ public PCM16to24Asm
 ; src      --> rcx
 ; dst      --> rdx
 ; count    --> r8
-align 8
+align 16
 PCM16to24Asm proc frame
     .endprolog
 
@@ -54,7 +54,7 @@ PCM16to24Asm proc frame
     neg rcx       ; now r10+rcx points the start of the src buffer
     mov rdx, r11  ; rdx: dst
 
-align 8
+align 16
 LoopBegin:
 
     ; 1ループで16個処理します。
@@ -66,7 +66,7 @@ LoopBegin:
     movdqa xmm2, xmmword ptr mask0_0
     movdqa xmm3, xmm0         ; xmm3: 0707 0606 0505 0404 0303 0202 0101 0000
     pshufb xmm3, xmm2         ; xmm3: oo04 04oo 0303 oo02 02oo 0101 oo00 00oo
-    movdqa [rdx], xmm3        ; store 4 qword data.
+    movntdq [rdx], xmm3        ; store 4 qword data.
 
     ; 2組目の4 PCM:                   0aoo 0909 oo08 08oo 0707 oo06 06oo 0505
     movdqa xmm2, xmmword ptr mask0_1
@@ -76,12 +76,12 @@ LoopBegin:
     movdqa xmm3, xmm1         ; xmm3: 0f0f 0e0e 0d0d 0c0c 0b0b 0a0a 0909 0808
     pshufb xmm3, xmm2         ; xmm3: 0aoo 0909 oo08 08oo oooo oooo oooo oooo
     paddb  xmm0, xmm3         ; xmm0 := xmm0 + xmm3
-    movdqa [rdx+16], xmm0     ; store 4 qword data.
+    movntdq [rdx+16], xmm0     ; store 4 qword data.
 
     ; 3組目の4 PCM:                   0f0f oo0e 0eoo 0d0d oo0c 0coo 0b0b oo0a
     movdqa xmm2, xmmword ptr mask1_2
     pshufb xmm1, xmm2         ; xmm1: 0f0f oo0e 0eoo 0d0d oo0c 0coo 0b0b oo0a
-    movdqa [rdx+32], xmm1     ; store 4 qword data.
+    movntdq [rdx+32], xmm1     ; store 4 qword data.
 
     add rdx, 48
     add rcx, 32
@@ -89,7 +89,7 @@ LoopBegin:
     jnz LoopBegin
     ret
 
-align 8
+align 16
 PCM16to24Asm endp
 end
 

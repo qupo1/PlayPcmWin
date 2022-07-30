@@ -10,7 +10,7 @@ public PCM16to32Asm
 ; src      --> rcx
 ; dst      --> rdx
 ; count    --> r8
-align 8
+align 16
 PCM16to32Asm proc frame
     .endprolog
    
@@ -32,7 +32,7 @@ PCM16to32Asm proc frame
     neg rcx       ; now r10+rcx points the start of the src buffer
                   ; and r11+rcx*2 points the start of the dst buffer
 
-align 8
+align 16
 LoopBegin:
 
     ; 1ループで8個処理します。
@@ -41,11 +41,11 @@ LoopBegin:
 
     pxor xmm0, xmm0          ; xmm0: all zero
     punpcklwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from lower 4 16bit samples of xmm1
-    movdqa [r11+rcx*2], xmm0 ; store 4 32bitPCM to dst memory
+    movntdq [r11+rcx*2], xmm0 ; store 4 32bitPCM to dst memory
 
     pxor xmm0, xmm0          ; xmm0: all zero
     punpckhwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from higher 4 16bit samples of xmm1
-    movdqa [r11+rcx*2+16], xmm0 ; store 4 32bitPCM to dst memory
+    movntdq [r11+rcx*2+16], xmm0 ; store 4 32bitPCM to dst memory
 
     add rcx, 16              ; move src pointer
 
@@ -53,7 +53,7 @@ LoopBegin:
 
     ret
 
-align 8
+align 16
 PCM16to32Asm endp
 end
 
