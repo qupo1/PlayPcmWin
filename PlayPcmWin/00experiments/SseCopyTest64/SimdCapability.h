@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-struct CpuCapability {
+struct SimdCapability {
     // x64 CPUには、MMX, SSE, SSE2が必ずある。
 
     bool SSE3;
@@ -35,4 +35,4 @@ struct Avx512Capability {
     bool AVX512BF16;
 };
 
-void GetCpuCapability(CpuCapability * cap_return, Avx512Capability *avx512_return);
+void GetSimdCapability(SimdCapability * cap_return, Avx512Capability *avx512_return);

@@ -1,4 +1,4 @@
-﻿#include "CpuCapability.h"
+﻿#include "SimdCapability.h"
 #include <intrin.h>
 #include <stdint.h>
 
@@ -33,6 +33,9 @@ static const uint32_t R70_EDX_AVX512vp2intersect_BIT = 0x00000100;
 static const uint32_t R71_EAX_AVXvnni_BIT = 0x00000010;
 static const uint32_t R71_EAX_AVX512bf16_BIT = 0x00000020;
 
+static const uint32_t XGETBV_YMM_SAVE_BITS = 0x6;
+static const uint32_t XGETBV_ZMM_SAVE_BITS = 0xe;
+
 struct Regs {
     uint32_t eax;
     uint32_t ebx;
@@ -41,26 +44,34 @@ struct Regs {
 };
 
 void
-GetCpuCapability(CpuCapability * cap, Avx512Capability *avx512)
+GetSimdCapability(SimdCapability * cap, Avx512Capability *avx512)
 {
     Regs r10;
 
+    uint32_t xcr0 = (uint32_t)_xgetbv(0);
+    bool OS_SAVE_AVX    = ((xcr0 & XGETBV_YMM_SAVE_BITS) == XGETBV_YMM_SAVE_BITS);
+    bool OS_SAVE_AVX512 = ((xcr0 & XGETBV_YMM_SAVE_BITS) == XGETBV_YMM_SAVE_BITS);
+
+
+
     if (cap != nullptr) {
         __cpuidex((int *)&r10.eax, 1, 0);
+
+
         cap->SSE3  = 0 != (r10.ecx & R10_ECX_SSE3_BIT);
         cap->SSSE3 = 0 != (r10.ecx & R10_ECX_SSSE3_BIT);
         cap->SSE41 = 0 != (r10.ecx & R10_ECX_SSE41_BIT);
         cap->SSE42 = 0 != (r10.ecx & R10_ECX_SSE42_BIT);
 
-        cap->AVX   = 0 != (r10.ecx & R10_ECX_AVX_BIT);
+        cap->AVX   = OS_SAVE_AVX && 0 != (r10.ecx & R10_ECX_AVX_BIT);
 
         Regs r70;
         __cpuidex((int *)&r70.eax, 7, 0);
-        cap->AVX2  = 0 != (r70.ebx & R70_EBX_AVX2_BIT);
+        cap->AVX2  = OS_SAVE_AVX && 0 != (r70.ebx & R70_EBX_AVX2_BIT);
 
         Regs r71;
         __cpuidex((int *)&r71.eax, 7, 1);
-        cap->AVXVNNI  = 0 != (r70.ebx & R71_EAX_AVXvnni_BIT);
+        cap->AVXVNNI  = OS_SAVE_AVX && 0 != (r70.ebx & R71_EAX_AVXvnni_BIT);
     }
 
     if (avx512 != nullptr) {
@@ -70,25 +81,25 @@ GetCpuCapability(CpuCapability * cap, Avx512Capability *avx512)
         Regs r71;
         __cpuidex((int *)&r71.eax, 7, 1);
 
-        avx512->AVX512F    = 0 != (r70.ebx & R70_EBX_AVX512f_BIT);
-        avx512->AVX512DQ   = 0 != (r70.ebx & R70_EBX_AVX512dq_BIT);
-        avx512->AVX512IFMA = 0 != (r70.ebx & R70_EBX_AVX512ifma_BIT);
-        avx512->AVX512CD   = 0 != (r70.ebx & R70_EBX_AVX512cd_BIT);
+        avx512->AVX512F    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512f_BIT);
+        avx512->AVX512DQ   = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512dq_BIT);
+        avx512->AVX512IFMA = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512ifma_BIT);
+        avx512->AVX512CD   = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512cd_BIT);
 
-        avx512->AVX512BW    = 0 != (r70.ebx & R70_EBX_AVX512bw_BIT);
-        avx512->AVX512VL    = 0 != (r70.ebx & R70_EBX_AVX512vl_BIT);
-        avx512->AVX512VBMI  = 0 != (r70.ecx & R70_ECX_AVX512vbmi_BIT);
-        avx512->AVX512VBMI2 = 0 != (r70.ecx & R70_ECX_AVX512vbmi2_BIT);
+        avx512->AVX512BW    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512bw_BIT);
+        avx512->AVX512VL    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512vl_BIT);
+        avx512->AVX512VBMI  = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vbmi_BIT);
+        avx512->AVX512VBMI2 = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vbmi2_BIT);
 
-        avx512->AVX512GFNI       = 0 != (r70.ecx & R70_ECX_AVX512gfni_BIT);
-        avx512->AVX512VAES       = 0 != (r70.ecx & R70_ECX_AVX512vaes_BIT);
-        avx512->AVX512VPCLMULQDQ = 0 != (r70.ecx & R70_ECX_AVX512vpclmulqdq_BIT);
-        avx512->AVX512VNNI       = 0 != (r70.ecx & R70_ECX_AVX512vnni_BIT);
+        avx512->AVX512GFNI       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512gfni_BIT);
+        avx512->AVX512VAES       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vaes_BIT);
+        avx512->AVX512VPCLMULQDQ = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vpclmulqdq_BIT);
+        avx512->AVX512VNNI       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vnni_BIT);
 
-        avx512->AVX512BITALG       = 0 != (r70.ecx & R70_ECX_AVX512bitalg_BIT);
-        avx512->AVX512VPOPCNTDQ    = 0 != (r70.ecx & R70_ECX_AVX512vpopcntdq_BIT);
-        avx512->AVX512VP2INTERSECT = 0 != (r70.edx & R70_EDX_AVX512vp2intersect_BIT);
-        avx512->AVX512BF16         = 0 != (r70.edx & R71_EAX_AVX512bf16_BIT);
+        avx512->AVX512BITALG       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512bitalg_BIT);
+        avx512->AVX512VPOPCNTDQ    = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vpopcntdq_BIT);
+        avx512->AVX512VP2INTERSECT = OS_SAVE_AVX512 && 0 != (r70.edx & R70_EDX_AVX512vp2intersect_BIT);
+        avx512->AVX512BF16         = OS_SAVE_AVX512 && 0 != (r70.edx & R71_EAX_AVX512bf16_BIT);
     }
 
 }

@@ -56,7 +56,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CpuCapability.cpp" />
+    <ClCompile Include="SimdCapability.cpp" />
     <ClCompile Include="main.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">All</AssemblerOutput>
     </ClCompile>
@@ -79,7 +79,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CpuCapability.h" />
+    <ClInclude Include="SimdCapability.h" />
     <ClInclude Include="MyMemcpy64.h" />
     <ClInclude Include="PCM16to24.h" />
     <ClInclude Include="PCM16to24Asm.h" />

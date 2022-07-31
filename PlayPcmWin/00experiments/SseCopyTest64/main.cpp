@@ -9,9 +9,12 @@
 #include "PCM16toF32.h"
 #include "PCM24to32.h"
 #include "PCM24toF32.h"
-#include "CpuCapability.h"
+#include "SimdCapability.h"
+
 
 #define BUFFER_SIZE (8192)
+
+#define SHOW_SIMD_CAP (1)
 
 #define INIT_MEM (1)
 
@@ -534,12 +537,12 @@ main(void)
     }
     */
 
-    /*
+#if SHOW_SIMD_CAP
     {
-        CpuCapability cc;
+        SimdCapability cc;
         Avx512Capability ac;
 
-        GetCpuCapability(&cc, &ac);
+        GetSimdCapability(&cc, &ac);
 
         // https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#AVX-512 の順に表示。
         if (cc.SSE3) { printf("SSE3 "); }
@@ -572,7 +575,7 @@ main(void)
 
         printf ("\n");
     }
-    */
+#endif
 
     //TestMemcpy();
     TestPcmConv16toF32();

@@ -1,6 +1,6 @@
 ﻿#include "PCM24toF32.h"
 #include "PCM24toF32Asm.h"
-#include "CpuCapability.h"
+#include "SimdCapability.h"
 
 int64_t
 PCM24toF32(const uint8_t *src, float *dst, int64_t pcmCount)
@@ -13,8 +13,8 @@ PCM24toF32(const uint8_t *src, float *dst, int64_t pcmCount)
     int64_t countRemainder = pcmCount % 16;
     int64_t countAsm = pcmCount - countRemainder;
 
-    CpuCapability cc;
-    GetCpuCapability(&cc, nullptr);
+    SimdCapability cc;
+    GetSimdCapability(&cc, nullptr);
 
     if (cc.SSSE3) {
         PCM24toF32Asm(src, dst, countAsm);
