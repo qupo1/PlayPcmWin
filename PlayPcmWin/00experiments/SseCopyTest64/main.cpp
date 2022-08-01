@@ -3,7 +3,7 @@
 #include <string.h> //< memset()
 #include <malloc.h> //< _aligned_malloc()
 #include <assert.h> //< assert()
-#include "MyMemcpy64.h"
+#include "MyMemcpy2.h"
 #include "PCM16to24.h"
 #include "PCM16to32.h"
 #include "PCM16toF32.h"
@@ -12,9 +12,7 @@
 #include "SimdCapability.h"
 
 
-#define BUFFER_SIZE (8192)
-
-#define SHOW_SIMD_CAP (1)
+#define SHOW_SIMD_CAP (0)
 
 #define INIT_MEM (1)
 
@@ -79,6 +77,7 @@ Pcm24toF32CPP(const uint8_t *src, float *dst, int64_t n)
     }
 }
 
+/*
 static void *
 slowmemcpy1(void * dst,
         const void * src,
@@ -94,6 +93,7 @@ slowmemcpy1(void * dst,
 
     return ret;
 }
+*/
 
 class PerfCount
 {
@@ -129,80 +129,51 @@ private:
 static void
 TestMemcpy(void)
 {
-    char *from = (char*)_aligned_malloc(BUFFER_SIZE, 16);
-    char *to   = (char*)_aligned_malloc(BUFFER_SIZE, 16);
+    uint8_t* from = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 16);
+    uint8_t* to = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 16);
+    if (from == nullptr || to == nullptr) {
+        printf("Error allocating memory\n");
+        return;
+    }
 
+#if INIT_MEM
+    memset(from, 0x69, NUM_OF_ITEMS);
+#endif
+
+#if COMPARE_WITH_CPP
     PerfCount pc;
 
-    for (int j=0; j<10; ++j) {
-        // test memcpy performance
-        memset(from, 0x69, BUFFER_SIZE);
-        pc.Start();
-        for (int i=0; i<100; ++i) {
-            memcpy(to, from, BUFFER_SIZE);
-        }
-        printf("memcpy %f\n", pc.ElapsedMillisec());
+    // test MyMemcpy2 performance
+    for (int64_t i = 0; i < NUM_OF_ITEMS; ++i) {
+        from[i] = (char)i;
+    }
 
-        // test MyMemcpy64 performance
-        for (int i=0; i<BUFFER_SIZE; ++i) {
-            from[i] = (char)i;
-        }
-        pc.Start();
-        for (int i=0; i<100; ++i) {
-            MyMemcpy64(to, from, BUFFER_SIZE);
-        }
-        printf("MyMemcpy64 %f\n", pc.ElapsedMillisec());
-        for (int i=0; i<BUFFER_SIZE; ++i) {
-            if (to[i] != (char)i) {
-                printf("to[%d](%x) != %x\n", i, (int)to[i], (char)i);
-            }
-        }
+    pc.Start();
 
-        // test MyMemcpy64a performance
-        for (int i=0; i<BUFFER_SIZE; ++i) {
-            from[i] = (char)(i+69);
-        }
-        pc.Start();
-        for (int i=0; i<100; ++i) {
-            MyMemcpy64a(to, from, BUFFER_SIZE);
-        }
-        printf("MyMemcpy64a %f\n", pc.ElapsedMillisec());
-        for (int i=0; i<BUFFER_SIZE; ++i) {
-            if (to[i] != (char)(i+69)) {
-                printf("to[%d](%x) != %x\n", i, (int)to[i], (char)(i+69));
-            }
-        }
+    MyMemcpy2(to, from, NUM_OF_ITEMS);
 
-        // test RtlCopyMemory performance
-        for (int i=0; i<BUFFER_SIZE; ++i) {
-            from[i] = (char)(i+96);
-        }
-        pc.Start();
-        for (int i=0; i<100; ++i) {
-            RtlCopyMemory(to, from, BUFFER_SIZE);
-        }
-        printf("RtlCopyMemory %f\n", pc.ElapsedMillisec());
-        for (int i=0; i<BUFFER_SIZE; ++i) {
-            if (to[i] != (char)(i+96)) {
-                printf("to[%d](%x) != %x\n", i, (int)to[i], (char)(i+69));
-            }
-        }
+    double elapsedSecAsm = pc.ElapsedSeconds();
 
-        // test slowmemcpy1 performance
-        for (int i=0; i<BUFFER_SIZE; ++i) {
-            from[i] = (char)(i+1);
-        }
-        pc.Start();
-        for (int i=0; i<100; ++i) {
-            slowmemcpy1(to, from, BUFFER_SIZE);
-        }
-        printf("slowmemcpy1 %f\n", pc.ElapsedMillisec());
-        for (int i=0; i<BUFFER_SIZE; ++i) {
-            if (to[i] != (char)(i+1)) {
-                printf("to[%d](%x) != %x\n", i, (int)to[i], (char)(i+69));
-            }
+    printf("ASM 100M bytes copy in %f sec. %f GB/sec\n",
+        elapsedSecAsm, 0.1 / elapsedSecAsm);
+
+    for (int64_t i = 0; i < NUM_OF_ITEMS; ++i) {
+        if (to[i] != (uint8_t)i) {
+            printf("Error: to[%lld](%x) != %x\n", i, (uint32_t)to[i], (uint32_t)i);
         }
     }
+
+    pc.Start();
+
+    memcpy(to, from, NUM_OF_ITEMS);
+
+    double elapsedSecCpp = pc.ElapsedSeconds();
+
+    printf("C++ 100M bytes copy in %f sec. %f GB/sec\n",
+        elapsedSecCpp, 0.1 / elapsedSecCpp);
+#else
+    MyMemcpy2(to, from, NUM_OF_ITEMS);
+#endif
 
     _aligned_free(to);
     to = nullptr;
@@ -526,6 +497,7 @@ end:
     return rv;
 }
 
+
 int
 main(void)
 {
@@ -577,7 +549,7 @@ main(void)
     }
 #endif
 
-    //TestMemcpy();
+    TestMemcpy();
     TestPcmConv16toF32();
     TestPcmConv16to24();
     TestPcmConv24toF32();

@@ -52,8 +52,6 @@ GetSimdCapability(SimdCapability * cap, Avx512Capability *avx512)
     bool OS_SAVE_AVX    = ((xcr0 & XGETBV_YMM_SAVE_BITS) == XGETBV_YMM_SAVE_BITS);
     bool OS_SAVE_AVX512 = ((xcr0 & XGETBV_YMM_SAVE_BITS) == XGETBV_YMM_SAVE_BITS);
 
-
-
     if (cap != nullptr) {
         __cpuidex((int *)&r10.eax, 1, 0);
 
