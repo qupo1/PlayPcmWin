@@ -14,7 +14,6 @@ PCM24to32(const uint8_t *src, int32_t *dst, int64_t pcmCount)
     int64_t countAsm = pcmCount - countRemainder;
 
     SimdCapability cc;
-    GetSimdCapability(&cc, nullptr);
 
     if (cc.SSSE3) {
         PCM24to32Asm(src, dst, countAsm);

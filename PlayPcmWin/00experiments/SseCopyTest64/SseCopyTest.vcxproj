@@ -75,6 +75,8 @@
   <ItemGroup>
     <ClInclude Include="MyMemcpy2.h" />
     <ClInclude Include="MyMemcpy2Asm.h" />
+    <ClInclude Include="MyMemcpy2AVX.h" />
+    <ClInclude Include="MyMemcpy2AVX512.h" />
     <ClInclude Include="SimdCapability.h" />
     <ClInclude Include="PCM16to24.h" />
     <ClInclude Include="PCM16to24Asm.h" />
@@ -126,6 +128,20 @@
     <CustomBuild Include="MyMemcpy2Asm.asm">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\ml64" /DWIN_X64 /Zi /c /Cp /Fl /Fo $(IntDir)\%(FileName).obj %(FileName).asm </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\%(Filename).obj</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="MyMemcpy2AVX.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Tools\MSVC\14.29.30133\bin\Hostx64\x64\ml64"  /DWIN_X64 /Zi /c /Cp /Fl /Fo $(IntDir)\%(FileName).obj %(FileName).asm </Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\%(Filename).obj</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="MyMemcpy2AVX512.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Tools\MSVC\14.29.30133\bin\Hostx64\x64\ml64"  /DWIN_X64 /Zi /c /Cp /Fl /Fo $(IntDir)\%(FileName).obj %(FileName).asm </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\%(Filename).obj</Outputs>
     </CustomBuild>
   </ItemGroup>

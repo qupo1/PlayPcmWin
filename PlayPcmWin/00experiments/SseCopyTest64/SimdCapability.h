@@ -1,6 +1,12 @@
 ﻿#pragma once
 
-struct SimdCapability {
+#include <string>
+
+class SimdCapability {
+public:
+    SimdCapability(void);
+    std::string ToString(void);
+
     // x64 CPUには、MMX, SSE, SSE2が必ずある。
 
     bool SSE3;
@@ -13,7 +19,11 @@ struct SimdCapability {
     bool AVXVNNI; //< Alder-Lake (AVX512-VNNIよりも新しい。)
 };
 
-struct Avx512Capability {
+class Avx512Capability {
+public:
+    Avx512Capability(void);
+    std::string ToString(void);
+
     bool AVX512F;
     bool AVX512DQ;
     bool AVX512IFMA;
@@ -35,4 +45,3 @@ struct Avx512Capability {
     bool AVX512BF16;
 };
 
-void GetSimdCapability(SimdCapability * cap_return, Avx512Capability *avx512_return);

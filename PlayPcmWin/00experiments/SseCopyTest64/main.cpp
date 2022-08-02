@@ -12,7 +12,7 @@
 #include "SimdCapability.h"
 
 
-#define SHOW_SIMD_CAP (0)
+#define SHOW_SIMD_CAP (1)
 
 #define INIT_MEM (1)
 
@@ -129,8 +129,8 @@ private:
 static void
 TestMemcpy(void)
 {
-    uint8_t* from = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 16);
-    uint8_t* to = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 16);
+    uint8_t* from = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 64);
+    uint8_t* to = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 64);
     if (from == nullptr || to == nullptr) {
         printf("Error allocating memory\n");
         return;
@@ -148,29 +148,30 @@ TestMemcpy(void)
         from[i] = (char)i;
     }
 
-    pc.Start();
+    for (int j=0; j<2; ++j) {
+        // ASM計測。
+        pc.Start();
+        MyMemcpy2(to, from, NUM_OF_ITEMS);
+        double elapsedSecAsm = pc.ElapsedSeconds();
 
-    MyMemcpy2(to, from, NUM_OF_ITEMS);
-
-    double elapsedSecAsm = pc.ElapsedSeconds();
-
-    printf("ASM 100M bytes copy in %f sec. %f GB/sec\n",
-        elapsedSecAsm, 0.1 / elapsedSecAsm);
-
-    for (int64_t i = 0; i < NUM_OF_ITEMS; ++i) {
-        if (to[i] != (uint8_t)i) {
-            printf("Error: to[%lld](%x) != %x\n", i, (uint32_t)to[i], (uint32_t)i);
+        printf("ASM 100M bytes copy in %f sec. %f GB/sec\n",
+            elapsedSecAsm, 0.1 / elapsedSecAsm);
+        // ASMは怪しいのでチェックする。
+        for (int64_t i = 0; i < NUM_OF_ITEMS; ++i) {
+            if (to[i] != (uint8_t)i) {
+                printf("Error: to[%lld](%x) != %x\n", i, (uint32_t)to[i], (uint32_t)i);
+            }
         }
+
+        // C++計測。
+        pc.Start();
+        memcpy(to, from, NUM_OF_ITEMS);
+        double elapsedSecCpp = pc.ElapsedSeconds();
+
+        printf("C++ 100M bytes copy in %f sec. %f GB/sec\n",
+            elapsedSecCpp, 0.1 / elapsedSecCpp);
     }
 
-    pc.Start();
-
-    memcpy(to, from, NUM_OF_ITEMS);
-
-    double elapsedSecCpp = pc.ElapsedSeconds();
-
-    printf("C++ 100M bytes copy in %f sec. %f GB/sec\n",
-        elapsedSecCpp, 0.1 / elapsedSecCpp);
 #else
     MyMemcpy2(to, from, NUM_OF_ITEMS);
 #endif
@@ -514,38 +515,7 @@ main(void)
         SimdCapability cc;
         Avx512Capability ac;
 
-        GetSimdCapability(&cc, &ac);
-
-        // https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#AVX-512 の順に表示。
-        if (cc.SSE3) { printf("SSE3 "); }
-        if (cc.SSSE3) { printf("SSSE3 "); }
-        if (cc.SSE41) { printf("SSE4.1 "); }
-        if (cc.SSE42) { printf("SSE4.2 "); }
-        if (cc.AVX) { printf("AVX "); }
-        if (cc.AVX2) { printf("AVX2 "); }
-        if (cc.AVXVNNI) { printf("AVXVNNI "); } //< AVX-VNNIはAVX512-VNNIとは別の機能で、より新しい。
-
-        if (ac.AVX512F) {
-            printf("AVX512( F ");
-            if (ac.AVX512CD) { printf("CD "); }
-            if (ac.AVX512VPOPCNTDQ) { printf("VPOPCNTDQ "); }
-            if (ac.AVX512VL) { printf("VL "); }
-            if (ac.AVX512DQ) { printf("DQ "); }
-            if (ac.AVX512BW) { printf("BW "); }
-            if (ac.AVX512IFMA) { printf("IFMA "); }
-            if (ac.AVX512VBMI) { printf("VBMI "); }
-            if (ac.AVX512VBMI2) { printf("VBMI2 "); }
-            if (ac.AVX512BITALG) { printf("BITALG "); }
-            if (ac.AVX512VNNI) { printf("AVX512-VNNI "); }
-            if (ac.AVX512BF16) { printf("BF16 "); }
-            if (ac.AVX512VPCLMULQDQ) { printf("VPCLMULQDQ "); }
-            if (ac.AVX512GFNI) { printf("GFNI "); }
-            if (ac.AVX512VAES) { printf("VAES "); }
-            if (ac.AVX512VP2INTERSECT) { printf("VP2INTERSECT "); }
-            printf(")");
-        }
-
-        printf ("\n");
+        printf ("%s %s\n", cc.ToString().c_str(), ac.ToString().c_str());
     }
 #endif
 
