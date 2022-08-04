@@ -20,15 +20,25 @@ wmain(int argc, wchar_t* argv[])
 
     // コピー先メモリを割り当てます。64バイトアラインで確保。
     uint8_t *to = (uint8_t*) _aligned_malloc(mrf.FileSize(), 64);
+    
+    // memset(to, 0, mrf.FileSize());
 
-    sw.Start();
-    MyMemcpy2(to, mrf.BaseAddr(), mrf.FileSize());
-    double es = sw.ElapsedSeconds();
+    for (int i=0;i<2; ++i) {
+        sw.Start();
 
-    printf("%f Mbytes copied in %f seconds. %f Mbps\n",
-        mrf.FileSize()*0.001*0.001,
-        es,
-        mrf.FileSize()*0.001*0.001 / es);
+#if 1
+        MyMemcpy2(to, mrf.BaseAddr(), mrf.FileSize());
+#else
+        memcpy(to, mrf.BaseAddr(), mrf.FileSize());
+#endif
+
+        double es = sw.ElapsedSeconds();
+
+        printf("%f MB copied in %f seconds. %f MB/sec\n",
+            mrf.FileSize()*0.001*0.001,
+            es,
+            mrf.FileSize()*0.001*0.001 / es);
+    }
 
     _aligned_free(to);
     to = nullptr;
