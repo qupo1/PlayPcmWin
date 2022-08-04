@@ -60,7 +60,7 @@ LoopBegin:
     vmovups    ymm1, [rsi + rcx] ; ymm1: 16 16bitPCM samples (total 32 bytes of data)
 
     vpunpcklwd ymm2, ymm0, ymm1 ; ymm2: 8 32bitPCM samples from lower 8 16bit samples of ymm1
-    vpunpckhwd ymm3, ymm0, ymm1 ; ymm2: 8 32bitPCM samples from higher 8 16bit samples of ymm1
+    vpunpckhwd ymm3, ymm0, ymm1 ; ymm3: 8 32bitPCM samples from higher 8 16bit samples of ymm1
 
     ;     LSB      MSB
     ; ymm2: 012389ab
@@ -72,6 +72,7 @@ LoopBegin:
     ; imm8 7   = 0 (copy)
     ; imm8 = 00100000
     vperm2i128 ymm4, ymm2, ymm3, 020H
+
     vmovntdq   ymmword ptr [rdi + rcx*2], ymm4
 
     ; imm8 1:0 = 1 (ymm2H)
@@ -82,11 +83,6 @@ LoopBegin:
     vperm2i128 ymm4, ymm2, ymm3, 031H
 
     vmovntdq   ymmword ptr [rdi + rcx*2+32], ymm4
-
-    ;vextracti128 xmm2, ymm2, 1
-    ;vextracti128 xmm3, ymm3, 1
-    ;vmovntdq   xmmword ptr [rdi + rcx*2 +32], xmm2
-    ;vmovntdq   xmmword ptr [rdi + rcx*2 +48], xmm3
 
     add rcx, 32   ; move src pointer
 
