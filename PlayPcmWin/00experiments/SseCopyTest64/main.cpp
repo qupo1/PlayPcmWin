@@ -10,7 +10,7 @@
 #include "PCM24to32.h"
 #include "PCM24toF32.h"
 #include "SimdCapability.h"
-
+#include "WWStopwatch.h"
 
 #define SHOW_SIMD_CAP (1)
 
@@ -95,36 +95,6 @@ slowmemcpy1(void * dst,
 }
 */
 
-class PerfCount
-{
-public:
-    PerfCount(void) {
-        mLast.QuadPart = 0;
-        QueryPerformanceFrequency(&mFreq);
-        QueryPerformanceCounter(&mStart);
-    }
-
-    void Start(void) {
-        QueryPerformanceCounter(&mStart);
-    }
-
-    double ElapsedSeconds(void) {
-        QueryPerformanceCounter(&mLast);
-
-        return (double)(mLast.QuadPart - mStart.QuadPart) / mFreq.QuadPart;
-    }
-
-    double ElapsedMillisec(void) {
-        QueryPerformanceCounter(&mLast);
-
-        return (mLast.QuadPart - mStart.QuadPart) * 1000.0 / mFreq.QuadPart;
-    }
-
-private:
-    LARGE_INTEGER mFreq;
-    LARGE_INTEGER mStart;
-    LARGE_INTEGER mLast;
-};
 
 static void
 TestMemcpy(void)
@@ -141,7 +111,7 @@ TestMemcpy(void)
 #endif
 
 #if COMPARE_WITH_CPP
-    PerfCount pc;
+    WWStopwatch pc;
 
     // test MyMemcpy2 performance
     for (int64_t i = 0; i < NUM_OF_ITEMS; ++i) {
@@ -204,7 +174,7 @@ TestPcmConv16to32(void)
 #endif
 
 #if COMPARE_WITH_CPP
-    PerfCount pc;
+    WWStopwatch pc;
     pc.Start();
     PCM16to32(from, toAsm, NUM_OF_ITEMS);
     double elapsedSecAsm = pc.ElapsedSeconds();
@@ -258,7 +228,7 @@ TestPcmConv16toF32(void)
 #endif
 
 #if COMPARE_WITH_CPP
-    PerfCount pc;
+    WWStopwatch pc;
     pc.Start();
     PCM16toF32(from, toAsm, NUM_OF_ITEMS);
     double elapsedSecAsm = pc.ElapsedSeconds();
@@ -315,7 +285,7 @@ TestPcmConv24to32(void)
 #endif
 
 #if COMPARE_WITH_CPP
-    PerfCount pc;
+    WWStopwatch pc;
     pc.Start();
     PCM24to32(from, toAsm, NUM_OF_ITEMS);
     double elapsedSecAsm = pc.ElapsedSeconds();
@@ -375,7 +345,7 @@ TestPcmConv24toF32(void)
 #endif
 
 #if COMPARE_WITH_CPP
-    PerfCount pc;
+    WWStopwatch pc;
     pc.Start();
     PCM24toF32(from, toAsm, NUM_OF_ITEMS);
     double elapsedSecAsm = pc.ElapsedSeconds();
@@ -434,7 +404,7 @@ TestPcmConv16to24(void)
 #endif
 
 #if COMPARE_WITH_CPP
-    PerfCount pc;
+    WWStopwatch pc;
     pc.Start();
     PCM16to24(from, toAsm, NUM_OF_ITEMS);
     double elapsedSecAsm = pc.ElapsedSeconds();

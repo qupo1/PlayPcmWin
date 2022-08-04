@@ -6,10 +6,13 @@
 #include "SimdCapability.h"
 #include <assert.h>
 
-void MyMemcpy2(uint8_t * dst, const uint8_t * src, int64_t bytes)
+void MyMemcpy2(void *dstV, const void *srcV, int64_t bytes)
 {
     SimdCapability sc;
     Avx512Capability ac;
+
+    uint8_t * dst = (uint8_t*)dstV;
+    const uint8_t * src = (const uint8_t*)srcV;
 
     assert((((uint64_t)dst) & 0x63) == 0);
 

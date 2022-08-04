@@ -66,6 +66,9 @@
     <ClInclude Include="PCM24toF32Asm.h">
       <Filter>ASM Headers</Filter>
     </ClInclude>
+    <ClInclude Include="WWStopwatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyMemcpy2.cpp">
