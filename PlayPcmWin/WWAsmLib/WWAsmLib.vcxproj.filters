@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ASM Headers">
+      <UniqueIdentifier>{a024d666-1d64-43cb-931f-d1a46c8e6ef9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ASM">
+      <UniqueIdentifier>{0d48523c-f07a-4ee7-8cb1-37b3ca380e8c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MyMemcpy2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM16to24.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM16to32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM16toF32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM24to32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM24toF32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimdCapability.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyMemcpy2Asm.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM16to24Asm.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM16to32Asm.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MyMemcpy2AVX512.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MyMemcpy2AVX.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM16toF32Asm.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM24to32Asm.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PCM24toF32Asm.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MyMemcpy2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PCM16to24.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PCM16to32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PCM16toF32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PCM24to32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PCM24toF32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SimdCapability.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="PCM24to32Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16toF32Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16to32Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16to24Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="MyMemcpy2AVX512.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="MyMemcpy2AVX.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM24toF32Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="MyMemcpy2Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

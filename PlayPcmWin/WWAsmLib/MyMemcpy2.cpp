@@ -11,7 +11,7 @@ void MyMemcpy2(uint8_t * dst, const uint8_t * src, int64_t bytes)
     SimdCapability sc;
     Avx512Capability ac;
 
-    assert((uint64_t)dst & 0x63 == 0);
+    assert((((uint64_t)dst) & 0x63) == 0);
 
     // ASM実装は128の倍数バイト単位の処理。端数をC++で処理します。
     int64_t bytesRemainder = bytes % 128;
