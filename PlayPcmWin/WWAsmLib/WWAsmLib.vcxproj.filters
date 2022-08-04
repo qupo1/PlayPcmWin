@@ -69,6 +69,9 @@
     <ClInclude Include="WWStopwatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PCM16to32AVX.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyMemcpy2.cpp">
@@ -116,6 +119,9 @@
       <Filter>ASM</Filter>
     </CustomBuild>
     <CustomBuild Include="MyMemcpy2Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16to32AVX.asm">
       <Filter>ASM</Filter>
     </CustomBuild>
   </ItemGroup>
