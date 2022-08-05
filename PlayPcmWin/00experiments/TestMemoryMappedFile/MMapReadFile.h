@@ -23,7 +23,7 @@ public:
     int64_t FileSize(void) const { return m_fileSize.QuadPart; }
 
     /// マップされたメモリの先頭アドレスを戻します。
-    void * BaseAddr(void) const { return m_basePtr; }
+    const void * BaseAddr(void) const { return m_basePtr; }
 
 private:
     HANDLE m_hFile;
