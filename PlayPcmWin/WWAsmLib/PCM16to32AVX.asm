@@ -41,10 +41,10 @@ PCM16to32AVX proc frame
     mov rcx, 2    ; rcx := 2
     mul rcx       ; rax: srcBytes , rdx:rax := rax * 2
     mov r9, rax   ; r9: srcBytes
-    add rsi, rax  ; now r10 points the end of src buffer
+    add rsi, rax  ; now rsi points the end of src buffer
 
     mul rcx       ; rax: dstBytes = count*4, rdx:rax := rax * 2
-    add rdi, rax  ; now r11 points the end of dst buffer
+    add rdi, rax  ; now rdi points the end of dst buffer
 
     mov rcx, r9   ; rcx: srcBytes
     neg rcx       ; now rsi+rcx points the start of the src buffer
