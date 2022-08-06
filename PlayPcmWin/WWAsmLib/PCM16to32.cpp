@@ -18,7 +18,7 @@ PCM16to32(const int16_t *src, int32_t *dst, int64_t pcmCount)
     int countRemainder = pcmCount % 32;
     int64_t countAsm = pcmCount - countRemainder;
 
-    if (ac.AVX512F && ac.AVX512BW && ac.AVX512VL) {
+    if (ac.AVX512F && ac.AVX512BW) {
         PCM16to32AVX512(src, dst, countAsm);
     } else if (sc.AVX2) {
         PCM16to32AVX(src, dst, countAsm);

@@ -50,7 +50,7 @@ ENDM
 
 ; save不要のレジスタ: RAX RCX RDX R8 R9 R10 R11 XMM0 XMM1 XMM2 XMM3 XMM4 XMM5
 
-; AVX512F,VL,BW
+; AVX512F,BW
 
 ; PCM16to32AVX512(const char *src, int *dst, int64_t count)
 ; src      --> rcx
