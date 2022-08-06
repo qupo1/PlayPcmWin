@@ -1,5 +1,6 @@
 ﻿#include "PCM24to32.h"
 #include "PCM24to32Asm.h"
+#include "PCM24to32AVX.h"
 #include "SimdCapability.h"
 
 int64_t
@@ -15,7 +16,9 @@ PCM24to32(const uint8_t *src, int32_t *dst, int64_t pcmCount)
 
     SimdCapability cc;
 
-    if (cc.SSSE3) {
+    if (cc.AVX && cc.AVX2) {
+        PCM24to32AVX(src, dst, countAsm);
+    } else if (cc.SSSE3) {
         PCM24to32Asm(src, dst, countAsm);
     } else {
         // 全CPU実行。
