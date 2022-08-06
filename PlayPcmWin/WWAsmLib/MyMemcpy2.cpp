@@ -1,4 +1,4 @@
-#include "MyMemcpy2.h"
+ï»¿#include "MyMemcpy2.h"
 #include "MyMemcpy2Asm.h"
 #include "MyMemcpy2AVX.h"
 #include "MyMemcpy2AVX512.h"
@@ -16,11 +16,11 @@ void MyMemcpy2(void *dstV, const void *srcV, int64_t bytes)
 
     assert((((uint64_t)dst) & 63) == 0);
 
-    // ASMÀ‘•‚Í128‚Ì”{”ƒoƒCƒg’PˆÊ‚Ìˆ—B’[”‚ğC++‚Åˆ—‚µ‚Ü‚·B
+    // ASMå®Ÿè£…ã¯128ã®å€æ•°ãƒã‚¤ãƒˆå˜ä½ã®å‡¦ç†ã€‚ç«¯æ•°ã‚’C++ã§å‡¦ç†ã—ã¾ã™ã€‚
     int64_t bytesRemainder = bytes % 128;
     int64_t bytesAsm = bytes - bytesRemainder;
 
-    if (ac.AVX512VL && ac.AVX512F) {
+    if (ac.AVX512F) {
         MyMemcpy2AVX512(dst, src, bytesAsm);
     } else if (sc.AVX) {
         MyMemcpy2AVX(dst, src, bytesAsm);
@@ -28,6 +28,6 @@ void MyMemcpy2(void *dstV, const void *srcV, int64_t bytes)
         MyMemcpy2Asm(dst, src, bytesAsm);
     }
 
-    // c‚è‚Ímemcpy‚ÅƒRƒs[‚µ‚Ü‚·B
+    // æ®‹ã‚Šã¯memcpyã§ã‚³ãƒ”ãƒ¼ã—ã¾ã™ã€‚
     memcpy(dst+bytesAsm, src+bytesAsm, bytesRemainder);
 }
