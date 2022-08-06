@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <sstream>
 
-// intel processor manual 3-218
+// Intel 64 and IA-32v Architectures Software Developer's Manual Vol.2A 3-214 to 3-218
 
 static const uint32_t R10_ECX_SSE3_BIT  = 0x00000001;
 static const uint32_t R10_ECX_SSSE3_BIT = 0x00000200;
@@ -16,6 +16,9 @@ static const uint32_t R70_EBX_AVX2_BIT         = 0x00000020;
 static const uint32_t R70_EBX_AVX512f_BIT      = 0x00010000;
 static const uint32_t R70_EBX_AVX512dq_BIT     = 0x00020000;
 static const uint32_t R70_EBX_AVX512ifma_BIT   = 0x00200000;
+
+static const uint32_t R70_EBX_AVX512pf_BIT     = 0x04000000;
+static const uint32_t R70_EBX_AVX512er_BIT     = 0x08000000;
 static const uint32_t R70_EBX_AVX512cd_BIT     = 0x10000000;
 static const uint32_t R70_EBX_AVX512bw_BIT     = 0x40000000;
 static const uint32_t R70_EBX_AVX512vl_BIT     = 0x80000000;
@@ -29,6 +32,8 @@ static const uint32_t R70_ECX_AVX512vnni_BIT   = 0x00000800;
 static const uint32_t R70_ECX_AVX512bitalg_BIT = 0x00001000;
 static const uint32_t R70_ECX_AVX512vpopcntdq_BIT = 0x00004000;
 
+static const uint32_t R70_EDX_AVX5124VNNIW_BIT = 0x00000002;
+static const uint32_t R70_EDX_AVX5124FMAPS_BIT = 0x00000004;
 static const uint32_t R70_EDX_AVX512vp2intersect_BIT = 0x00000100;
 
 static const uint32_t R71_EAX_AVXvnni_BIT = 0x00000010;
@@ -36,6 +41,12 @@ static const uint32_t R71_EAX_AVX512bf16_BIT = 0x00000020;
 
 static const uint32_t XGETBV_YMM_SAVE_BITS = 0x6;
 static const uint32_t XGETBV_ZMM_SAVE_BITS = 0xe;
+
+
+    bool AVX512ER;
+    bool AVX512PF;
+    bool AVX5124FMAPS;
+    bool AVX5124VNNIW;
 
 struct Regs {
     uint32_t eax;
@@ -103,8 +114,10 @@ Avx512Capability::Avx512Capability(void)
     AVX512F    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512f_BIT);
     AVX512DQ   = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512dq_BIT);
     AVX512IFMA = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512ifma_BIT);
-    AVX512CD   = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512cd_BIT);
+    AVX512PF    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512pf_BIT);
+    AVX512ER    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512er_BIT);
 
+    AVX512CD   = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512cd_BIT);
     AVX512BW    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512bw_BIT);
     AVX512VL    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512vl_BIT);
     AVX512VBMI  = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vbmi_BIT);
@@ -117,6 +130,9 @@ Avx512Capability::Avx512Capability(void)
 
     AVX512BITALG       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512bitalg_BIT);
     AVX512VPOPCNTDQ    = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vpopcntdq_BIT);
+
+    AVX5124FMAPS = OS_SAVE_AVX512 && 0 != (r70.edx & R70_EDX_AVX5124VNNIW_BIT);
+    AVX5124VNNIW = OS_SAVE_AVX512 && 0 != (r70.edx & R70_EDX_AVX5124FMAPS_BIT);
     AVX512VP2INTERSECT = OS_SAVE_AVX512 && 0 != (r70.edx & R70_EDX_AVX512vp2intersect_BIT);
     AVX512BF16         = OS_SAVE_AVX512 && 0 != (r70.edx & R71_EAX_AVX512bf16_BIT);
 }
@@ -131,16 +147,23 @@ Avx512Capability::ToString(void)
     if (AVX512F) {
         ss << "AVX512( F ";
         if (AVX512CD) { ss << "CD "; }
+        if (AVX512ER) { ss << "ER "; }
+        if (AVX512PF) { ss << "PF "; }
+        if (AVX5124FMAPS) { ss << "4FMAPS "; }
+        if (AVX5124VNNIW) { ss << "4VNNIW "; }
+
         if (AVX512VPOPCNTDQ) { ss << "VPOPCNTDQ "; }
         if (AVX512VL) { ss << "VL "; }
         if (AVX512DQ) { ss << "DQ "; }
         if (AVX512BW) { ss << "BW "; }
         if (AVX512IFMA) { ss << "IFMA "; }
+
         if (AVX512VBMI) { ss << "VBMI "; }
         if (AVX512VBMI2) { ss << "VBMI2 "; }
         if (AVX512BITALG) { ss << "BITALG "; }
         if (AVX512VNNI) { ss << "AVX512-VNNI "; }
         if (AVX512BF16) { ss << "BF16 "; }
+
         if (AVX512VPCLMULQDQ) { ss << "VPCLMULQDQ "; }
         if (AVX512GFNI) { ss << "GFNI "; }
         if (AVX512VAES) { ss << "VAES "; }

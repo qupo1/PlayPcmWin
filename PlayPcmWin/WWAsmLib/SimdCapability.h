@@ -25,23 +25,30 @@ public:
     std::string ToString(void);
 
     bool AVX512F;
-    bool AVX512DQ;
-    bool AVX512IFMA;
     bool AVX512CD;
-
-    bool AVX512BW;
+    
+    bool AVX512ER;
+    bool AVX512PF;
+    bool AVX5124FMAPS;
+    bool AVX5124VNNIW;
+    
+    bool AVX512VPOPCNTDQ;
     bool AVX512VL;
+    bool AVX512DQ;
+    bool AVX512BW;
+    bool AVX512IFMA;
+
     bool AVX512VBMI;
     bool AVX512VBMI2;
 
-    bool AVX512GFNI;
-    bool AVX512VAES;
-    bool AVX512VPCLMULQDQ;
+    bool AVX512BITALG;
     bool AVX512VNNI; //< Ice-Lake
 
-    bool AVX512BITALG;
-    bool AVX512VPOPCNTDQ;
-    bool AVX512VP2INTERSECT;
     bool AVX512BF16;
+
+    bool AVX512VPCLMULQDQ;
+    bool AVX512GFNI;
+    bool AVX512VAES;
+    bool AVX512VP2INTERSECT;
 };
 
