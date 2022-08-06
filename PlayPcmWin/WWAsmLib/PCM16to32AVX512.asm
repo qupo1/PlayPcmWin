@@ -90,15 +90,15 @@ LoopBegin:
     vpunpcklwd zmm2, zmm0, zmm1 ; zmm2: 16 32bitPCM samples from lower 16 16bit samples of zmm1
     vpunpckhwd zmm3, zmm0, zmm1 ; zmm3: 16 32bitPCM samples from higher 16 16bit samples of zmm1
 
-    vmovdqu64    zmm4, zmmword ptr mask0
+    vmovdqu64  zmm4, zmmword ptr mask0
 
-    vpermi2q zmm4, zmm2, zmm3
-    vmovntdq zmmword ptr [rdi + rcx*2], zmm4
+    vpermi2q   zmm4, zmm2, zmm3
+    vmovntdq   zmmword ptr [rdi + rcx*2], zmm4
 
-    vmovdqu64    zmm4, zmmword ptr mask1
+    vmovdqu64  zmm4, zmmword ptr mask1
 
-    vpermi2q zmm4, zmm2, zmm3
-    vmovntdq zmmword ptr [rdi + rcx*2+64], zmm4
+    vpermi2q   zmm4, zmm2, zmm3
+    vmovntdq   zmmword ptr [rdi + rcx*2+64], zmm4
 
     add rcx, 64   ; move src pointer
 

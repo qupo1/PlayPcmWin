@@ -41,10 +41,10 @@ ENDM
 
  align 16
  LabelBegin:
-     vmovups  ymm0,                        [rsi + rcx]
-     vmovups  ymm1,                        [rsi + rcx +32]
-     vmovups  ymm2,                        [rsi + rcx +64]
-     vmovups  ymm3,                        [rsi + rcx +96]
+     vmovdqu  ymm0,                        ymmword ptr [rsi + rcx]
+     vmovdqu  ymm1,                        ymmword ptr [rsi + rcx +32]
+     vmovdqu  ymm2,                        ymmword ptr [rsi + rcx +64]
+     vmovdqu  ymm3,                        ymmword ptr [rsi + rcx +96]
      vmovntdq ymmword ptr [rdi + rcx],     ymm0
      vmovntdq ymmword ptr [rdi + rcx +32], ymm1
      vmovntdq ymmword ptr [rdi + rcx +64], ymm2

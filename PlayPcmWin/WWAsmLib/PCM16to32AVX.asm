@@ -57,10 +57,10 @@ LoopBegin:
 
     ; 1ループで16個処理します。
 
-    vmovups    ymm1, [rsi + rcx] ; ymm1: 16 16bitPCM samples (total 32 bytes of data)
+    vmovdqu    ymm1, ymmword ptr [rsi + rcx] ; ymm1: 16 16bitPCM samples (total 32 bytes of data)
 
-    vpunpcklwd ymm2, ymm0, ymm1 ; ymm2: 8 32bitPCM samples from lower 8 16bit samples of ymm1
-    vpunpckhwd ymm3, ymm0, ymm1 ; ymm3: 8 32bitPCM samples from higher 8 16bit samples of ymm1
+    vpunpcklwd ymm2, ymm0, ymm1  ; ymm2: 8 32bitPCM samples from lower 8 16bit samples of ymm1
+    vpunpckhwd ymm3, ymm0, ymm1  ; ymm3: 8 32bitPCM samples from higher 8 16bit samples of ymm1
 
     ;     LSB      MSB
     ; ymm2: 012389ab

@@ -96,7 +96,7 @@ PCM16to24AVX proc frame
     mov r9, rax   ; r9: srcBytes
     add rsi, rax  ; now rsi points the end of src buffer
 
-    xor rdx, rdx  ; rdi := 0
+    xor rdx, rdx  ; rdx := 0
 
     mov rcx, r9   ; rcx: srcBytes
     neg rcx       ; now rsi+rcx points the start of the src buffer

@@ -100,7 +100,7 @@ static void
 TestMemcpy(void)
 {
     uint8_t* from = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 64);
-    uint8_t* to = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 64);
+    uint8_t* to   = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS, 64);
     if (from == nullptr || to == nullptr) {
         printf("Error allocating memory\n");
         return;
@@ -250,7 +250,7 @@ TestPcmConv16toF32(void)
         }
     }
 #else
-    PCM16toF32(from, toCpp, NUM_OF_ITEMS);
+    PCM16toF32(from, toAsm, NUM_OF_ITEMS);
 #endif
 
     _aligned_free(toCpp);
@@ -370,7 +370,7 @@ TestPcmConv24toF32(void)
         }
     }
 #else
-    PCM24toF32(from, toCpp, NUM_OF_ITEMS);
+    PCM24toF32(from, toAsm, NUM_OF_ITEMS);
 #endif
 
     _aligned_free(toCpp);
@@ -428,7 +428,7 @@ TestPcmConv16to24(void)
         }
     }
 #else
-    PCM16to24(from, toCpp, NUM_OF_ITEMS);
+    PCM16to24(from, toAsm, NUM_OF_ITEMS);
 #endif
 
     _aligned_free(toCpp);
