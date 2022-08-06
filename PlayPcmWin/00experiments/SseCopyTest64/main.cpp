@@ -12,13 +12,13 @@
 #include "SimdCapability.h"
 #include "WWStopwatch.h"
 
-#define SHOW_SIMD_CAP (1)
+#define SHOW_SIMD_CAP (0)
 
 #define INIT_MEM (1)
 
-#define COMPARE_WITH_CPP (1)
+#define COMPARE_WITH_CPP (0)
 
-#define FRACTION_TEST (1)
+#define FRACTION_TEST (0)
 
 #if FRACTION_TEST
 int64_t NUM_OF_ITEMS = 100LL * 1024 * 1024 + 7;
@@ -386,7 +386,7 @@ TestPcmConv16to24(void)
 {
     // numOfItems個のshort値PCMを24bitPCMに変換します。
     int16_t *from  = (int16_t*) _aligned_malloc(NUM_OF_ITEMS*2, 16);
-    uint8_t *toAsm = (uint8_t*) _aligned_malloc(NUM_OF_ITEMS*3, 32);
+    uint8_t *toAsm = (uint8_t*) _aligned_malloc(NUM_OF_ITEMS*3, 64);
     uint8_t *toCpp = (uint8_t*) _aligned_malloc(NUM_OF_ITEMS*3, 16);
     if (from == nullptr || toAsm == nullptr || toCpp == nullptr) {
         printf("Error allocating memory\n");
@@ -489,8 +489,8 @@ main(void)
     }
 #endif
 
-    TestPcmConv24to32();
     TestPcmConv16to24();
+    TestPcmConv24to32();
     TestPcmConv16to32();
     TestMemcpy();
     TestPcmConv16toF32();

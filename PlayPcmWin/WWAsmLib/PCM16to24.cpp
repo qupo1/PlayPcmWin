@@ -1,6 +1,7 @@
 ﻿#include "PCM16to24.h"
 #include "PCM16to24Asm.h"
 #include "PCM16to24AVX.h"
+#include "PCM16to24AVX512.h"
 #include "SimdCapability.h"
 
 int64_t
@@ -10,13 +11,16 @@ PCM16to24(const int16_t *src, uint8_t *dst, int64_t pcmCount)
         return 0;
     }
 
-    // ASM実装は16の倍数サンプルまたは32の倍数サンプル単位の処理。端数をC++で処理します。
-    int64_t countRemainder = pcmCount % 32;
+    // ASM実装は16の倍数～64の倍数サンプル単位の処理。端数をC++で処理します。
+    int64_t countRemainder = pcmCount % 64;
     int64_t countAsm = pcmCount - countRemainder;
 
     SimdCapability cc;
+    Avx512Capability ac;
 
-    if (cc.AVX && cc.AVX2) {
+    if (ac.AVX512F && ac.AVX512BW) {
+        PCM16to24AVX512(src, dst, countAsm);
+    } else if (cc.AVX && cc.AVX2) {
         PCM16to24AVX(src, dst, countAsm);
     } else if (cc.SSSE3) {
         PCM16to24Asm(src, dst, countAsm);
