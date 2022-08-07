@@ -90,6 +90,9 @@
     <ClInclude Include="PCM16toF32AVX.h">
       <Filter>ASM Headers</Filter>
     </ClInclude>
+    <ClInclude Include="PCM24toF32AVX.h">
+      <Filter>ASM Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyMemcpy2.cpp">
@@ -158,6 +161,9 @@
       <Filter>ASM</Filter>
     </CustomBuild>
     <CustomBuild Include="PCM16toF32AVX.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM24toF32AVX.asm">
       <Filter>ASM</Filter>
     </CustomBuild>
   </ItemGroup>

@@ -86,7 +86,7 @@ LoopBegin:
 
     ; 符号付きdword→float変換。
     vcvtdq2ps  ymm4, ymm4                        ; convert signed dword to float
-    vmovdqu    ymm0, ymmword ptr PCM32toPCM32F   ; xmm3に1.0f / (32768.0f * 65536.0f)を4個置く。
+    vmovdqu    ymm0, ymmword ptr PCM32toPCM32F   ; ymm0 : 1.0f / (32768.0f * 65536.0f)を4個置く。
     vmulps     ymm4, ymm4, ymm0                  ; ymm4 := ymm4 * ymm0, scale float value to [-1 1)
 
     vmovntdq   ymmword ptr [rdi + rcx*2], ymm4   ; 8個出力。

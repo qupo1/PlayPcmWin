@@ -326,7 +326,7 @@ TestPcmConv24toF32(void)
 {
     // numOfItems個のshort値PCMをint値PCMに変換します。
     uint8_t *from   = (uint8_t*)_aligned_malloc(NUM_OF_ITEMS*3, 16);
-    float   *toAsm  = (float*)  _aligned_malloc(NUM_OF_ITEMS*4, 16);
+    float   *toAsm  = (float*)  _aligned_malloc(NUM_OF_ITEMS*4, 32);
     float   *toCpp  = (float*)  _aligned_malloc(NUM_OF_ITEMS*4, 16);
     if (from == nullptr || toAsm == nullptr || toCpp == nullptr) {
         printf("Error allocating memory\n");
@@ -489,12 +489,12 @@ main(void)
     }
 #endif
 
+    TestPcmConv24toF32();
     TestPcmConv16toF32();
     TestPcmConv16to24();
     TestPcmConv24to32();
     TestPcmConv16to32();
     TestMemcpy();
-    TestPcmConv24toF32();
 
     return 0;
 }
