@@ -39,8 +39,18 @@ mask2_0f DQ 0302018000808080H
 mask2_0g DQ 0908078006050480H
 mask2_0h DQ 0f0e0d800c0b0a80H
 
+; 定数1.0f/(32768.0f* 65536.0f)が8個。
+PCM32toPCM32F  DQ 3000000030000000H
+PCM32toPCM32Fb DQ 3000000030000000H
+PCM32toPCM32Fc DQ 3000000030000000H
+PCM32toPCM32Fd DQ 3000000030000000H
+PCM32toPCM32Fe DQ 3000000030000000H
+PCM32toPCM32Ff DQ 3000000030000000H
+PCM32toPCM32Fg DQ 3000000030000000H
+PCM32toPCM32Fh DQ 3000000030000000H
 
-public PCM24to32AVX512
+
+public PCM24toF32AVX512
 
 .code
 
@@ -64,12 +74,12 @@ ENDM
 
 ; AVX512F, AVX512BW
 
-; PCM24to32AVX512(const char *src, int32_t *dst, int64_t count)
+; PCM24toF32AVX512(const char *src, int32_t *dst, int64_t count)
 ; src      --> rcx
 ; dst      --> rdx
 ; count    --> r8
 align 16
-PCM24to32AVX512 proc frame
+PCM24toF32AVX512 proc frame
     SaveRegisters
 
     ; dstBytesを算出し、srcバッファ、dstバッファの終わりのアドレスを算出。
@@ -108,7 +118,12 @@ LoopBegin:
     vpshufb         zmm1, zmm0, zmm1
     vporq           zmm2, zmm2, zmm1
 
-    vmovntdq zmmword ptr [rdi + rdx], zmm2  ; 出力。
+    ; 符号付きdword→float変換。
+    vcvtdq2ps       zmm2, zmm2                      ; convert signed dword to float
+    vmovdqu64       zmm0, zmmword ptr PCM32toPCM32F ; zmm0 : 1.0f / (32768.0f * 65536.0f)を4個置く。
+    vmulps          zmm2, zmm2, zmm0                ; zmm2 := zmm2 * zmm0, scale float value to [-1 1)
+
+    vmovntdq        zmmword ptr [rdi + rdx], zmm2   ; 出力。
 
     add rdx, 64
     add rcx, 48
@@ -120,6 +135,6 @@ LoopBegin:
     ret
 
 align 16
-PCM24to32AVX512 endp
+PCM24toF32AVX512 endp
 end
 

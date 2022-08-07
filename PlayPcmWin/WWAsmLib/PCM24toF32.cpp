@@ -1,6 +1,7 @@
 ﻿#include "PCM24toF32.h"
 #include "PCM24toF32Asm.h"
 #include "PCM24toF32AVX.h"
+#include "PCM24toF32AVX512.h"
 #include "SimdCapability.h"
 
 int64_t
@@ -15,8 +16,11 @@ PCM24toF32(const uint8_t *src, float *dst, int64_t pcmCount)
     int64_t countAsm = pcmCount - countRemainder;
 
     SimdCapability cc;
+    Avx512Capability ac;
 
-    if (cc.AVX && cc.AVX2) {
+    if (ac.AVX512F && ac.AVX512BW) {
+        PCM24toF32AVX512(src, dst, countAsm);
+    } else if (cc.AVX && cc.AVX2) {
         PCM24toF32AVX(src, dst, countAsm);
     } else if (cc.SSSE3) {
         PCM24toF32Asm(src, dst, countAsm);

@@ -103,7 +103,7 @@ LoopBegin:
 
     vpor           ymm3, ymm3, ymm2
 
-    vmovntdq ymmword ptr [rdi + rdx], ymm3  ; 1個目出力。
+    vmovntdq       ymmword ptr [rdi + rdx], ymm3  ; 1個目出力。
 
     vbroadcasti128 ymm0, xmmword ptr [rsi+rcx+32]  ; ymm0: 0f0f 0f0e 0e0e 0d0d - 0d0c 0c0c 0b0b 0b0a : 0f0f 0f0e 0e0e 0d0d - 0d0c 0c0c 0b0b 0b0a
                                                    ; ymm1: 0a0a 0909 0908 0808 - 0707 0706 0606 0505 : 0a0a 0909 0908 0808 - 0707 0706 0606 0505
@@ -116,7 +116,7 @@ LoopBegin:
 
     vpor           ymm3, ymm3, ymm2
 
-    vmovntdq ymmword ptr [rdi + rdx +32], ymm3  ; 2個目出力。
+    vmovntdq       ymmword ptr [rdi + rdx +32], ymm3 ; 2個目出力。
 
     add rdx, 64
     add rcx, 48

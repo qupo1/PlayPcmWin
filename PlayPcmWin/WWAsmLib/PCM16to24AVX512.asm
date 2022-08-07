@@ -191,52 +191,52 @@ LoopBegin:
     vmovdqu64       zmm3, zmmword ptr mask1_0
     vpshufb         zmm3, zmm0, zmm3
 
-    vporq          zmm3, zmm3, zmm2
+    vporq           zmm3, zmm3, zmm2
 
     vbroadcasti32x4 zmm0, xmmword ptr [rsi+rcx+32]  ; zmm0: 1717 1616 1515 1414 - 1313 1212 1111 1010 : ...
 
-    vmovdqu64      zmm2, zmmword ptr mask2_0
-    vpshufb        zmm2, zmm0, zmm2
-    vporq          zmm3, zmm3, zmm2
+    vmovdqu64       zmm2, zmmword ptr mask2_0
+    vpshufb         zmm2, zmm0, zmm2
+    vporq           zmm3, zmm3, zmm2
 
-    vmovntdq zmmword ptr [rdi + rdx], zmm3  ; 1個目出力。
+    vmovntdq        zmmword ptr [rdi + rdx], zmm3  ; 1個目出力。
 
                                                     ; zmm0: 1717 1616 1515 1414 - 1313 1212 1111 1010 : ...
-    vmovdqu64      zmm2, zmmword ptr mask2_1
-    vpshufb        zmm2, zmm0, zmm2
+    vmovdqu64       zmm2, zmmword ptr mask2_1
+    vpshufb         zmm2, zmm0, zmm2
 
     vbroadcasti32x4 zmm0, xmmword ptr [rsi+rcx+48]  ; zmm0: 1f1f 1e1e 1d1d 1c1c - 1b1b 1a1a 1919 1818 : ...
-    vmovdqu64      zmm3, zmmword ptr mask3_1
-    vpshufb        zmm3, zmm0, zmm3
-    vporq          zmm3, zmm3, zmm2
+    vmovdqu64       zmm3, zmmword ptr mask3_1
+    vpshufb         zmm3, zmm0, zmm3
+    vporq           zmm3, zmm3, zmm2
 
     vbroadcasti32x4 zmm0, xmmword ptr [rsi+rcx+64]  ; zmm0: 2727 2626 2525 2424 - 2323 2222 2121 2020 : ...
-    vmovdqu64      zmm2, zmmword ptr mask4_1
-    vpshufb        zmm2, zmm0, zmm2
-    vporq          zmm3, zmm3, zmm2
+    vmovdqu64       zmm2, zmmword ptr mask4_1
+    vpshufb         zmm2, zmm0, zmm2
+    vporq           zmm3, zmm3, zmm2
 
     vbroadcasti32x4 zmm0, xmmword ptr [rsi+rcx+80]  ; zmm0: 2f2f 2e2e 2d2d 2c2c - 2b2b 2a2a 2929 2828 : ...
-    vmovdqu64      zmm2, zmmword ptr mask5_1
-    vpshufb        zmm2, zmm0, zmm2
-    vporq          zmm3, zmm3, zmm2
+    vmovdqu64       zmm2, zmmword ptr mask5_1
+    vpshufb         zmm2, zmm0, zmm2
+    vporq           zmm3, zmm3, zmm2
 
-    vmovntdq zmmword ptr [rdi + rdx +64], zmm3  ; 2個目出力。
+    vmovntdq        zmmword ptr [rdi + rdx +64], zmm3  ; 2個目出力。
 
                                                     ; zmm0: 2f2f 2e2e 2d2d 2c2c - 2b2b 2a2a 2929 2828 : ...
-    vmovdqu64      zmm2, zmmword ptr mask5_2
-    vpshufb        zmm2, zmm0, zmm2
+    vmovdqu64       zmm2, zmmword ptr mask5_2
+    vpshufb         zmm2, zmm0, zmm2
 
     vbroadcasti32x4 zmm0, xmmword ptr [rsi+rcx+96]  ; zmm0: 3737 3636 3535 3434 - 3333 3232 3131 3030 : ...
-    vmovdqu64      zmm3, zmmword ptr mask6_2
-    vpshufb        zmm3, zmm0, zmm3
-    vporq          zmm3, zmm3, zmm2
+    vmovdqu64       zmm3, zmmword ptr mask6_2
+    vpshufb         zmm3, zmm0, zmm3
+    vporq           zmm3, zmm3, zmm2
 
     vbroadcasti32x4 zmm0, xmmword ptr [rsi+rcx+112] ; zmm0: 3f3f 3e3e 3d3d 3c3c - 3b3b 3a3a 3939 3838 : ...
-    vmovdqu64      zmm2, zmmword ptr mask7_2
-    vpshufb        zmm2, zmm0, zmm2
-    vporq          zmm3, zmm3, zmm2
+    vmovdqu64       zmm2, zmmword ptr mask7_2
+    vpshufb         zmm2, zmm0, zmm2
+    vporq           zmm3, zmm3, zmm2
 
-    vmovntdq zmmword ptr [rdi + rdx +128], zmm3  ; 3個目出力。
+    vmovntdq        zmmword ptr [rdi + rdx +128], zmm3  ; 3個目出力。
 
     add rdx, 192
     add rcx, 128

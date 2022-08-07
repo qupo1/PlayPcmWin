@@ -41,23 +41,23 @@ LoopBegin:
 
     ; 1ループで8個処理します。
 
-    movdqu xmm1, [r10+rcx]   ; xmm1: 8 16bitPCM samples (total 16 bytes of data)
+    movdqu    xmm1, [r10+rcx]      ; xmm1: 8 16bitPCM samples (total 16 bytes of data)
 
-    pxor xmm0, xmm0          ; xmm0: all zero
-    punpcklwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from lower 4 16bit samples of xmm1
-    cvtdq2ps xmm0, xmm0      ; xmm0: 4 float values from signed int values.
-    mulps xmm0, xmm3         ; xmm0 = xmm0 * xmm3, scale float value to [-1 1)
-    movntdq [r11+rcx*2], xmm0 ; store 4 32bitPCM to dst memory
+    pxor      xmm0, xmm0           ; xmm0: all zero
+    punpcklwd xmm0, xmm1           ; xmm0: 4 32bitPCM samples from lower 4 16bit samples of xmm1
+    cvtdq2ps  xmm0, xmm0           ; xmm0: 4 float values from signed int values.
+    mulps     xmm0, xmm3           ; xmm0 = xmm0 * xmm3, scale float value to [-1 1)
+    movntdq   [r11+rcx*2], xmm0    ; store 4 32bitPCM to dst memory
 
-    pxor xmm0, xmm0          ; xmm0: all zero
-    punpckhwd xmm0, xmm1     ; xmm0: 4 32bitPCM samples from higher 4 16bit samples of xmm1
-    cvtdq2ps xmm0, xmm0      ; xmm0: 4 float values from signed int values.
-    mulps xmm0, xmm3         ; xmm0 = xmm0 * xmm3, scale float value to [-1 1)
-    movntdq [r11+rcx*2+16], xmm0 ; store 4 32bitPCM to dst memory
+    pxor      xmm0, xmm0           ; xmm0: all zero
+    punpckhwd xmm0, xmm1           ; xmm0: 4 32bitPCM samples from higher 4 16bit samples of xmm1
+    cvtdq2ps  xmm0, xmm0           ; xmm0: 4 float values from signed int values.
+    mulps     xmm0, xmm3           ; xmm0 = xmm0 * xmm3, scale float value to [-1 1)
+    movntdq   [r11+rcx*2+16], xmm0 ; store 4 32bitPCM to dst memory
 
-    add rcx, 16              ; move src pointer
+    add rcx, 16   ; move src pointer
 
-    jnz LoopBegin            ; if rcx != 0 then jump
+    jnz LoopBegin ; if rcx != 0 then jump
 
     ret
 
