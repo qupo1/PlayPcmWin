@@ -1,6 +1,7 @@
 ﻿#include "PCM16toF32.h"
 #include "PCM16toF32Asm.h"
 #include "PCM16toF32AVX.h"
+#include "PCM16toF32AVX512.h"
 #include "SimdCapability.h"
 
 int64_t
@@ -15,8 +16,11 @@ PCM16toF32(const int16_t *src, float *dst, int64_t pcmCount)
     int64_t countAsm = pcmCount - countRemainder;
 
     SimdCapability sc;
+    Avx512Capability ac;
 
-    if (sc.AVX && sc.AVX2) {
+    if (ac.AVX512F && ac.AVX512BW) {
+        PCM16toF32AVX512(src, dst, countAsm);
+    } else if (sc.AVX && sc.AVX2) {
         PCM16toF32AVX(src, dst, countAsm);
     } else {
         // SSE2実装なので必ず実行できる。
