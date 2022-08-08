@@ -7,6 +7,7 @@
 int64_t
 PCM16to32(const int16_t *src, int32_t *dst, int64_t pcmCount)
 {
+#ifdef _WIN64
     SimdCapability sc;
     Avx512Capability ac;
 
@@ -26,6 +27,10 @@ PCM16to32(const int16_t *src, int32_t *dst, int64_t pcmCount)
         // SSE2実装なので必ず実行できる。
         PCM16to32Asm(src, dst, countAsm);
     }
+#else
+    int64_t countRemainder = pcmCount;
+    int64_t countAsm = 0;
+#endif
 
     for (int i=0; i<countRemainder; ++i) {
         dst[countAsm+i] = src[countAsm+i] << 16;

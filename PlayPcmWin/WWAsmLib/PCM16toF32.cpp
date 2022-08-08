@@ -7,6 +7,7 @@
 int64_t
 PCM16toF32(const int16_t *src, float *dst, int64_t pcmCount)
 {
+#ifdef _WIN64
     if (pcmCount <= 0) {
         return 0;
     }
@@ -26,6 +27,10 @@ PCM16toF32(const int16_t *src, float *dst, int64_t pcmCount)
         // SSE2実装なので必ず実行できる。
         PCM16toF32Asm(src, dst, countAsm);
     }
+#else
+    int64_t countRemainder = pcmCount;
+    int64_t countAsm = 0;
+#endif
 
     for (int i=0; i<countRemainder; ++i) {
         int16_t v = src[countAsm+i];

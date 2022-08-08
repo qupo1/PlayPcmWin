@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WWCommonUtil.h" />
+    <ClInclude Include="WWStopwatch.h" />
     <ClInclude Include="WWThreadCharacteristics.h" />
     <ClInclude Include="WWTimerResolution.h" />
   </ItemGroup>

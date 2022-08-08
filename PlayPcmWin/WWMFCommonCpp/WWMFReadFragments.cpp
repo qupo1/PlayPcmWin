@@ -6,6 +6,7 @@
 #include <mferror.h>
 #include <assert.h>
 #include <Propvarutil.h>
+#include "MyMemcpy2.h"
 
 static HRESULT
 GetAudioEncodingBitrate(IMFSourceReader *pReader, UINT32 *bitrate_return)
@@ -190,19 +191,15 @@ WWMFReadFragments::ReadFragment(
         HRG_Quiet(pBuffer->Lock(&pAudioData, nullptr, &cbBuffer));
 
         if (dataBufCapacity < cbBuffer) {
-            // 失敗。十分に大きいサイズを指定して呼んで下さい。
+            // dataBufCapacityが足りない。WAVファイル読み出しの最後のフレームの読み出しで起こる。
 
-            pBuffer->Unlock();
-            pAudioData = nullptr;
-
-            dprintf("E: %s:%d Result data is larger than return buffer! dataBufCapacity=%lld, cbBuffer=%u\n",
+            dprintf("D: %s:%d Result data is larger than return buffer! dataBufCapacity=%lld, cbBuffer=%u\n",
                 __FILE__, __LINE__, dataBufCapacity, cbBuffer);
-            hr = E_INVALIDARG;
-            goto end;
+            cbBuffer = (DWORD)dataBufCapacity;
         }
 
         // 成功。
-        memcpy(&data_return[0], pAudioData, cbBuffer);
+        MyMemcpy2(&data_return[0], pAudioData, cbBuffer);
         *dataBytes_inout = cbBuffer;
 
         hr = pBuffer->Unlock();

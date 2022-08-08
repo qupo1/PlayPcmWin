@@ -11,6 +11,10 @@
 #include <windows.h>
 #include "WWCommonUtil.h"
 #include <mfapi.h>
+#include "WWStopwatch.h"
+
+#define FRAGMENT_BYTES (1024 * 1024)
+
 
 static HRESULT
 ReadHeader(const wchar_t *inputFile)
@@ -77,6 +81,8 @@ ReadHeaderAndData(
     WWMFReadFragments mReader;
     WAVEFORMATEXTENSIBLE wfext;
     HRESULT hr = S_OK;
+    double elapsedSec = 0;
+    WWStopwatch sw;
 
     hr = WWMFReaderReadHeader(inputFile, WWMFREADER_FLAG_RESOLVE_NUM_FRAMES, &meta);
     if (hr < 0) {
@@ -86,8 +92,10 @@ ReadHeaderAndData(
 
     dataBytes = meta.PcmBytes();
     printf("data bytes = %lld\n", dataBytes);
+
     data = new uint8_t[dataBytes];
     if (nullptr == data) {
+        printf("Error: new memory failed\n");
         return E_OUTOFMEMORY;
     }
 
@@ -97,11 +105,18 @@ ReadHeaderAndData(
         goto end;
     }
 
+    sw.Start();
+
     while (readBytes < dataBytes) {
         int64_t wantBytes = dataBytes - readBytes;
         HRG(mReader.ReadFragment(&data[readBytes], &wantBytes));
         readBytes += wantBytes;
     }
+
+    elapsedSec = sw.ElapsedSeconds();
+    printf("%f MB in %f seconds, %fMB/sec\n",
+            dataBytes * 0.001 * 0.001, elapsedSec, (dataBytes * 0.001 * 0.001)/ elapsedSec);
+
 
 end:
 
@@ -112,8 +127,6 @@ end:
 
     return 0;
 }
-
-#define FRAGMENT_BYTES (1024 * 1024)
 
 static int
 ReadSeekTest(
@@ -126,6 +139,8 @@ ReadSeekTest(
     WWMFReadFragments mReader;
     WAVEFORMATEXTENSIBLE wfext;
     HRESULT hr = S_OK;
+    double elapsedSec = 0;
+    WWStopwatch sw;
 
     hr = WWMFReaderReadHeader(inputFile, WWMFREADER_FLAG_RESOLVE_NUM_FRAMES, &meta);
     if (hr < 0) {
@@ -135,18 +150,26 @@ ReadSeekTest(
 
     totalBytes = meta.PcmBytes();
     printf("data bytes = %lld\n", totalBytes);
+
     data = new uint8_t[totalBytes];
     if (nullptr == data) {
+        printf("Error: new memory failed\n");
         return E_OUTOFMEMORY;
     }
 
     uint8_t *buff = new uint8_t[FRAGMENT_BYTES];
+    if (nullptr == buff) {
+        printf("Error: new memory failed\n");
+        return E_OUTOFMEMORY;
+    }
 
     hr = mReader.Start(inputFile, &wfext);
     if (hr < 0) {
         printf("Error: WWMFReaderReadData failed %S\n", inputFile);
         goto end;
     }
+
+    sw.Start();
 
     // シークします。
     int64_t posFrames = meta.numFrames/2+1;
@@ -165,6 +188,10 @@ ReadSeekTest(
 
         accBytes += readBytes;
     }
+
+    elapsedSec = sw.ElapsedSeconds();
+    printf("%f MB in %f seconds, %fMB/sec\n",
+            accBytes * 0.001 * 0.001, elapsedSec, (accBytes * 0.001 * 0.001) / elapsedSec);
 
 end:
 

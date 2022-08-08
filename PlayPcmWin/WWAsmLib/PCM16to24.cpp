@@ -7,6 +7,7 @@
 int64_t
 PCM16to24(const int16_t *src, uint8_t *dst, int64_t pcmCount)
 {
+#ifdef _WIN64
     if (pcmCount <= 0) {
         return 0;
     }
@@ -28,6 +29,10 @@ PCM16to24(const int16_t *src, uint8_t *dst, int64_t pcmCount)
         // 全CPU実行。
         countRemainder = pcmCount;
     }
+#else
+    int64_t countRemainder = pcmCount;
+    int64_t countAsm = 0;
+#endif
 
     for (int i=0; i<countRemainder; ++i) {
         uint16_t v = src[countAsm+i];

@@ -8,6 +8,7 @@
 
 void MyMemcpy2(void *dstV, const void *srcV, int64_t bytes)
 {
+#ifdef _WIN64
     SimdCapability sc;
     Avx512Capability ac;
 
@@ -30,4 +31,7 @@ void MyMemcpy2(void *dstV, const void *srcV, int64_t bytes)
 
     // 残りはmemcpyでコピーします。
     memcpy(dst+bytesAsm, src+bytesAsm, bytesRemainder);
+#else
+    memcpy(dstV, srcV, (size_t)bytes);
+#endif
 }

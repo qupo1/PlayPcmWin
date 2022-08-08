@@ -66,9 +66,6 @@
     <ClInclude Include="PCM24toF32Asm.h">
       <Filter>ASM Headers</Filter>
     </ClInclude>
-    <ClInclude Include="WWStopwatch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PCM16to32AVX.h">
       <Filter>ASM Headers</Filter>
     </ClInclude>
@@ -124,13 +121,49 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="00README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="MyMemcpy2Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM24toF32AVX.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM24toF32Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM24to32AVX512.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM24to32AVX.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
     <CustomBuild Include="PCM24to32Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16toF32AVX512.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16toF32AVX.asm">
       <Filter>ASM</Filter>
     </CustomBuild>
     <CustomBuild Include="PCM16toF32Asm.asm">
       <Filter>ASM</Filter>
     </CustomBuild>
+    <CustomBuild Include="PCM16to32AVX512.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16to32AVX.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
     <CustomBuild Include="PCM16to32Asm.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16to24AVX512.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PCM16to24AVX.asm">
       <Filter>ASM</Filter>
     </CustomBuild>
     <CustomBuild Include="PCM16to24Asm.asm">
@@ -139,47 +172,11 @@
     <CustomBuild Include="MyMemcpy2AVX512.asm">
       <Filter>ASM</Filter>
     </CustomBuild>
-    <CustomBuild Include="MyMemcpy2AVX.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM24toF32Asm.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="MyMemcpy2Asm.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM16to32AVX.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM16to32AVX512.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM16to24AVX.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM24to32AVX.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM16to24AVX512.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM24to32AVX512.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM16toF32AVX.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM24toF32AVX.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PCM16toF32AVX512.asm">
-      <Filter>ASM</Filter>
-    </CustomBuild>
     <CustomBuild Include="PCM24toF32AVX512.asm">
       <Filter>ASM</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="00README.txt" />
+    <CustomBuild Include="MyMemcpy2AVX.asm">
+      <Filter>ASM</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
