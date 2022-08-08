@@ -137,8 +137,8 @@ wmain(int argc, wchar_t* argv[])
     const wchar_t *path = L"D:/audio/03-JAPRS-HiRes-192kHz24bit.wav";
 
     for (int i=0;i<2; ++i) {
-        ParallelCopy(path, CT_Fread);
         ParallelCopy(path, CT_Mmap);
+        ParallelCopy(path, CT_Fread);
     }
 
     return 0;
