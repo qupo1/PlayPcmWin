@@ -24,6 +24,12 @@
     <ClCompile Include="WWTimerResolution.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WWFileReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WWMMapReadFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WWCommonUtil.h">
@@ -36,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WWStopwatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WWMMapReadFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

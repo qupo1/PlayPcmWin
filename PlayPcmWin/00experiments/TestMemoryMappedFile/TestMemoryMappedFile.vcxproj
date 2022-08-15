@@ -88,13 +88,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="WWFileReader.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MMapReadFile.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="WWFileReader.h" />
-    <ClInclude Include="MMapReadFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\WWAsmLib\WWAsmLib.vcxproj">

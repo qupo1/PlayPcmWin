@@ -1,9 +1,9 @@
-#include "MMapReadFile.h"
+#include "WWMMapReadFile.h"
 #include <assert.h>
 #include <stdio.h>
 
 void
-MMapReadFile::Close(void)
+WWMMapReadFile::Close(void)
 {
     if (m_basePtr != nullptr) {
         UnmapViewOfFile(m_basePtr);
@@ -22,7 +22,7 @@ MMapReadFile::Close(void)
 }
 
 HRESULT
-MMapReadFile::Open(const wchar_t *path)
+WWMMapReadFile::Open(const wchar_t *path)
 {
     HRESULT hr = S_OK;
 

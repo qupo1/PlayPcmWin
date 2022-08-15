@@ -1,9 +1,11 @@
-﻿// 結論：キャッシュされてない場合freadの方がmmapより速い。
+﻿// 結論：
+// IO Control portsを使用した読み出しが速い。
+// キャッシュされてない場合freadの方がmmapより速い。
 
 #include <Windows.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "MMapReadFile.h"
+#include "WWMMapReadFile.h"
 #include "WWStopwatch.h"
 #include "MyMemcpy2.h"
 #include <vector>
@@ -33,7 +35,7 @@ static HRESULT
 ParallelCopy(const wchar_t *path, CopyType ct)
 {
     WWStopwatch sw;
-    MMapReadFile mrf;
+    WWMMapReadFile mrf;
     FILE *fp = nullptr;
     uint8_t *to = nullptr;
     int64_t bytes = 0;
@@ -136,7 +138,6 @@ static void
 ReadCompleted(uint64_t pos, uint8_t *buf, int bytes)
 {
     // printf("%lld %d %02x%02x%02x%02x\n", pos, bytes, buf[0], buf[1], buf[2], buf[3]);
-
 }
 
 static HRESULT
@@ -185,7 +186,9 @@ wmain(int argc, wchar_t* argv[])
     const wchar_t *path = L"D:/audio/03-JAPRS-HiRes-192kHz24bit.wav";
 
 #if 1
-    ReadWithFileReader(path);
+    for (int i=0;i<1; ++i) {
+        ReadWithFileReader(path);
+    }
 #else
     for (int i=0;i<2; ++i) {
         ParallelCopy(path, CT_Mmap);
