@@ -10,8 +10,6 @@ WWFileReader::Init(int nQueues)
 {
     HRESULT hr = E_FAIL;
 
-    assert(nThreads == 1);
-
     mNumOfQueues  = nQueues;
 
     // ReadCtx‚ğì¬‚µ‚Ü‚·B
@@ -24,7 +22,6 @@ WWFileReader::Init(int nQueues)
             return E_FAIL;
         }
     }
-
 
     return S_OK;
 }
