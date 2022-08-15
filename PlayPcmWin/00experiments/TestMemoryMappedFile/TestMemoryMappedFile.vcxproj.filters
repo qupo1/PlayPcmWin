@@ -21,9 +21,15 @@
     <ClCompile Include="MMapReadFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WWFileReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MMapReadFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WWFileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

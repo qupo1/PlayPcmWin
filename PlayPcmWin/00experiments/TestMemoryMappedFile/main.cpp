@@ -8,6 +8,7 @@
 #include "MyMemcpy2.h"
 #include <vector>
 #include <assert.h>
+#include "WWFileReader.h"
 
 static const int NUM_THREADS = 4;
 static const int ALIGN = 256;
@@ -32,7 +33,7 @@ static HRESULT
 ParallelCopy(const wchar_t *path, CopyType ct)
 {
     WWStopwatch sw;
-    MMapReadFile mrf;    
+    MMapReadFile mrf;
     FILE *fp = nullptr;
     uint8_t *to = nullptr;
     int64_t bytes = 0;
@@ -131,15 +132,66 @@ Cleanup:
     return hr;
 }
 
+static void
+ReadCompleted(uint64_t pos, uint8_t *buf, int bytes)
+{
+    // printf("%lld %d %02x%02x%02x%02x\n", pos, bytes, buf[0], buf[1], buf[2], buf[3]);
+
+}
+
+static HRESULT
+ReadWithFileReader(const wchar_t *path)
+{
+    HRESULT hr = E_FAIL;
+    WWStopwatch sw;
+
+    WWFileReader fr;
+    hr = fr.Init();
+    if (FAILED(hr)) {
+        printf("ReadWithFileReader Init failed %x\n", hr);
+        return hr;
+    }
+
+    hr = fr.Open(path);
+    if (FAILED(hr)) {
+        printf("ReadWithFileReader Open failed %x\n", hr);
+        return hr;
+    }
+
+    sw.Start();
+
+    hr = fr.Read(0, fr.FileSz(), ReadCompleted);
+    if (FAILED(hr)) {
+        printf("ReadWithFileReader Read failed %x\n", hr);
+        return hr;
+    }
+
+    double es = sw.ElapsedSeconds();
+
+    printf("%f MB read in %f seconds. %f MB/sec\n",
+        fr.FileSz()*0.001*0.001,
+        es,
+        fr.FileSz()*0.001*0.001 / es);
+
+    fr.Close();
+    fr.Term();
+
+    return S_OK;
+}
+
 int
 wmain(int argc, wchar_t* argv[])
 {
     const wchar_t *path = L"D:/audio/03-JAPRS-HiRes-192kHz24bit.wav";
 
+#if 1
+    ReadWithFileReader(path);
+#else
     for (int i=0;i<2; ++i) {
         ParallelCopy(path, CT_Mmap);
         ParallelCopy(path, CT_Fread);
     }
+#endif
 
     return 0;
 }

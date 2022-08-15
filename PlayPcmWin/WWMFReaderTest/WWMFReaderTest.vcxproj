@@ -150,9 +150,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WWAsmLib\WWAsmLib.vcxproj">
-      <Project>{2b77d883-542f-456a-af4f-33b96a34cb64}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\WWCommonCpp\WWCommonCpp.vcxproj">
       <Project>{cb5a7579-c19c-4625-9eab-81f795507acf}</Project>
     </ProjectReference>

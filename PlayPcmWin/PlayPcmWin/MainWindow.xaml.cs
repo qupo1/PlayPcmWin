@@ -319,7 +319,7 @@ namespace PlayPcmWin
         /// コマンドライン引数から音声ファイル名を抽出します。
         /// </summary>
         private static string[] GetFileListFromCommandlineArgs(List<string> args) {
-            List<string> r = new List<string>();
+            var r = new List<string>();
 
             // args[0]はプログラムの名前なのでスキップ。1から始める。
             for (int i = 1; i < args.Count; ++i) {
@@ -2388,7 +2388,7 @@ namespace PlayPcmWin
                 }
 
                 int readResult;
-                byte[] part = pr.StreamReadOne(wantFrames, out readResult);
+                var part = pr.StreamReadOne(wantFrames, out readResult);
                 if (null == part) {
                     pr.StreamEnd();
                     if (readResult < 0) {

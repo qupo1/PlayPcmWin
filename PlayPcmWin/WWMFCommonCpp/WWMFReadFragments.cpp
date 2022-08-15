@@ -6,7 +6,6 @@
 #include <mferror.h>
 #include <assert.h>
 #include <Propvarutil.h>
-#include "MyMemcpy2.h"
 
 static HRESULT
 GetAudioEncodingBitrate(IMFSourceReader *pReader, UINT32 *bitrate_return)
@@ -199,7 +198,7 @@ WWMFReadFragments::ReadFragment(
         }
 
         // 成功。
-        MyMemcpy2(&data_return[0], pAudioData, cbBuffer);
+        memcpy(&data_return[0], pAudioData, cbBuffer);
         *dataBytes_inout = cbBuffer;
 
         hr = pBuffer->Unlock();
