@@ -13,7 +13,6 @@ public:
             mhIocp(INVALID_HANDLE_VALUE),
             mCompletionKey(0),
             mNumOfQueues(8),
-            mNumOfThreads(1),
             mFileSz(0) {
     }
 
@@ -23,7 +22,7 @@ public:
     }
 
     /// IOCPを作成する等。
-    HRESULT Init(int nQueues = 8, int nThreads = 1);
+    HRESULT Init(int nQueues = 8);
 
     /// IOCPを使用終了する。
     void Term(void);
@@ -34,9 +33,10 @@ public:
     // ファイルサイズ。
     int64_t FileSz(void) const { return mFileSz; }
 
-    // 位置posからbytesバイト読み出します。
+    // 位置posからbytesバイト読み出します。24MiB(3MiB x 8 queues)以上の3MiBの倍数にすると効率的。
     HRESULT Read(int64_t pos, int64_t bytes, ReadCompletedCB cb);
 
+    // ファイルを閉じます。
     void Close(void);
 
 private:
@@ -44,7 +44,6 @@ private:
     HANDLE mhIocp;
     UINT mCompletionKey;
     int mNumOfQueues;
-    int mNumOfThreads;
     int64_t mFileSz;
     static const int mReadFragmentSz = 1024 * 1024 * 3;
 
@@ -101,6 +100,7 @@ private:
         int idx;
 
     };
+
     std::vector<ReadCtx> mReadCtx;
 
     /// 未使用のReadCtxを探します。無いときnullptr。

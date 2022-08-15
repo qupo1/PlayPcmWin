@@ -6,14 +6,13 @@
 // 参考：https://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports#:~:text=I%2FO%20completion%20ports%20provide%20an%20efficient%20threading%20model,whose%20sole%20purpose%20is%20to%20service%20these%20requests.
 
 HRESULT
-WWFileReader::Init(int nQueues, int nThreads)
+WWFileReader::Init(int nQueues)
 {
     HRESULT hr = E_FAIL;
 
     assert(nThreads == 1);
 
     mNumOfQueues  = nQueues;
-    mNumOfThreads = nThreads;
 
     // ReadCtxを作成します。
     mReadCtx.resize(mNumOfQueues);
