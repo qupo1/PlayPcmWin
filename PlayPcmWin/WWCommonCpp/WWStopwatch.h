@@ -21,10 +21,10 @@ public:
         return (double)(mLast.QuadPart - mStart.QuadPart) / mFreq.QuadPart;
     }
 
-    double ElapsedMillisec(void) {
+    int ElapsedMillisec(void) {
         QueryPerformanceCounter(&mLast);
 
-        return (mLast.QuadPart - mStart.QuadPart) * 1000.0 / mFreq.QuadPart;
+        return (int)((mLast.QuadPart - mStart.QuadPart) * 1000 / mFreq.QuadPart);
     }
 
 private:

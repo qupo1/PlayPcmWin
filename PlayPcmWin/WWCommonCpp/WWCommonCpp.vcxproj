@@ -21,12 +21,15 @@
   <ItemGroup>
     <ClCompile Include="WWCommonUtil.cpp" />
     <ClCompile Include="WWFileReader.cpp" />
+    <ClCompile Include="WWFileReaderMT.cpp" />
     <ClCompile Include="WWMMapReadFile.cpp" />
     <ClCompile Include="WWThreadCharacteristics.cpp" />
     <ClCompile Include="WWTimerResolution.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WWCommonUtil.h" />
+    <ClInclude Include="WWFileReader.h" />
+    <ClInclude Include="WWFileReaderMT.h" />
     <ClInclude Include="WWMMapReadFile.h" />
     <ClInclude Include="WWStopwatch.h" />
     <ClInclude Include="WWThreadCharacteristics.h" />

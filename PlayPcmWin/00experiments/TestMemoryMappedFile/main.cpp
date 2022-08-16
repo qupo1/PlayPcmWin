@@ -11,6 +11,7 @@
 #include <vector>
 #include <assert.h>
 #include "WWFileReader.h"
+#include "WWFileReaderMT.h"
 
 static const int NUM_THREADS = 4;
 static const int ALIGN = 256;
@@ -146,7 +147,7 @@ ReadWithFileReader(const wchar_t *path)
     HRESULT hr = E_FAIL;
     WWStopwatch sw;
 
-    WWFileReader fr;
+    WWFileReaderMT fr;
     hr = fr.Init();
     if (FAILED(hr)) {
         printf("ReadWithFileReader Init failed %x\n", hr);

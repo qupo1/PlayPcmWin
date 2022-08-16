@@ -4,20 +4,23 @@
 #include <stdint.h>
 #include <vector>
 
-/// Multiple-queue with IO Completion ports and single threaded version.
-class WWFileReader {
+/// Multiple-queue IOCP and multi-threaded with Threadpool
+class WWFileReaderMT {
 public:
     typedef void ReadCompletedCB(uint64_t pos, uint8_t *buf, int bytes);
 
-    WWFileReader(void) :
+    WWFileReaderMT(void) :
             mhFile(INVALID_HANDLE_VALUE),
             mhIocp(INVALID_HANDLE_VALUE),
             mCompletionKey(0),
             mNumOfQueues(8),
-            mFileSz(0) {
+            mFileSz(0),
+            mTp(nullptr),
+            mTpWork(nullptr),
+            mReadCompletedCB(nullptr) {
     }
 
-    ~WWFileReader(void) {
+    ~WWFileReaderMT(void) {
         Close();
         Term();
     }
@@ -40,6 +43,9 @@ public:
     // ファイルを閉じます。
     void Close(void);
 
+    /// ファイル読み出し完了CB。内部で使用する物です。
+    void ioCallback(void);
+
 private:
     HANDLE mhFile;
     HANDLE mhIocp;
@@ -47,6 +53,13 @@ private:
     int mNumOfQueues;
     int64_t mFileSz;
     static const int mReadFragmentSz = 1024 * 1024 * 3;
+    PTP_POOL mTp;
+    PTP_WORK mTpWork;
+    ReadCompletedCB *mReadCompletedCB;
+    TP_CALLBACK_ENVIRON mCe;
+
+    /// WaitForMultipleObjects待ち合わせ用の、Eventのハンドルの配列。参照
+    std::vector<HANDLE> mWaitEventAry;
 
     struct ReadCtx {
         ReadCtx(void) :
@@ -54,28 +67,43 @@ private:
                 isUsed(false),
                 pos(0),
                 readBytes(0),
-                idx(-1) {
+                idx(-1),
+                waitEvent(INVALID_HANDLE_VALUE) {
             memset(&overlapped,0,sizeof overlapped);
         }
 
-        bool Init(int aIdx) {
+        HRESULT Init(int aIdx) {
+            HRESULT hr = E_FAIL;
             idx = aIdx;
 
             if (buf != nullptr) {
                 printf("Error: ReadCtx::Init buf is not null\n");
-                return false;
+                return E_FAIL;
             }
 
             buf = (uint8_t *)VirtualAlloc(nullptr, mReadFragmentSz, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
             if (buf == nullptr) {
-                printf("Error: ReadCtx::Init VirtualAlloc failed.\n");
-                return false;
+                hr = GetLastError();
+                printf("Error: ReadCtx::Init VirtualAlloc failed. %x\n", hr);
+                return hr;
             }
 
-            return true;
+            waitEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+            if (waitEvent == nullptr) {
+                hr = GetLastError();
+                waitEvent = INVALID_HANDLE_VALUE;
+                printf("Error: ReadCtx::Init CreateEvent failed. %x\n", hr);
+                return hr;
+            }
+            return S_OK;
         }
 
         void Term(void) {
+            if (waitEvent != INVALID_HANDLE_VALUE) {
+                CloseHandle(waitEvent);
+                waitEvent = INVALID_HANDLE_VALUE;
+            }
+
             if (buf != nullptr) {
                 VirtualFree(buf, 0, MEM_RELEASE);
                 buf = nullptr;
@@ -99,7 +127,7 @@ private:
         int readBytes;
 
         int idx;
-
+        HANDLE waitEvent;
     };
 
     std::vector<ReadCtx> mReadCtx;
@@ -107,8 +135,8 @@ private:
     /// 未使用のReadCtxを探します。無いときnullptr。
     ReadCtx *FindAvailableReadCtx(void);
 
-    // 1個IO完了を待つ。
-    HRESULT WaitAnyIOCompletion(ReadCompletedCB cb);
+    // 1個スレッド処理完了を待つ。
+    HRESULT WaitAnyThreadCompletion(void);
 
     // 利用可能なReadCtx数。
     int CountAvailableReadCtx(void);

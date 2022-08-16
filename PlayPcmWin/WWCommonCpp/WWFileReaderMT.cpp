@@ -1,12 +1,30 @@
-#include "WWFileReader.h"
+#include "WWFileReaderMT.h"
 #include <stdio.h>
 #include <assert.h>
 
 // IO Completion portsを使用して効率的にファイルを読みます。
 // 参考：https://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports#:~:text=I%2FO%20completion%20ports%20provide%20an%20efficient%20threading%20model,whose%20sole%20purpose%20is%20to%20service%20these%20requests.
 
+
+// ThreadPoolIOを使用し、複数スレッドで結果を受け取って処理します。
+// Thread Pools https://docs.microsoft.com/en-us/windows/win32/procthread/thread-pools
+// CreateThreadpoolWork https://docs.microsoft.com/en-us/windows/win32/api/threadpoolapiset/nf-threadpoolapiset-createthreadpoolwork
+// CreateThreadpoolWorkのコールバック https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms687396(v=vs.85)
+// IoCompletionCallback https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms684124(v=vs.85)
+// GetQueuedCompletionStatus https://docs.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-getqueuedcompletionstatus
+
+static void CALLBACK
+sIoCallback(
+        PTP_CALLBACK_INSTANCE instance,
+        PVOID                 parameter,
+        PTP_WORK              work)
+{
+    WWFileReaderMT *self = (WWFileReaderMT*)parameter;
+    self->ioCallback();
+}
+
 HRESULT
-WWFileReader::Init(int nQueues)
+WWFileReaderMT::Init(int nQueues)
 {
     HRESULT hr = E_FAIL;
 
@@ -17,21 +35,54 @@ WWFileReader::Init(int nQueues)
     int idx=0;
     for (auto & it=mReadCtx.begin(); it!=mReadCtx.end(); ++idx, ++it) {
         ReadCtx &rc = *it;
-        if (!rc.Init(idx)) {
-            printf("Init ReadCtx failed\n");
-            return E_FAIL;
+        hr = rc.Init(idx);
+        if (FAILED(hr)) {
+            printf("Init ReadCtx failed %x\n", hr);
+            return hr;
         }
+    }
+
+    mWaitEventAry.resize(mReadCtx.size());
+    for (int i=0; i<mWaitEventAry.size(); ++i) {
+        mWaitEventAry[i] = mReadCtx[i].waitEvent;
+    }
+
+    mTp = CreateThreadpool(nullptr);
+    if (nullptr == mTp) {
+        hr = GetLastError();
+        printf("Init CreateThreadpool failed %x\n", hr);
+        return hr;
+    }
+
+    InitializeThreadpoolEnvironment(&mCe);
+    SetThreadpoolCallbackPool(&mCe, mTp);
+    mTpWork = CreateThreadpoolWork(sIoCallback, this, &mCe);
+    if (nullptr == mTpWork) {
+        hr = GetLastError();
+        printf("Init CreateThreadpoolWork failed %x\n", hr);
+        return hr;
     }
 
     return S_OK;
 }
 
 void
-WWFileReader::Term(void)
+WWFileReaderMT::Term(void)
 {
     if (mhIocp != INVALID_HANDLE_VALUE) {
         CloseHandle(mhIocp);
         mhIocp = 0;
+    }
+
+    if (mTp != nullptr) {
+        CloseThreadpool(mTp);
+        mTp = nullptr;
+
+        DestroyThreadpoolEnvironment(&mCe);
+    }
+    if (mTpWork != nullptr) {
+        CloseThreadpoolWork(mTpWork);
+        mTpWork = nullptr;
     }
 
     // ReadCtxを削除します。
@@ -40,10 +91,12 @@ WWFileReader::Term(void)
         rc.Term();
     }
     mReadCtx.clear();
+
+    mWaitEventAry.clear();
 }
 
 HRESULT
-WWFileReader::Open(const wchar_t *path)
+WWFileReaderMT::Open(const wchar_t *path)
 {
     HRESULT hr = E_FAIL;
     BOOL br = FALSE;
@@ -66,6 +119,7 @@ WWFileReader::Open(const wchar_t *path)
     }
 
     // ファイルハンドルとIOCPとを関連付け。
+    assert(mhIocp == INVALID_HANDLE_VALUE);
     mhIocp = CreateIoCompletionPort(mhFile, nullptr, mCompletionKey, mNumOfQueues);
     if (mhIocp == INVALID_HANDLE_VALUE) {
         // IOCP関連付け失敗。
@@ -94,7 +148,7 @@ end:
 }
 
 void
-WWFileReader::Close(void)
+WWFileReaderMT::Close(void)
 {
     if (mhFile != INVALID_HANDLE_VALUE) {
         CloseHandle(mhFile);
@@ -119,8 +173,8 @@ SetReadOffsetToOverlappedMember(int64_t offs, OVERLAPPED &ol)
 }
 
 // 未使用のReadCtxを探します。無いときnullptr。
-WWFileReader::ReadCtx *
-WWFileReader::FindAvailableReadCtx(void)
+WWFileReaderMT::ReadCtx *
+WWFileReaderMT::FindAvailableReadCtx(void)
 {
     for (auto & it=mReadCtx.begin(); it!=mReadCtx.end(); ++it) {
         ReadCtx &rc = *it;
@@ -134,7 +188,7 @@ WWFileReader::FindAvailableReadCtx(void)
 }
 
 int
-WWFileReader::CountAvailableReadCtx(void)
+WWFileReaderMT::CountAvailableReadCtx(void)
 {
     int cnt = 0;
 
@@ -149,57 +203,36 @@ WWFileReader::CountAvailableReadCtx(void)
     return cnt;
 }
 
+
 HRESULT
-WWFileReader::WaitAnyIOCompletion(ReadCompletedCB cb)
+WWFileReaderMT::WaitAnyThreadCompletion(void)
 {
     HRESULT hr = E_FAIL;
-    BOOL br = false;
-    DWORD nBytesXfer = 0;
-    DWORD_PTR key = 0;
-    LPOVERLAPPED completedOverlapped = nullptr;
-    ReadCtx *pRC = nullptr;
 
-    br = GetQueuedCompletionStatus(mhIocp,
-            &nBytesXfer,
-            &key,
-            &completedOverlapped,
-            INFINITE);
-    if (!br) {
+    // どれかのスレッド終わるまで待つ。
+    DWORD r = WaitForMultipleObjects((DWORD)mWaitEventAry.size(), &mWaitEventAry[0], FALSE, INFINITE);
+    if (WAIT_FAILED == r) {
         hr = GetLastError();
-
-        // Either of the two
-        // ・ the function failed to dequeue a completion packet (CompletedOverlapped is not NULL)
-        // ・ it dequeued a completion packet of a failed I/O operation (CompletedOverlapped is NULL)
-        printf("Error: GetQueuedCompletionStatus on the IoPort failed, error %x\n", hr);
+        printf("Error: WaitAnyThreadCompletion WaitForMultipleObjects failed, error %x\n", hr);
         return hr;
     }
-
-    // 成功。
-    pRC = (ReadCtx*)completedOverlapped;
-
-    // 読み出し完了したのでコールバックを呼びます。
-    cb(pRC->pos, pRC->buf, pRC->readBytes);
-
-    pRC->isUsed = false;
-
-    // キューに入るときはFIFO順だが、
-    // 出てくる順番は不定！
-    // printf("%d ", pRC->idx);
 
     return S_OK;
 }
 
 HRESULT
-WWFileReader::Read(int64_t pos, int64_t bytes, ReadCompletedCB cb)
+WWFileReaderMT::Read(int64_t pos, int64_t bytes, ReadCompletedCB cb)
 {
     HRESULT hr = E_FAIL;
-    BOOL br = FALSE;
+    BOOL    br = FALSE;
+
+    mReadCompletedCB = cb;
     
     for (int64_t cnt=0; cnt<bytes; cnt+= mReadFragmentSz, pos += mReadFragmentSz) {
         ReadCtx  *rc = FindAvailableReadCtx();
         if (nullptr == rc) {
             // 1個IOが終わるまで待ちます。
-            hr = WaitAnyIOCompletion(cb);
+            hr = WaitAnyThreadCompletion();
             if (FAILED(hr)) {
                 printf("Read WaitIOCompletion failed %x\n", hr);
                 return E_FAIL;
@@ -222,6 +255,7 @@ WWFileReader::Read(int64_t pos, int64_t bytes, ReadCompletedCB cb)
         rc->pos = pos;
         rc->readBytes = wantBytes;
 
+        // 読み出し開始。
         br = ReadFile(mhFile, rc->buf, wantBytes, nullptr, &rc->overlapped);
         if (!br) {
             hr = GetLastError();
@@ -230,10 +264,13 @@ WWFileReader::Read(int64_t pos, int64_t bytes, ReadCompletedCB cb)
                 return hr;
             }
         }
+
+        // スレッドを起動し読み出し完了を待ちます。
+        SubmitThreadpoolWork(mTpWork);
     }
 
     while (CountAvailableReadCtx() != mReadCtx.size()) {
-        hr = WaitAnyIOCompletion(cb);
+        hr = WaitAnyThreadCompletion();
         if (FAILED(hr)) {
             printf("Read WaitIOCompletion failed %x\n", hr);
             return E_FAIL;
@@ -243,3 +280,38 @@ WWFileReader::Read(int64_t pos, int64_t bytes, ReadCompletedCB cb)
     return S_OK;
 }
 
+// IO読み出し完了後処理のスレッド。
+void
+WWFileReaderMT::ioCallback(void)
+{
+    DWORD bytesXfer = 0;
+    ULONG_PTR ulKey = 0;
+    LPOVERLAPPED overlapped = nullptr;
+    BOOL br = FALSE;
+    HRESULT hr = E_FAIL;
+
+    br = GetQueuedCompletionStatus(mhIocp, &bytesXfer, &ulKey, &overlapped, INFINITE);
+    if (!br) {
+        hr = GetLastError();
+        printf("Error: ioCallback GetQueuedCompletionStatus failed %d\n", hr);
+
+        if (overlapped == nullptr) {
+            printf("Error: not recoverable error\n");
+            return;
+        }
+    }
+
+    // IO完了コールバック。
+    ReadCtx *pRC = (ReadCtx*)overlapped;
+
+    // キューに入るときはFIFO順だが、
+    // 出てくる順番は不定！
+    // printf("%d ", pRC->idx);
+
+    // 読み出し完了したのでコールバックを呼びます。
+    mReadCompletedCB(pRC->pos, pRC->buf, pRC->readBytes);
+
+    pRC->isUsed = false;
+
+    SetEvent(pRC->waitEvent);
+}
