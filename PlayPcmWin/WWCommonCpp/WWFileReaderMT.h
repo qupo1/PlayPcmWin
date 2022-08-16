@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <vector>
 
-/// Multiple-queue IOCP and multi-threaded with Threadpool
+/// Multiple-queue with IO Completion Ports and multi-threaded with Threadpool
 class WWFileReaderMT {
 public:
     typedef void ReadCompletedCB(uint64_t pos, uint8_t *buf, int bytes);

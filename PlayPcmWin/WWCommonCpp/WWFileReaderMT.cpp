@@ -6,7 +6,7 @@
 // 参考：https://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports#:~:text=I%2FO%20completion%20ports%20provide%20an%20efficient%20threading%20model,whose%20sole%20purpose%20is%20to%20service%20these%20requests.
 
 
-// ThreadPoolIOを使用し、複数スレッドで結果を受け取って処理します。
+// ThreadPoolを使用し、複数スレッドで結果を受け取って処理します。
 // Thread Pools https://docs.microsoft.com/en-us/windows/win32/procthread/thread-pools
 // CreateThreadpoolWork https://docs.microsoft.com/en-us/windows/win32/api/threadpoolapiset/nf-threadpoolapiset-createthreadpoolwork
 // CreateThreadpoolWorkのコールバック https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms687396(v=vs.85)
@@ -92,6 +92,7 @@ WWFileReaderMT::Term(void)
     }
     mReadCtx.clear();
 
+    // mReadCtxが保持するWaitEventのハンドルをクローズし無効化したのでmWaitEventAryが持っている参照を消します。
     mWaitEventAry.clear();
 }
 
@@ -209,7 +210,7 @@ WWFileReaderMT::WaitAnyThreadCompletion(void)
 {
     HRESULT hr = E_FAIL;
 
-    // どれかのスレッド終わるまで待つ。
+    // どれかのスレッドが終わるまで待つ。
     DWORD r = WaitForMultipleObjects((DWORD)mWaitEventAry.size(), &mWaitEventAry[0], FALSE, INFINITE);
     if (WAIT_FAILED == r) {
         hr = GetLastError();
