@@ -43,10 +43,11 @@ WWFileReaderMT::Init(int nQueues)
     }
 
     mWaitEventAry.resize(mReadCtx.size());
-    for (int i=0; i<mWaitEventAry.size(); ++i) {
+    for (int i=0; i<(int)mWaitEventAry.size(); ++i) {
         mWaitEventAry[i] = mReadCtx[i].waitEvent;
     }
 
+    // Threadpool、ThreadpoolWorkは何度も使いまわせるので、最初に作成します。
     mTp = CreateThreadpool(nullptr);
     if (nullptr == mTp) {
         hr = GetLastError();
@@ -291,6 +292,7 @@ WWFileReaderMT::ioCallback(void)
     BOOL br = FALSE;
     HRESULT hr = E_FAIL;
 
+    // 何れかの読み出しが完了するまで待ちます。
     br = GetQueuedCompletionStatus(mhIocp, &bytesXfer, &ulKey, &overlapped, INFINITE);
     if (!br) {
         hr = GetLastError();

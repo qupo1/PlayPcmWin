@@ -96,6 +96,9 @@
     <ClInclude Include="PCM24toF32AVX512.h">
       <Filter>ASM Headers</Filter>
     </ClInclude>
+    <ClInclude Include="WWPcmFmtConverter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyMemcpy2.cpp">
@@ -117,6 +120,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SimdCapability.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WWPcmFmtConverter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

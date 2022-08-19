@@ -44,6 +44,7 @@
     <ClInclude Include="PCM24toF32AVX.h" />
     <ClInclude Include="PCM24toF32AVX512.h" />
     <ClInclude Include="SimdCapability.h" />
+    <ClInclude Include="WWPcmFmtConverter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyMemcpy2.cpp" />
@@ -53,6 +54,7 @@
     <ClCompile Include="PCM24to32.cpp" />
     <ClCompile Include="PCM24toF32.cpp" />
     <ClCompile Include="SimdCapability.cpp" />
+    <ClCompile Include="WWPcmFmtConverter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MyMemcpy2Asm.asm">
@@ -345,6 +347,11 @@
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WWCommonCpp\WWCommonCpp.vcxproj">
+      <Project>{cb5a7579-c19c-4625-9eab-81f795507acf}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2B77D883-542F-456A-AF4F-33B96A34CB64}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -389,7 +396,18 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(ProjectDir)..\WWCommonCpp\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(ProjectDir)..\WWCommonCpp\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(ProjectDir)..\WWCommonCpp\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(ProjectDir)..\WWCommonCpp\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>
