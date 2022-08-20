@@ -122,9 +122,9 @@ SetSampleValueI32(const int32_t v, uint8_t *buf, int64_t frameNr, int ch, const 
 }
 
 static HRESULT
-BitDepthConvertCpp(
+ConvertCpp(
         const uint8_t *pcmFrom, const WWNativePcmFmt &fromFmt,
-        uint8_t       *pcmTo,   const WWNativePcmFmt &toFmt, const int64_t frameCount)
+        uint8_t       *pcmTo,   const WWNativePcmFmt &toFmt, const int *channelMap, const int64_t frameCount)
 {
     SampleFmt fromSF = BitDepthAndIntFloatToSampleFmt(fromFmt.containerBitDepth, fromFmt.isFloat!=0);
     SampleFmt toSF   = BitDepthAndIntFloatToSampleFmt(toFmt.containerBitDepth, toFmt.isFloat!=0);
@@ -137,20 +137,49 @@ BitDepthConvertCpp(
     }
 
     for (int64_t i=0; i<frameCount; ++i) {
-        for (int ch=0; ch<toFmt.numChannels; ++ch) {
-            int32_t v = GetSampleValueI32(pcmFrom, i, ch, fromFmt);
-            SetSampleValueI32(v, pcmTo, i, ch, toFmt);
+        for (int chTo=0; chTo<toFmt.numChannels; ++chTo) {
+            // PCM無音で初期化。
+            int32_t v = 0;
+
+            if (toFmt.isDoP) {
+                // DoP無音。
+                if (i%2==0) {
+                    v = 0x05696900;
+                } else {
+                    v = 0xfa696900;
+                }
+            }
+
+            int chFrom = channelMap[chTo];
+            if (0 <= chFrom) {
+                v = GetSampleValueI32(pcmFrom, i, chTo, fromFmt);
+            }
+
+            SetSampleValueI32(v, pcmTo, i, chTo, toFmt);
         }
     }
 
     return S_OK;
 }
 
+/// true: 0→0, 1→1、... k→k 全チャンネル同一のチャンネルが対応するマップ。
+static bool
+IsIdenticalMap(int nCh, const int *channelMap)
+{
+    for (int ch=0; ch<nCh; ++ch) {
+        if (channelMap[ch] != ch) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 HRESULT
-WWPcmFmtConverter::BitDepthConverter(
+WWPcmFmtConverter::Convert(
         const uint8_t *pcmFrom, const WWNativePcmFmt &fromFmt,
-        uint8_t       *pcmTo,   const WWNativePcmFmt &toFmt, const int64_t frameCount)
+        uint8_t       *pcmTo,   const WWNativePcmFmt &toFmt, const int *channelMap, const int64_t frameCount)
 {
     SampleFmt fromSF = BitDepthAndIntFloatToSampleFmt(fromFmt.containerBitDepth, fromFmt.isFloat!=0);
     SampleFmt toSF   = BitDepthAndIntFloatToSampleFmt(toFmt.containerBitDepth,   toFmt.isFloat!=0);
@@ -162,21 +191,22 @@ WWPcmFmtConverter::BitDepthConverter(
         return E_INVALIDARG;
     }
 
-    if (fromFmt.numChannels != toFmt.numChannels) {
-        // 入出力チャンネル数が異なる。
-        return BitDepthConvertCpp(
+    if (fromFmt.numChannels != toFmt.numChannels
+            || !IsIdenticalMap(toFmt.numChannels, channelMap)) {
+        // 入出力チャンネル数が異なる。または、チャンネル対応を入れ替える処理。
+        return ConvertCpp(
                 pcmFrom, fromFmt,
-                pcmTo,   toFmt, frameCount);
+                pcmTo,   toFmt, channelMap, frameCount);
     }
 
-    // fromNumChannels == toNumChannelsなので、入出力サンプルカウントは同じ(sampleCount)。
+    // 入出力サンプルカウントは同じ(sampleCount)。
     int64_t sampleCount = frameCount * fromFmt.numChannels;
 
     switch (fromSF) {
     case SF_PCM_i16:
         switch (toSF) {
         case SF_PCM_i16:
-            memcpy(pcmTo, pcmFrom, sampleCount * fromFmt.containerBitDepth / 8);
+            memcpy(pcmTo, pcmFrom, (size_t)(sampleCount * fromFmt.containerBitDepth / 8));
             return S_OK;
         case SF_PCM_i24:
             PCM16to24((const int16_t*)pcmFrom, pcmTo, sampleCount);
@@ -193,11 +223,11 @@ WWPcmFmtConverter::BitDepthConverter(
     case SF_PCM_i24:
         switch (toSF) {
         case SF_PCM_i16:
-            return BitDepthConvertCpp(
+            return ConvertCpp(
                     pcmFrom, fromFmt,
-                    pcmTo,   toFmt, frameCount);
+                    pcmTo,   toFmt, channelMap, frameCount);
         case SF_PCM_i24:
-            memcpy(pcmTo, pcmFrom, sampleCount * fromFmt.containerBitDepth / 8);
+            memcpy(pcmTo, pcmFrom, (size_t)(sampleCount * fromFmt.containerBitDepth / 8));
             return S_OK;
         case SF_PCM_i32:
             PCM24to32(pcmFrom, (int32_t*)pcmTo, sampleCount);
@@ -210,9 +240,9 @@ WWPcmFmtConverter::BitDepthConverter(
         }
     case SF_PCM_i32:
     case SF_PCM_f32:
-        return BitDepthConvertCpp(
+        return ConvertCpp(
                 pcmFrom, fromFmt,
-                pcmTo,   toFmt, frameCount);
+                pcmTo,   toFmt, channelMap, frameCount);
     default:
         return E_INVALIDARG;
     }
