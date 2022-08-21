@@ -10,9 +10,9 @@ struct WWNativePcmFmt {
     int isFloat; //< 0: int, 1: float。
     int isDoP; //< DoPの場合、sampleRate=176400 (16分の1), validBitsPerSample=24、containerBitsPerSample={24|32}になります。
 
-    /// このPCMデータ全てを収容するメモリの量。
-    int64_t TotalBytesInMemory(void) const {
-        return (int64_t)sampleRate * numChannels * containerBitDepth / 8;
+    /// 1フレームを収容するバイト数。
+    int ContainerBytesPerFrame(void) const {
+        return containerBitDepth * numChannels  /8;
     }
 
     WWNativePcmFmt(void) :

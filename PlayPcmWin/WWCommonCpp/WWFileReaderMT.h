@@ -7,7 +7,8 @@
 /// Multiple-queue with IO Completion Ports and multi-threaded with Threadpool
 class WWFileReaderMT {
 public:
-    typedef void ReadCompletedCB(uint64_t pos, uint8_t *buf, int bytes);
+    /// @param pos ファイル先頭からのオフセット。フレーム番号ではない。
+    typedef void ReadCompletedCB(uint64_t pos, uint8_t *buf, int bytes, void *tag);
 
     WWFileReaderMT(void) :
             mhFile(INVALID_HANDLE_VALUE),
@@ -17,7 +18,8 @@ public:
             mFileSz(0),
             mTp(nullptr),
             mTpWork(nullptr),
-            mReadCompletedCB(nullptr) {
+            mReadCompletedCB(nullptr),
+            mTag(nullptr) {
     }
 
     ~WWFileReaderMT(void) {
@@ -37,8 +39,8 @@ public:
     // ファイルサイズ。
     int64_t FileSz(void) const { return mFileSz; }
 
-    // 位置posからbytesバイト読み出します。24MiB(3MiB x 8 queues)以上の3MiBの倍数にすると効率的。
-    HRESULT Read(int64_t pos, int64_t bytes, ReadCompletedCB cb);
+    // 位置fileOffsetからbytesバイト読み出します。24MiB(3MiB x 8 queues)以上の3MiBの倍数にすると効率的。
+    HRESULT Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void *tag);
 
     // ファイルを閉じます。
     void Close(void);
@@ -56,6 +58,7 @@ private:
     PTP_POOL mTp;
     PTP_WORK mTpWork;
     ReadCompletedCB *mReadCompletedCB;
+    void * mTag;
     TP_CALLBACK_ENVIRON mCe;
 
     /// WaitForMultipleObjects待ち合わせ用の、Eventのハンドルの配列。参照
@@ -65,7 +68,7 @@ private:
         ReadCtx(void) :
                 buf(nullptr),
                 isUsed(false),
-                pos(0),
+                fileOffset(0),
                 readBytes(0),
                 idx(-1),
                 waitEvent(INVALID_HANDLE_VALUE) {
@@ -122,7 +125,7 @@ private:
 
         bool isUsed;
 
-        int64_t pos;
+        int64_t fileOffset;
 
         int readBytes;
 
