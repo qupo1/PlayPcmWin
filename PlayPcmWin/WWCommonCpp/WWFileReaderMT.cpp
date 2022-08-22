@@ -207,9 +207,11 @@ WWFileReaderMT::CountAvailableReadCtx(void)
 
 
 HRESULT
-WWFileReaderMT::WaitAnyThreadCompletion(void)
+WWFileReaderMT::WaitAnyThreadCompletion(int *idx_return)
 {
     HRESULT hr = E_FAIL;
+
+    *idx_return = -1;
 
     // どれかのスレッドが終わるまで待つ。
     DWORD r = WaitForMultipleObjects((DWORD)mWaitEventAry.size(), &mWaitEventAry[0], FALSE, INFINITE);
@@ -219,6 +221,8 @@ WWFileReaderMT::WaitAnyThreadCompletion(void)
         return hr;
     }
 
+    *idx_return = r - WAIT_OBJECT_0;
+
     return S_OK;
 }
 
@@ -227,6 +231,7 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
 {
     HRESULT hr = E_FAIL;
     BOOL    br = FALSE;
+    int idx = -1;
 
     mReadCompletedCB = cb;
     mTag = tag;
@@ -235,14 +240,15 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
         ReadCtx  *rc = FindAvailableReadCtx();
         if (nullptr == rc) {
             // 1個IOが終わるまで待ちます。
-            hr = WaitAnyThreadCompletion();
+            hr = WaitAnyThreadCompletion(&idx);
             if (FAILED(hr)) {
                 printf("Read WaitIOCompletion failed %x\n", hr);
                 return E_FAIL;
             }
             // 成功。
-            rc = FindAvailableReadCtx();
-            assert(rc != nullptr);
+            assert(0 <= idx && idx < mReadCtx.size());
+            rc = &mReadCtx[idx];
+            assert(rc->isUsed == false);
         }
 
         rc->isUsed = true;
@@ -273,7 +279,7 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
     }
 
     while (CountAvailableReadCtx() != mReadCtx.size()) {
-        hr = WaitAnyThreadCompletion();
+        hr = WaitAnyThreadCompletion(&idx);
         if (FAILED(hr)) {
             printf("Read WaitIOCompletion failed %x\n", hr);
             return E_FAIL;

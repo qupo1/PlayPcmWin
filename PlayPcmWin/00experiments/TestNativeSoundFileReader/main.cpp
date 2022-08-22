@@ -1,10 +1,11 @@
 #include "WWNativeWavReader.h"
+#include "WWNativePcmFmt.h"
 #include <stdio.h>
 #include <Windows.h>
 #include <stdint.h>
-#include "WWNativePcmFmt.h"
 #include <MMReg.h>
 #include "WWStopwatch.h"
+
 
 struct RiffHeader {
     char riff[4];
@@ -162,7 +163,7 @@ Run(const wchar_t * path)
     WWNativeWavReader nwr;
     WavFileInf wfi;
     WWNativePcmFmt tgtFmt;
-    const int readFrames = 8 * 1024 * 1024;
+
     uint8_t *wavBuf = nullptr;
     WWStopwatch sw;
     double elapsed = 0;
@@ -172,7 +173,7 @@ Run(const wchar_t * path)
         return hr;
     }
 
-    // WAVファイルを読みます。
+    // WAVファイルヘッダを読みフォーマットを調べます。
     hr = ReadWavHeader(path, &wfi);
     if (FAILED(hr)) {
         return hr;
@@ -196,19 +197,15 @@ Run(const wchar_t * path)
     }
 
     sw.Start();
-    for (int64_t pos=0; pos < wfi.numFrames; pos += readFrames) {
-        int wantFrames = readFrames;
-        if (wfi.numFrames < pos + wantFrames) {
-            wantFrames = (int)(pos -wfi.numFrames);
-        }
-        hr = nwr.PcmReadOne(wfi.pcmDataOffset + pos, wantFrames, &wavBuf[pos * tgtFmt.ContainerBytesPerFrame()]);
-        if (FAILED(hr)) {
-            goto end;
-        }
+
+    hr = nwr.PcmReadOne(wfi.pcmDataOffset, wfi.numFrames, &wavBuf[0]);
+    if (FAILED(hr)) {
+        goto end;
     }
 
     elapsed = sw.ElapsedSeconds();
-    printf("%f sec. %f Mbytes/sec\n", elapsed, (double)(wfi.numFrames * wfi.pcmFmt.containerBitDepth/8) / 1000 / 1000 / elapsed);
+
+    printf("%f sec. %.1f Mbytes/sec\n", elapsed, (double)(wfi.numFrames * wfi.pcmFmt.ContainerBytesPerFrame()) *0.001 * 0.001 / elapsed);
 
 end:
     nwr.PcmReadEnd();

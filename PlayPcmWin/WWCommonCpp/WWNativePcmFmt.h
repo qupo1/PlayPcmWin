@@ -12,7 +12,7 @@ struct WWNativePcmFmt {
 
     /// 1フレームを収容するバイト数。
     int ContainerBytesPerFrame(void) const {
-        return containerBitDepth * numChannels  /8;
+        return containerBitDepth * numChannels / 8;
     }
 
     WWNativePcmFmt(void) :

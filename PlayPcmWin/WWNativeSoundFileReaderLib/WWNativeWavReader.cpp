@@ -1,8 +1,9 @@
 #include "WWNativeWavReader.h"
 #include "WWPcmFmtConverter.h"
-#include <assert.h>
 
-HRESULT WWNativeWavReader::Init(void)
+
+HRESULT
+WWNativeWavReader::Init(void)
 {
     HRESULT hr = E_FAIL;
     
@@ -90,9 +91,8 @@ void
 WWNativeWavReader::ReadCompleted(uint64_t fileOffset, uint8_t *bufFrom, int bytes, uint8_t *bufTo)
 {
     // ì«Ç›èoÇµäÆóπéûèàóùÅB
-    WWPcmFmtConverter conv;
 
     const int64_t numFrames = bytes / mOrigPcmFmt.ContainerBytesPerFrame();
 
-    conv.Convert(bufFrom, mOrigPcmFmt, bufTo, mTgtPcmFmt, &mChannelMap[0], numFrames);
+    WWPcmFmtConverter(bufFrom, mOrigPcmFmt, bufTo, mTgtPcmFmt, &mChannelMap[0], numFrames);
 }

@@ -136,7 +136,7 @@ Cleanup:
 }
 
 static void
-ReadCompleted(uint64_t pos, uint8_t *buf, int bytes)
+ReadCompleted(uint64_t pos, uint8_t *buf, int bytes, void *tag)
 {
     // printf("%lld %d %02x%02x%02x%02x\n", pos, bytes, buf[0], buf[1], buf[2], buf[3]);
 }
@@ -162,7 +162,7 @@ ReadWithFileReader(const wchar_t *path)
 
     sw.Start();
 
-    hr = fr.Read(0, fr.FileSz(), ReadCompleted);
+    hr = fr.Read(0, fr.FileSz(), ReadCompleted, nullptr);
     if (FAILED(hr)) {
         printf("ReadWithFileReader Read failed %x\n", hr);
         return hr;

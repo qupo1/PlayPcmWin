@@ -123,7 +123,7 @@ private:
         /// VirtualAllocによってページアライン確保します。
         uint8_t *buf;
 
-        bool isUsed;
+        volatile bool isUsed;
 
         int64_t fileOffset;
 
@@ -139,7 +139,7 @@ private:
     ReadCtx *FindAvailableReadCtx(void);
 
     // 1個スレッド処理完了を待つ。
-    HRESULT WaitAnyThreadCompletion(void);
+    HRESULT WaitAnyThreadCompletion(int *idx_return);
 
     // 利用可能なReadCtx数。
     int CountAvailableReadCtx(void);

@@ -1,4 +1,5 @@
 #include "WWPcmFmtConverter.h"
+#include "WWNativePcmFmt.h"
 #include "PCM16to24.h"
 #include "PCM16to32.h"
 #include "PCM16toF32.h"
@@ -177,7 +178,7 @@ IsIdenticalMap(int nCh, const int *channelMap)
 
 
 HRESULT
-WWPcmFmtConverter::Convert(
+WWPcmFmtConverter(
         const uint8_t *pcmFrom, const WWNativePcmFmt &fromFmt,
         uint8_t       *pcmTo,   const WWNativePcmFmt &toFmt, const int *channelMap, const int64_t frameCount)
 {
