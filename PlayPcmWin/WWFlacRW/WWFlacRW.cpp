@@ -83,10 +83,10 @@ struct FlacCuesheetTrackInfo {
 
     char isrc[13];
 
-    /** The track type: 0 for audio, 1 for non-audio. */
+    /// The track type: 0 for audio, 1 for non-audio.
     bool isAudio;
 
-    /** まじかよって感じ。 */
+    /// 上位層でde-emphasisして下さい。
     bool preEmphasis;
 
     std::vector<FlacCuesheetIndexInfo> indices;
@@ -267,7 +267,7 @@ FlacTInfoDelete(std::map<int, T*> &storage, T *fdi)
 
     storage.erase(fdi->id);
     delete fdi;
-    fdi = nullptr; // あんまり意味ないが、一応
+    fdi = nullptr;
 
     ReleaseMutex(g_mutex);
 }
@@ -458,7 +458,7 @@ MetadataCallback(const FLAC__StreamDecoder *decoder,
     if (metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
         // dprintf("vendorstr=\"%s\" %d num=%u\n\n", (const char *)VC.vendor_string.entry, VC.vendor_string.length, VC.num_comments);
 
-        // 曲情報は1024個もないだろう。無限ループ防止。
+        // 曲情報は1024個もないだろう。不必要に大きなバッファを作るのを抑止。
         int num_comments = (FLACDECODE_COMMENT_MAX < VC.num_comments) ? FLACDECODE_COMMENT_MAX : VC.num_comments;
 
         for (int i=0; i<num_comments; ++i) {
@@ -1234,7 +1234,7 @@ WWFlacRW_EncodeSetPicture(int id, const uint8_t * pictureData, int pictureBytes)
     assert(fei->flacMetaArray[FMT_Picture]);
 
     if (0 < fei->pictureBytes && 0 != fei->pictureMimeTypeStr[0]) {
-        // copy==falseにすると開放時にクラッシュする
+        // copy==falseにすると開放時にクラッシュする。
         if (!FLAC__metadata_object_picture_set_mime_type(fei->flacMetaArray[FMT_Picture], fei->pictureMimeTypeStr, true)) {
             dprintf("FLAC__metadata_object_picture_set_mime_type failed\n");
             fei->errorCode = FRT_OtherError;
@@ -1650,7 +1650,6 @@ IntegrityCheck_MetadataCallback(const FLAC__StreamDecoder *decoder,
         if (0 == metadata->data.stream_info.total_samples) {
             result->flags |= WWFLAC_FLAG_TOTAL_SAMPLES_WAS_UNKNOWN;
         }
-
 
         // 値が全部0ならばMD5情報は入っていないというFLACの仕様。
         bool allZero = true;
