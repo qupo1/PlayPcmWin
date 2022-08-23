@@ -30,6 +30,7 @@
     <ClInclude Include="WWCommonUtil.h" />
     <ClInclude Include="WWFileReader.h" />
     <ClInclude Include="WWFileReaderMT.h" />
+    <ClInclude Include="WWInstanceMgr.h" />
     <ClInclude Include="WWMMapReadFile.h" />
     <ClInclude Include="WWNativePcmFmt.h" />
     <ClInclude Include="WWStopwatch.h" />

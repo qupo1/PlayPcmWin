@@ -59,5 +59,8 @@
     <ClInclude Include="WWNativePcmFmt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WWInstanceMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

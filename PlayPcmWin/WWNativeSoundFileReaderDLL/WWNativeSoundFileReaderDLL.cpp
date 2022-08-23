@@ -1,97 +1,8 @@
 ﻿#include "WWNativeSoundFileReaderDLL.h"
 #include "WWNativeWavReader.h"
-#include <Windows.h>
-#include <map>
-#include <assert.h>
+#include "WWInstanceMgr.h"
 
-static HANDLE gMutex = nullptr;
-
-class StaticInitializer {
-public:
-    StaticInitializer(void) {
-        assert(gMutex == nullptr);
-        gMutex = CreateMutex(nullptr, FALSE, nullptr);
-    }
-
-    ~StaticInitializer(void) {
-        assert(gMutex);
-        ReleaseMutex(gMutex);
-        gMutex = nullptr;
-    }
-};
-
-static StaticInitializer gStaticInitializer;
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-volatile int gNextId = 1;
-
-/// 物置の実体。グローバル変数。
-static std::map<int, WWNativeWavReader*> gInstanceMap;
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-static WWNativeWavReader *
-NewInstance(int *id_return)
-{
-    WWNativeWavReader * self = new WWNativeWavReader();
-    if (nullptr == self) {
-        printf("E: NewInstance failed\n");
-        return nullptr;
-    }
-
-    assert(gMutex);
-    WaitForSingleObject(gMutex, INFINITE);
-
-    gInstanceMap.insert(std::make_pair(gNextId, self));
-    *id_return = gNextId;
-
-    ++gNextId;
-
-    ReleaseMutex(gMutex);
-    return self;
-}
-
-static void
-DeleteInstance(int id)
-{
-    auto ite = gInstanceMap.find(id);
-    if (ite == gInstanceMap.end()) {
-        // mapに登録されていない場合。
-        return;
-    }
-
-    assert(gMutex);
-    WaitForSingleObject(gMutex, INFINITE);
-
-    auto self = gInstanceMap[id];
-    gInstanceMap.erase(id);
-    delete self;
-    self = nullptr;
-
-    ReleaseMutex(gMutex);
-}
-
-static WWNativeWavReader *
-FindInstanceById(int id)
-{
-    assert(gMutex);
-    WaitForSingleObject(gMutex, INFINITE);
-
-    std::map<int, WWNativeWavReader*>::iterator ite
-        = gInstanceMap.find(id);
-    if (ite == gInstanceMap.end()) {
-        ReleaseMutex(gMutex);
-        printf("E: FindInstanceById not found %d\n", id);
-        return nullptr;
-    }
-
-    // 発見。
-    ReleaseMutex(gMutex);
-    return ite->second;
-}
-
-// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+static WWInstanceMgr<WWNativeWavReader> gInstanceMgr;
 
 /// 初期化。スレッドプールの作成、読み出しバッファ確保、スレッド処理完了待ち合わせイベント作成等。
 /// @return 0以上: インスタンスId。負: エラー。
@@ -100,10 +11,10 @@ int __stdcall
 WWNativeSoundFileReaderInit(void)
 {
     int id = 0;
-    auto self = NewInstance(&id);
+    auto self = gInstanceMgr.New(&id);
     HRESULT hr = self->Init();
     if (FAILED(hr)) {
-        DeleteInstance(id);
+        gInstanceMgr.Delete(id);
         self = nullptr;
         return hr;
     }
@@ -117,14 +28,14 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderTerm(int id)
 {
-    auto self = FindInstanceById(id);
+    auto self = gInstanceMgr.Find(id);
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
     }
 
     self->Term();
-    DeleteInstance(id);
+    gInstanceMgr.Delete(id);
     self = nullptr;
 
     return S_OK;
@@ -136,7 +47,7 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderStart(int id, const wchar_t *path, const WWNativePcmFmt & origPcmFmt, const WWNativePcmFmt & tgtPcmFmt, const int *channelMap)
 {
-    auto self = FindInstanceById(id);
+    auto self = gInstanceMgr.Find(id);
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
@@ -150,7 +61,7 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo)
 {
-    auto self = FindInstanceById(id);
+    auto self = gInstanceMgr.Find(id);
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
@@ -165,7 +76,7 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderReadEnd(int id)
 {
-    auto self = FindInstanceById(id);
+    auto self = gInstanceMgr.Find(id);
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
