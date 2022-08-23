@@ -23,8 +23,6 @@ public:
 
     void ReadCompleted(const uint64_t fileOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo);
 
-    int id;
-
 private:
     WWNativePcmFmt mOrigPcmFmt;
     WWNativePcmFmt mTgtPcmFmt;
