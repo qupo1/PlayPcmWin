@@ -2,7 +2,7 @@
 #include "WWNativeWavReader.h"
 #include "WWInstanceMgr.h"
 
-static WWInstanceMgr<WWNativeWavReader> gInstanceMgr;
+static WWInstanceMgr<WWNativeWavReader> gNWRMgr;
 
 /// 初期化。スレッドプールの作成、読み出しバッファ確保、スレッド処理完了待ち合わせイベント作成等。
 /// @return 0以上: インスタンスId。負: エラー。
@@ -11,10 +11,10 @@ int __stdcall
 WWNativeSoundFileReaderInit(void)
 {
     int id = 0;
-    auto self = gInstanceMgr.New(&id);
+    auto self = gNWRMgr.New(&id);
     HRESULT hr = self->Init();
     if (FAILED(hr)) {
-        gInstanceMgr.Delete(id);
+        gNWRMgr.Delete(id);
         self = nullptr;
         return hr;
     }
@@ -28,14 +28,14 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderTerm(int id)
 {
-    auto self = gInstanceMgr.Find(id);
+    auto self = gNWRMgr.Find(id);
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
     }
 
     self->Term();
-    gInstanceMgr.Delete(id);
+    gNWRMgr.Delete(id);
     self = nullptr;
 
     return S_OK;
@@ -47,7 +47,7 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderStart(int id, const wchar_t *path, const WWNativePcmFmt & origPcmFmt, const WWNativePcmFmt & tgtPcmFmt, const int *channelMap)
 {
-    auto self = gInstanceMgr.Find(id);
+    auto self = gNWRMgr.Find(id);
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
@@ -61,7 +61,7 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo)
 {
-    auto self = gInstanceMgr.Find(id);
+    auto self = gNWRMgr.Find(id);
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
@@ -76,7 +76,7 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderReadEnd(int id)
 {
-    auto self = gInstanceMgr.Find(id);
+    auto self = gNWRMgr.Find(id);
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
