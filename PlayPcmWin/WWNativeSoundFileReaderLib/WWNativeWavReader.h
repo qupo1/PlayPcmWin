@@ -14,14 +14,16 @@ public:
     void Term(void);
 
     /// @ channelMap tgtPcmFmt.numChannels要素の配列。tgtにmapするorigのチャンネル番号が入っている。無音は-1。
-    HRESULT PcmReadStart(const wchar_t *path, WWNativePcmFmt & origPcmFmt, WWNativePcmFmt & tgtPcmFmt, const int *channelMap);
+    HRESULT PcmReadStart(const wchar_t *path, const WWNativePcmFmt & origPcmFmt, const WWNativePcmFmt & tgtPcmFmt, const int *channelMap);
 
     /// 読み終わるまでブロックします。
-    HRESULT PcmReadOne(int64_t fileOffset, int64_t sampleCount, uint8_t *bufTo);
+    HRESULT PcmReadOne(const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo);
 
     void PcmReadEnd(void);
 
-    void ReadCompleted(uint64_t fileOffset, uint8_t *bufFrom, int bytes, uint8_t *bufTo);
+    void ReadCompleted(const uint64_t fileOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo);
+
+    int id;
 
 private:
     WWNativePcmFmt mOrigPcmFmt;

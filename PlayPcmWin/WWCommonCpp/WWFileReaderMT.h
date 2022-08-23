@@ -8,7 +8,7 @@
 class WWFileReaderMT {
 public:
     /// @param pos ファイル先頭からのオフセット。フレーム番号ではない。
-    typedef void ReadCompletedCB(uint64_t pos, uint8_t *buf, int bytes, void *tag);
+    typedef void ReadCompletedCB(const uint64_t pos, const uint8_t *buf, const int bytes, void *tag);
 
     WWFileReaderMT(void) :
             mhFile(INVALID_HANDLE_VALUE),

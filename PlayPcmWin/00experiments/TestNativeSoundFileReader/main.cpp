@@ -95,8 +95,7 @@ ReadWavHeader(const wchar_t *path, WavFileInf *wfi)
         goto end;
     }
 
-    bytes = (int)fread(&wfex, 1, sizeof wfex, fp);
-    fseek(fp, sizeof wfex - uh.bytes, SEEK_CUR);
+    bytes = (int)fread(&wfex, 1, uh.bytes, fp);
 
     switch (wfex.Format.wFormatTag) {
     case WAVE_FORMAT_PCM:

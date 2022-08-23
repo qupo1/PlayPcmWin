@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WWAsmLib", "..\..\WWAsmLib\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WWNativeSoundFileReaderLib", "..\..\WWNativeSoundFileReaderLib\WWNativeSoundFileReaderLib.vcxproj", "{B72C5DA9-4CEB-4D04-AF9D-A748050F2924}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WWNativeSoundFileReaderDLL", "..\..\WWNativeSoundFileReaderDLL\WWNativeSoundFileReaderDLL.vcxproj", "{6FE68104-79B4-4EDA-937F-2965F20AC6C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -49,6 +51,14 @@ Global
 		{B72C5DA9-4CEB-4D04-AF9D-A748050F2924}.Release|Win32.Build.0 = Release|Win32
 		{B72C5DA9-4CEB-4D04-AF9D-A748050F2924}.Release|x64.ActiveCfg = Release|x64
 		{B72C5DA9-4CEB-4D04-AF9D-A748050F2924}.Release|x64.Build.0 = Release|x64
+		{6FE68104-79B4-4EDA-937F-2965F20AC6C0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6FE68104-79B4-4EDA-937F-2965F20AC6C0}.Debug|Win32.Build.0 = Debug|Win32
+		{6FE68104-79B4-4EDA-937F-2965F20AC6C0}.Debug|x64.ActiveCfg = Debug|x64
+		{6FE68104-79B4-4EDA-937F-2965F20AC6C0}.Debug|x64.Build.0 = Debug|x64
+		{6FE68104-79B4-4EDA-937F-2965F20AC6C0}.Release|Win32.ActiveCfg = Release|Win32
+		{6FE68104-79B4-4EDA-937F-2965F20AC6C0}.Release|Win32.Build.0 = Release|Win32
+		{6FE68104-79B4-4EDA-937F-2965F20AC6C0}.Release|x64.ActiveCfg = Release|x64
+		{6FE68104-79B4-4EDA-937F-2965F20AC6C0}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

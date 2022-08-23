@@ -21,7 +21,11 @@ void WWNativeWavReader::Term(void)
 }
 
 HRESULT
-WWNativeWavReader::PcmReadStart(const wchar_t *path, WWNativePcmFmt & origPcmFmt, WWNativePcmFmt & tgtPcmFmt, const int *channelMap)
+WWNativeWavReader::PcmReadStart(
+        const wchar_t *path,
+        const WWNativePcmFmt & origPcmFmt,
+        const WWNativePcmFmt & tgtPcmFmt,
+        const int *channelMap)
 {
     HRESULT hr = E_FAIL;
 
@@ -57,7 +61,7 @@ struct ReadTag {
 };
 
 static void
-gReadCompleted(uint64_t fileOffset, uint8_t *buf, int bytes, void *tag)
+gReadCompleted(const uint64_t fileOffset, const uint8_t *buf, const int bytes, void *tag)
 {
     ReadTag *rt = (ReadTag*)tag;
 
@@ -66,7 +70,7 @@ gReadCompleted(uint64_t fileOffset, uint8_t *buf, int bytes, void *tag)
 }
 
 HRESULT
-WWNativeWavReader::PcmReadOne(int64_t fileOffset, int64_t sampleCount, uint8_t *bufTo)
+WWNativeWavReader::PcmReadOne(const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo)
 {
     HRESULT hr = E_FAIL;
 
@@ -88,7 +92,7 @@ WWNativeWavReader::PcmReadEnd(void)
 }
 
 void
-WWNativeWavReader::ReadCompleted(uint64_t fileOffset, uint8_t *bufFrom, int bytes, uint8_t *bufTo)
+WWNativeWavReader::ReadCompleted(const uint64_t fileOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo)
 {
     // ì«Ç›èoÇµäÆóπéûèàóùÅB
 
