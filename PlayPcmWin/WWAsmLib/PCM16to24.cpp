@@ -16,14 +16,17 @@ PCM16to24(const int16_t *src, uint8_t *dst, int64_t pcmCount)
     int64_t countRemainder = pcmCount % 64;
     int64_t countAsm = pcmCount - countRemainder;
 
-    SimdCapability cc;
+    SimdCapability sc;
+    WWGetSimdCapability(&sc);
+
     Avx512Capability ac;
+    WWGetAvx512Capability(&ac);
 
     if (ac.AVX512F && ac.AVX512BW) {
         PCM16to24AVX512(src, dst, countAsm);
-    } else if (cc.AVX && cc.AVX2) {
+    } else if (sc.AVX && sc.AVX2) {
         PCM16to24AVX(src, dst, countAsm);
-    } else if (cc.SSSE3) {
+    } else if (sc.SSSE3) {
         PCM16to24Asm(src, dst, countAsm);
     } else {
         // 全CPU実行。

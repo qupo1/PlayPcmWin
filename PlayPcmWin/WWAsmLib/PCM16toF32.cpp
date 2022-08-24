@@ -17,7 +17,10 @@ PCM16toF32(const int16_t *src, float *dst, int64_t pcmCount)
     int64_t countAsm = pcmCount - countRemainder;
 
     SimdCapability sc;
+    WWGetSimdCapability(&sc);
+
     Avx512Capability ac;
+    WWGetAvx512Capability(&ac);
 
     if (ac.AVX512F && ac.AVX512BW) {
         PCM16toF32AVX512(src, dst, countAsm);

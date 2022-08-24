@@ -12,6 +12,10 @@ static const uint32_t R10_ECX_SSE42_BIT = 0x00100000;
 static const uint32_t R10_ECX_AVX_BIT   = 0x10000000;
 static const uint32_t R10_ECX_F16C_BIT  = 0x20000000;
 
+// Vol.2A 3-239 Figure 3-8 
+static const uint32_t R10_EDX_SSE_BIT   = 0x20000000;
+static const uint32_t R10_EDX_SSE2_BIT  = 0x40000000;
+
 static const uint32_t R70_EBX_AVX2_BIT         = 0x00000020;
 static const uint32_t R70_EBX_AVX512f_BIT      = 0x00010000;
 static const uint32_t R70_EBX_AVX512dq_BIT     = 0x00020000;
@@ -42,12 +46,6 @@ static const uint32_t R71_EAX_AVX512bf16_BIT = 0x00000020;
 static const uint32_t XGETBV_YMM_SAVE_BITS = 0x6;
 static const uint32_t XGETBV_ZMM_SAVE_BITS = 0xe;
 
-
-    bool AVX512ER;
-    bool AVX512PF;
-    bool AVX5124FMAPS;
-    bool AVX5124VNNIW;
-
 struct Regs {
     uint32_t eax;
     uint32_t ebx;
@@ -55,122 +53,130 @@ struct Regs {
     uint32_t edx;
 };
 
-SimdCapability::SimdCapability(void)
+void
+WWGetSimdCapability(SimdCapability *s)
 {
     Regs r10;
+    memset(&r10.eax, 0, sizeof r10);
 
     uint32_t xcr0 = (uint32_t)_xgetbv(0);
     bool OS_SAVE_AVX    = ((xcr0 & XGETBV_YMM_SAVE_BITS) == XGETBV_YMM_SAVE_BITS);
 
     __cpuidex((int *)&r10.eax, 1, 0);
 
+    s->SSE   = 0 != (r10.edx & R10_EDX_SSE_BIT);
+    s->SSE2  = 0 != (r10.edx & R10_EDX_SSE2_BIT);
 
-    SSE3  = 0 != (r10.ecx & R10_ECX_SSE3_BIT);
-    SSSE3 = 0 != (r10.ecx & R10_ECX_SSSE3_BIT);
-    SSE41 = 0 != (r10.ecx & R10_ECX_SSE41_BIT);
-    SSE42 = 0 != (r10.ecx & R10_ECX_SSE42_BIT);
+    s->SSE3  = 0 != (r10.ecx & R10_ECX_SSE3_BIT);
+    s->SSSE3 = 0 != (r10.ecx & R10_ECX_SSSE3_BIT);
+    s->SSE41 = 0 != (r10.ecx & R10_ECX_SSE41_BIT);
+    s->SSE42 = 0 != (r10.ecx & R10_ECX_SSE42_BIT);
 
-    AVX   = OS_SAVE_AVX && 0 != (r10.ecx & R10_ECX_AVX_BIT);
+    s->AVX   = OS_SAVE_AVX && (0 != (r10.ecx & R10_ECX_AVX_BIT));
 
     Regs r70;
+    memset(&r70.eax, 0, sizeof r70);
     __cpuidex((int *)&r70.eax, 7, 0);
-    AVX2  = OS_SAVE_AVX && 0 != (r70.ebx & R70_EBX_AVX2_BIT);
+    s->AVX2  = OS_SAVE_AVX && (0 != (r70.ebx & R70_EBX_AVX2_BIT));
 
     Regs r71;
+    memset(&r71.eax, 0, sizeof r71);
     __cpuidex((int *)&r71.eax, 7, 1);
-    AVXVNNI  = OS_SAVE_AVX && 0 != (r70.ebx & R71_EAX_AVXvnni_BIT);
+    s->AVXVNNI  = OS_SAVE_AVX && (0 != (r70.ebx & R71_EAX_AVXvnni_BIT));
 }
 
-std::string
-SimdCapability::ToString(void)
-{
-    std::stringstream ss;
-
-    if (SSE3) { ss << "SSE3 "; }
-    if (SSSE3) { ss << "SSSE3 "; }
-    if (SSE41) { ss << "SSE4.1 "; }
-    if (SSE42) { ss << "SSE4.2 "; }
-    if (AVX) { ss << "AVX "; }
-    if (AVX2) { ss << "AVX2 "; }
-    if (AVXVNNI) { ss << "AVXVNNI "; } //< AVX-VNNIはAVX512-VNNIとは別の機能で、より新しい。
-
-    return ss.str();
-}
-
-// ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-
-Avx512Capability::Avx512Capability(void)
+void
+WWGetAvx512Capability(Avx512Capability *s)
 {
     uint32_t xcr0 = (uint32_t)_xgetbv(0);
     bool OS_SAVE_AVX512 = ((xcr0 & XGETBV_YMM_SAVE_BITS) == XGETBV_YMM_SAVE_BITS);
 
     Regs r70;
+    memset(&r70.eax, 0, sizeof r70);
     __cpuidex((int *)&r70.eax, 7, 0);
 
     Regs r71;
+    memset(&r71.eax, 0, sizeof r71);
     __cpuidex((int *)&r71.eax, 7, 1);
 
-    AVX512F    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512f_BIT);
-    AVX512DQ   = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512dq_BIT);
-    AVX512IFMA = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512ifma_BIT);
-    AVX512PF    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512pf_BIT);
-    AVX512ER    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512er_BIT);
+    s->AVX512F     = OS_SAVE_AVX512 && (0 != (r70.ebx & R70_EBX_AVX512f_BIT));
+    s->AVX512DQ    = OS_SAVE_AVX512 && (0 != (r70.ebx & R70_EBX_AVX512dq_BIT));
+    s->AVX512IFMA  = OS_SAVE_AVX512 && (0 != (r70.ebx & R70_EBX_AVX512ifma_BIT));
+    s->AVX512PF    = OS_SAVE_AVX512 && (0 != (r70.ebx & R70_EBX_AVX512pf_BIT));
+    s->AVX512ER    = OS_SAVE_AVX512 && (0 != (r70.ebx & R70_EBX_AVX512er_BIT));
 
-    AVX512CD   = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512cd_BIT);
-    AVX512BW    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512bw_BIT);
-    AVX512VL    = OS_SAVE_AVX512 && 0 != (r70.ebx & R70_EBX_AVX512vl_BIT);
-    AVX512VBMI  = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vbmi_BIT);
-    AVX512VBMI2 = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vbmi2_BIT);
+    s->AVX512CD    = OS_SAVE_AVX512 && (0 != (r70.ebx & R70_EBX_AVX512cd_BIT));
+    s->AVX512BW    = OS_SAVE_AVX512 && (0 != (r70.ebx & R70_EBX_AVX512bw_BIT));
+    s->AVX512VL    = OS_SAVE_AVX512 && (0 != (r70.ebx & R70_EBX_AVX512vl_BIT));
+    s->AVX512VBMI  = OS_SAVE_AVX512 && (0 != (r70.ecx & R70_ECX_AVX512vbmi_BIT));
+    s->AVX512VBMI2 = OS_SAVE_AVX512 && (0 != (r70.ecx & R70_ECX_AVX512vbmi2_BIT));
 
-    AVX512GFNI       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512gfni_BIT);
-    AVX512VAES       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vaes_BIT);
-    AVX512VPCLMULQDQ = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vpclmulqdq_BIT);
-    AVX512VNNI       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vnni_BIT);
+    s->AVX512GFNI       = OS_SAVE_AVX512 && (0 != (r70.ecx & R70_ECX_AVX512gfni_BIT));
+    s->AVX512VAES       = OS_SAVE_AVX512 && (0 != (r70.ecx & R70_ECX_AVX512vaes_BIT));
+    s->AVX512VPCLMULQDQ = OS_SAVE_AVX512 && (0 != (r70.ecx & R70_ECX_AVX512vpclmulqdq_BIT));
+    s->AVX512VNNI       = OS_SAVE_AVX512 && (0 != (r70.ecx & R70_ECX_AVX512vnni_BIT));
 
-    AVX512BITALG       = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512bitalg_BIT);
-    AVX512VPOPCNTDQ    = OS_SAVE_AVX512 && 0 != (r70.ecx & R70_ECX_AVX512vpopcntdq_BIT);
+    s->AVX512BITALG       = OS_SAVE_AVX512 && (0 != (r70.ecx & R70_ECX_AVX512bitalg_BIT));
+    s->AVX512VPOPCNTDQ    = OS_SAVE_AVX512 && (0 != (r70.ecx & R70_ECX_AVX512vpopcntdq_BIT));
 
-    AVX5124FMAPS = OS_SAVE_AVX512 && 0 != (r70.edx & R70_EDX_AVX5124VNNIW_BIT);
-    AVX5124VNNIW = OS_SAVE_AVX512 && 0 != (r70.edx & R70_EDX_AVX5124FMAPS_BIT);
-    AVX512VP2INTERSECT = OS_SAVE_AVX512 && 0 != (r70.edx & R70_EDX_AVX512vp2intersect_BIT);
-    AVX512BF16         = OS_SAVE_AVX512 && 0 != (r70.edx & R71_EAX_AVX512bf16_BIT);
+    s->AVX5124FMAPS       = OS_SAVE_AVX512 && (0 != (r70.edx & R70_EDX_AVX5124VNNIW_BIT));
+    s->AVX5124VNNIW       = OS_SAVE_AVX512 && (0 != (r70.edx & R70_EDX_AVX5124FMAPS_BIT));
+    s->AVX512VP2INTERSECT = OS_SAVE_AVX512 && (0 != (r70.edx & R70_EDX_AVX512vp2intersect_BIT));
+    s->AVX512BF16         = OS_SAVE_AVX512 && (0 != (r70.edx & R71_EAX_AVX512bf16_BIT));
 }
 
 std::string
-Avx512Capability::ToString(void)
+WWSimdCapabilityToStr(SimdCapability *s)
+{
+    std::stringstream ss;
+
+    if (s->SSE3) { ss << "SSE3 "; }
+    if (s->SSSE3) { ss << "SSSE3 "; }
+    if (s->SSE41) { ss << "SSE4.1 "; }
+    if (s->SSE42) { ss << "SSE4.2 "; }
+    if (s->AVX) { ss << "AVX "; }
+    if (s->AVX2) { ss << "AVX2 "; }
+    if (s->AVXVNNI) { ss << "AVXVNNI "; } //< AVX-VNNIはAVX512-VNNIとは別の機能で、より新しい。
+
+    return ss.str();
+}
+
+std::string
+WWAvx512CapabilityToStr(Avx512Capability *s)
 {
     std::stringstream ss;
 
     // https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#AVX-512 の順に表示。
 
-    if (AVX512F) {
+    if (s->AVX512F) {
         ss << "AVX512( F ";
-        if (AVX512CD) { ss << "CD "; }
-        if (AVX512ER) { ss << "ER "; }
-        if (AVX512PF) { ss << "PF "; }
-        if (AVX5124FMAPS) { ss << "4FMAPS "; }
-        if (AVX5124VNNIW) { ss << "4VNNIW "; }
+        if (s->AVX512CD) { ss << "CD "; }
+        if (s->AVX512ER) { ss << "ER "; }
+        if (s->AVX512PF) { ss << "PF "; }
+        if (s->AVX5124FMAPS) { ss << "4FMAPS "; }
+        if (s->AVX5124VNNIW) { ss << "4VNNIW "; }
 
-        if (AVX512VPOPCNTDQ) { ss << "VPOPCNTDQ "; }
-        if (AVX512VL) { ss << "VL "; }
-        if (AVX512DQ) { ss << "DQ "; }
-        if (AVX512BW) { ss << "BW "; }
-        if (AVX512IFMA) { ss << "IFMA "; }
+        if (s->AVX512VPOPCNTDQ) { ss << "VPOPCNTDQ "; }
+        if (s->AVX512VL) { ss << "VL "; }
+        if (s->AVX512DQ) { ss << "DQ "; }
+        if (s->AVX512BW) { ss << "BW "; }
+        if (s->AVX512IFMA) { ss << "IFMA "; }
 
-        if (AVX512VBMI) { ss << "VBMI "; }
-        if (AVX512VBMI2) { ss << "VBMI2 "; }
-        if (AVX512BITALG) { ss << "BITALG "; }
-        if (AVX512VNNI) { ss << "AVX512-VNNI "; }
-        if (AVX512BF16) { ss << "BF16 "; }
+        if (s->AVX512VBMI) { ss << "VBMI "; }
+        if (s->AVX512VBMI2) { ss << "VBMI2 "; }
+        if (s->AVX512BITALG) { ss << "BITALG "; }
+        if (s->AVX512VNNI) { ss << "AVX512-VNNI "; }
+        if (s->AVX512BF16) { ss << "BF16 "; }
 
-        if (AVX512VPCLMULQDQ) { ss << "VPCLMULQDQ "; }
-        if (AVX512GFNI) { ss << "GFNI "; }
-        if (AVX512VAES) { ss << "VAES "; }
-        if (AVX512VP2INTERSECT) { ss << "VP2INTERSECT "; }
+        if (s->AVX512VPCLMULQDQ) { ss << "VPCLMULQDQ "; }
+        if (s->AVX512GFNI) { ss << "GFNI "; }
+        if (s->AVX512VAES) { ss << "VAES "; }
+        if (s->AVX512VP2INTERSECT) { ss << "VP2INTERSECT "; }
         ss << ")";
         return ss.str();
     } else {
         return "";
     }
 }
+
+

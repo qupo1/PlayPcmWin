@@ -302,6 +302,10 @@
       <Project>{77005090-E2C5-4063-9681-0D0EED33A2B2}</Project>
       <Name>WavRWLib2</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WWAsmCs\WWAsmCs.csproj">
+      <Project>{03542035-B27A-4853-9AD2-5B70250993E9}</Project>
+      <Name>WWAsmCs</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WWFilterCppCs\WWFilterCppCs.csproj">
       <Project>{1D2FED4A-D40F-4A8F-A963-4C733B8EDD04}</Project>
       <Name>WWFilterCppCs</Name>
@@ -313,6 +317,10 @@
     <ProjectReference Include="..\WWMFReaderCs\WWMFReaderCs.csproj">
       <Project>{43047D33-5FDB-45D0-AEF0-4FA81060F2E1}</Project>
       <Name>WWMFReaderCs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WWNativeSoundFileReaderCs\WWNativeSoundFileReaderCs.csproj">
+      <Project>{778DDF08-891F-4576-922C-EC71D53EDF80}</Project>
+      <Name>WWNativeSoundFileReaderCs</Name>
     </ProjectReference>
     <ProjectReference Include="..\WWUtil\WWUtil.csproj">
       <Project>{FC57308E-CF56-4B3E-B920-4093660D0A4A}</Project>

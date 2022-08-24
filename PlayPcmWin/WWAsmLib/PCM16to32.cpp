@@ -9,7 +9,10 @@ PCM16to32(const int16_t *src, int32_t *dst, int64_t pcmCount)
 {
 #ifdef _WIN64
     SimdCapability sc;
+    WWGetSimdCapability(&sc);
+
     Avx512Capability ac;
+    WWGetAvx512Capability(&ac);
 
     if (pcmCount <= 0) {
         return 0;

@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6FE68104-79B4-4EDA-937F-2965F20AC6C0}</ProjectGuid>
+    <ProjectGuid>{164DCE52-FCBF-40B0-917D-49D0CB61F7A2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>WWNativeSoundFileReaderDLL</RootNamespace>
+    <RootNamespace>WWAsmDLL</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -64,26 +64,34 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\WWCommonCpp\;$(ProjectDir)..\WWAsmLib\;$(ProjectDir)..\WWNativeSoundFileReaderLib\;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(PlatformToolset)\x86\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>..\WWAsmLib\;..\WWCommonCpp\;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\WWCommonCpp\;$(ProjectDir)..\WWAsmLib\;$(ProjectDir)..\WWNativeSoundFileReaderLib\;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(PlatformToolset)\x64\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>..\WWAsmLib\;..\WWCommonCpp\;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\WWCommonCpp\;$(ProjectDir)..\WWAsmLib\;$(ProjectDir)..\WWNativeSoundFileReaderLib\;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(PlatformToolset)\x86\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>..\WWAsmLib\;..\WWCommonCpp\;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\WWCommonCpp\;$(ProjectDir)..\WWAsmLib\;$(ProjectDir)..\WWNativeSoundFileReaderLib\;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(PlatformToolset)\x64\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>..\WWAsmLib\;..\WWCommonCpp\;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WWNATIVESOUNDFILEREADERDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WWASMDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -95,7 +103,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WWNATIVESOUNDFILEREADERDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WWASMDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -109,7 +117,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WWNATIVESOUNDFILEREADERDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WWASMDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -125,7 +133,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WWNATIVESOUNDFILEREADERDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WWASMDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -135,20 +143,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="WWNativeSoundFileReaderDLL.h" />
+    <ClCompile Include="WWAsmDLL.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="WWNativeSoundFileReaderDLL.cpp" />
+    <ClInclude Include="WWAsmDLL.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WWAsmLib\WWAsmLib.vcxproj">
@@ -156,9 +154,6 @@
     </ProjectReference>
     <ProjectReference Include="..\WWCommonCpp\WWCommonCpp.vcxproj">
       <Project>{cb5a7579-c19c-4625-9eab-81f795507acf}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\WWNativeSoundFileReaderLib\WWNativeSoundFileReaderLib.vcxproj">
-      <Project>{b72c5da9-4ceb-4d04-af9d-a748050f2924}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -10,7 +10,10 @@ void MyMemcpy2(void *dstV, const void *srcV, int64_t bytes)
 {
 #ifdef _WIN64
     SimdCapability sc;
+    WWGetSimdCapability(&sc);
+
     Avx512Capability ac;
+    WWGetAvx512Capability(&ac);
 
     uint8_t       * dst = (uint8_t*)dstV;
     const uint8_t * src = (const uint8_t*)srcV;

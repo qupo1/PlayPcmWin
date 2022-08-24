@@ -1,54 +1,59 @@
 ﻿#pragma once
 
-#include <string>
+#include <stdint.h>
 
-class SimdCapability {
-public:
-    SimdCapability(void);
-    std::string ToString(void);
+// 64-bit用。
 
+extern "C" {
+
+struct SimdCapability {
     // x64 CPUには、MMX, SSE, SSE2が必ずある。
 
-    bool SSE3;
-    bool SSSE3;
-    bool SSE41;
-    bool SSE42;
+    uint8_t SSE;
+    uint8_t SSE2;
+    uint8_t SSE3;
+    uint8_t SSSE3;
 
-    bool AVX;
-    bool AVX2;
-    bool AVXVNNI; //< Alder-Lake (AVX512-VNNIよりも新しい。)
+    uint8_t SSE41;
+    uint8_t SSE42;
+    uint8_t AVX;
+    uint8_t AVX2;
+
+    uint8_t AVXVNNI; //< Alder-Lake (AVX512-VNNIよりも新しい。)
 };
 
-class Avx512Capability {
-public:
-    Avx512Capability(void);
-    std::string ToString(void);
+struct Avx512Capability {
+    uint8_t AVX512F;
+    uint8_t AVX512CD;
+    uint8_t AVX512ER;
+    uint8_t AVX512PF;
 
-    bool AVX512F;
-    bool AVX512CD;
-    
-    bool AVX512ER;
-    bool AVX512PF;
-    bool AVX5124FMAPS;
-    bool AVX5124VNNIW;
-    
-    bool AVX512VPOPCNTDQ;
-    bool AVX512VL;
-    bool AVX512DQ;
-    bool AVX512BW;
-    bool AVX512IFMA;
+    uint8_t AVX5124FMAPS;
+    uint8_t AVX5124VNNIW;
+    uint8_t AVX512VPOPCNTDQ;
+    uint8_t AVX512VL;
 
-    bool AVX512VBMI;
-    bool AVX512VBMI2;
+    uint8_t AVX512DQ;
+    uint8_t AVX512BW;
+    uint8_t AVX512IFMA;
+    uint8_t AVX512VBMI;
 
-    bool AVX512BITALG;
-    bool AVX512VNNI; //< Ice-Lake
+    uint8_t AVX512VBMI2;
+    uint8_t AVX512BITALG;
+    uint8_t AVX512VNNI; //< Ice-Lake
+    uint8_t AVX512BF16;
 
-    bool AVX512BF16;
-
-    bool AVX512VPCLMULQDQ;
-    bool AVX512GFNI;
-    bool AVX512VAES;
-    bool AVX512VP2INTERSECT;
+    uint8_t AVX512VPCLMULQDQ;
+    uint8_t AVX512GFNI;
+    uint8_t AVX512VAES;
+    uint8_t AVX512VP2INTERSECT;
 };
+
+}; // extern "C"
+
+void WWGetSimdCapability(SimdCapability *s_return);
+void WWGetAvx512Capability(Avx512Capability *s_return);
+void WWPrintSimdCapability(SimdCapability *s);
+void WWPrintAvx512Capability(Avx512Capability *s);
+
 

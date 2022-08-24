@@ -418,6 +418,10 @@ namespace PlayPcmWin
 
             AddLogText(string.Format(CultureInfo.InvariantCulture, "PlayPcmWin {0} {1}{2}",
                     AssemblyVersion, IntPtr.Size == 8 ? "64bit" : "32bit", Environment.NewLine));
+            if (IntPtr.Size == 8) {
+                var asm = new WWAsmCs.WWAsm();
+                AddLogText(string.Format(CultureInfo.InstalledUICulture, "{0}{1}", asm.CpuCapabilityStr(), Environment.NewLine));
+            }
 
             int hr = ap.WasapiInit();
             AddLogText(string.Format(CultureInfo.InvariantCulture, "ap.wasapi.Init() {0:X8}{1}", hr, Environment.NewLine));
