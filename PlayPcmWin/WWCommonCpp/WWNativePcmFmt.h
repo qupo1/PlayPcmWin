@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+extern "C" {
+
 struct WWNativePcmFmt {
     int sampleRate;
     int numChannels;
@@ -24,3 +26,6 @@ struct WWNativePcmFmt {
             isDoP(0) {
     }
 };
+
+}; // extern "C"
+

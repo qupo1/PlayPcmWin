@@ -59,7 +59,7 @@ WWNativeSoundFileReaderStart(int id, const wchar_t *path, const WWNativePcmFmt &
 /// 読み終わるまでブロックします。
 extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
-WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo)
+WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo, const int64_t bufToPos)
 {
     auto self = gNWRMgr.Find(id);
     if (self == nullptr) {
@@ -67,7 +67,7 @@ WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t s
         return E_INVALIDARG;
     }
 
-    return self->PcmReadOne(fileOffset, sampleCount, bufTo);
+    return self->PcmReadOne(fileOffset, sampleCount, &bufTo[bufToPos]);
 }
 
 

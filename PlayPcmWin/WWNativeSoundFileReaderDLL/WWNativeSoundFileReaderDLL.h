@@ -14,31 +14,33 @@
 #include <stdint.h>
 #include "WWNativePcmFmt.h"
 
+extern "C" {
 
 /// 初期化。スレッドプールの作成、読み出しバッファ確保、スレッド処理完了待ち合わせイベント作成等。
 /// @return 0以上: インスタンスId。負: エラー。
-extern "C" WWNATIVESOUNDFILEREADERDLL_API
+WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderInit(void);
 
 /// ファイル読み出し開始。
-extern "C" WWNATIVESOUNDFILEREADERDLL_API
+WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderStart(int id, const wchar_t *path, const WWNativePcmFmt & origPcmFmt, const WWNativePcmFmt & tgtPcmFmt, const int *channelMap);
 
 /// 読み終わるまでブロックします。
-extern "C" WWNATIVESOUNDFILEREADERDLL_API
+WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
-WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo);
+WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo, const int64_t bufToPos);
 
 /// ファイル読み出し終了。
-extern "C" WWNATIVESOUNDFILEREADERDLL_API
+WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderReadEnd(int id);
 
 /// 終了処理。
 /// @param id Init()の戻り値のインスタンスID。
-extern "C" WWNATIVESOUNDFILEREADERDLL_API
+WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderTerm(int id);
 
+}; // extern "C"
