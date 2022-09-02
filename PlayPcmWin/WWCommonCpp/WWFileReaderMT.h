@@ -7,8 +7,9 @@
 /// Multiple-queue with IO Completion Ports and multi-threaded with Threadpool
 class WWFileReaderMT {
 public:
-    /// @param pos ファイル先頭からのオフセット。フレーム番号ではない。
-    typedef void ReadCompletedCB(const uint64_t pos, const uint8_t *buf, const int bytes, void *tag);
+    /// @param fileOffset ファイル先頭からのオフセット。
+    /// @param bytesFromReadStart Read読み出し開始位置からbufの先頭までのオフセット。
+    typedef void ReadCompletedCB(const uint64_t fileOffset, const uint64_t bytesFromReadStart, const uint8_t *buf, const int bytes, void *tag);
 
     WWFileReaderMT(void) :
             mhFile(INVALID_HANDLE_VALUE),
@@ -69,6 +70,7 @@ private:
                 buf(nullptr),
                 isUsed(false),
                 fileOffset(0),
+                bytesFromReadStart(0),
                 readBytes(0),
                 idx(-1),
                 waitEvent(INVALID_HANDLE_VALUE) {
@@ -125,7 +127,11 @@ private:
 
         volatile bool isUsed;
 
+        // bufの、ファイル先頭からのオフセットバイト数。
         int64_t fileOffset;
+
+        // 読み出し開始位置からbufまでのバイト数。
+        int64_t bytesFromReadStart;
 
         int readBytes;
 

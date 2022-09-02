@@ -28,12 +28,32 @@ namespace WWNativeSoundFileReaderCs {
             public int containerBitDepth;
             public int isFloat; //< 0: int, 1: float。
             public int isDoP; //< DoPの場合、sampleRate=176400 (16分の1), validBitsPerSample=24、containerBitsPerSample={24|32}になります。
+
+            public void Set(int aSampleRate, int aNumChannels, int aValidBitDepth, int aContainerBitDepth, bool aIsFloat, bool aIsDoP) {
+                sampleRate = aSampleRate;
+                numChannels = aNumChannels;
+                validBitDepth = aValidBitDepth;
+                containerBitDepth = aContainerBitDepth;
+                isFloat = aIsFloat ? 1 : 0;
+                isDoP = aIsDoP ? 1 : 0;
+            }
+
+            public int BytesPerFrame() {
+                return numChannels * containerBitDepth / 8;
+            }
         };
 
-        public int ReadBegin(string path, ref WWNativePcmFmt origPcmFmt, ref WWNativePcmFmt tgtPcmFmt, ref int[] channelMap) {
+        public unsafe int ReadBegin(string path, ref WWNativePcmFmt origPcmFmt, ref WWNativePcmFmt tgtPcmFmt, ref int[] channelMap) {
             System.Diagnostics.Debug.Assert(0 <= mIdx);
 
-            return NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, ref channelMap);
+            int rv = 0;
+
+            fixed (int* p = &channelMap[0]) {
+                IntPtr ptr = (IntPtr)p;
+                rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, ptr);
+            }
+
+            return rv;
         }
 
         /// <summary>
@@ -41,7 +61,7 @@ namespace WWNativeSoundFileReaderCs {
         /// 読み出しバイト数はsampleCount * origPcmFmt.numChannels * containerBitDepth / 8
         /// 書き込みバイト数はsampleCount * tgtPcmFmt.numChannels * containerBitDepth / 8
         /// </summary>
-        public int ReadOne(long fileOffset, long sampleCount, byte[] bufTo, long bufToPos) {
+        public int ReadOne(long fileOffset, long sampleCount, IntPtr bufTo, long bufToPos) {
             System.Diagnostics.Debug.Assert(0 <= mIdx);
 
             return NativeMethods.WWNativeSoundFileReaderReadOne(mIdx, fileOffset, sampleCount, bufTo, bufToPos);
@@ -52,6 +72,15 @@ namespace WWNativeSoundFileReaderCs {
             NativeMethods.WWNativeSoundFileReaderReadEnd(mIdx);
         }
 
+
+        public IntPtr AllocNativeBuffer(long bytes) {
+            return NativeMethods.WWNativeSoundFileReaderAllocNativeBuffer(bytes);
+        }
+
+        public void ReleaseNativeBuffer(IntPtr ptr) {
+            NativeMethods.WWNativeSoundFileReaderReleaseNativeBuffer(ptr);
+        }
+
 #region Native Stuff
         internal static class NativeMethods {
 
@@ -60,15 +89,23 @@ namespace WWNativeSoundFileReaderCs {
             internal extern static int
             WWNativeSoundFileReaderInit();
 
+            [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
+            internal extern static IntPtr
+            WWNativeSoundFileReaderAllocNativeBuffer(long bytes);
+
+            [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
+            internal extern static void
+            WWNativeSoundFileReaderReleaseNativeBuffer(IntPtr ptr);
+
             /// ファイル読み出し開始。
             [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
             internal extern static int
-            WWNativeSoundFileReaderStart(int id, string path, ref WWNativePcmFmt origPcmFmt, ref WWNativePcmFmt tgtPcmFmt, ref int[] channelMap);
+            WWNativeSoundFileReaderStart(int id, string path, ref WWNativePcmFmt origPcmFmt, ref WWNativePcmFmt tgtPcmFmt, IntPtr channelMap);
 
             /// 読み終わるまでブロックします。
             [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
             internal extern static int
-            WWNativeSoundFileReaderReadOne(int id, long fileOffset, long sampleCount, byte[] bufTo, long bufToPos);
+            WWNativeSoundFileReaderReadOne(int id, long fileOffset, long sampleCount, IntPtr bufTo, long bufToPos);
 
             /// ファイル読み出し終了。
             [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]

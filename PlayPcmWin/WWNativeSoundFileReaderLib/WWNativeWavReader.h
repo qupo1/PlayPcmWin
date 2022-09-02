@@ -21,7 +21,7 @@ public:
 
     void PcmReadEnd(void);
 
-    void ReadCompleted(const uint64_t fileOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo);
+    void ReadCompleted(const uint64_t fileOffset, const uint64_t readOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo);
 
 private:
     WWNativePcmFmt mOrigPcmFmt;

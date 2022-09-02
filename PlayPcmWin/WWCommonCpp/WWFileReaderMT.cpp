@@ -235,7 +235,12 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
 
     mReadCompletedCB = cb;
     mTag = tag;
-    
+
+    if (mFileSz < fileOffset + bytes) {
+        bytes = (int)(mFileSz - fileOffset);
+    }
+
+
     for (int64_t cnt=0; cnt<bytes; cnt+= mReadFragmentSz, fileOffset += mReadFragmentSz) {
         ReadCtx  *rc = FindAvailableReadCtx();
         if (nullptr == rc) {
@@ -246,7 +251,7 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
                 return E_FAIL;
             }
             // 成功。
-            assert(0 <= idx && idx < mReadCtx.size());
+            assert(0 <= idx && idx < (int)mReadCtx.size());
             rc = &mReadCtx[idx];
             assert(rc->isUsed == false);
         }
@@ -257,11 +262,12 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
         SetReadOffsetToOverlappedMember(fileOffset, rc->overlapped);
 
         int wantBytes = mReadFragmentSz;
-        if (mFileSz < fileOffset + wantBytes) {
-            wantBytes = (int)(mFileSz - fileOffset);
+        if (bytes < cnt + wantBytes) {
+            wantBytes = (int)(bytes - cnt);
         }
 
         rc->fileOffset = fileOffset;
+        rc->bytesFromReadStart = cnt;
         rc->readBytes = wantBytes;
 
         // 読み出し開始。
@@ -319,7 +325,7 @@ WWFileReaderMT::ioCallback(void)
     // printf("%d ", pRC->idx);
 
     // 読み出し完了したのでコールバックを呼びます。
-    mReadCompletedCB(pRC->fileOffset, pRC->buf, pRC->readBytes, mTag);
+    mReadCompletedCB(pRC->fileOffset, pRC->bytesFromReadStart, pRC->buf, pRC->readBytes, mTag);
 
     pRC->isUsed = false;
 

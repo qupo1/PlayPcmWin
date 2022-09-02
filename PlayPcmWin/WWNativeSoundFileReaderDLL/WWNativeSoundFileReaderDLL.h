@@ -22,6 +22,16 @@ WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
 WWNativeSoundFileReaderInit(void);
 
+WWNATIVESOUNDFILEREADERDLL_API
+uint8_t * __stdcall
+WWNativeSoundFileReaderAllocNativeBuffer(int64_t bytes);
+
+WWNATIVESOUNDFILEREADERDLL_API
+void __stdcall
+WWNativeSoundFileReaderReleaseNativeBuffer(uint8_t *ptr);
+
+
+
 /// ファイル読み出し開始。
 WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall

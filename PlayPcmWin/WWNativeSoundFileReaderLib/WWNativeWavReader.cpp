@@ -61,12 +61,12 @@ struct ReadTag {
 };
 
 static void
-gReadCompleted(const uint64_t fileOffset, const uint8_t *buf, const int bytes, void *tag)
+gReadCompleted(const uint64_t fileOffset, const uint64_t readOffset, const uint8_t *buf, const int bytes, void *tag)
 {
     ReadTag *rt = (ReadTag*)tag;
 
     WWNativeWavReader *self = rt->self;
-    self->ReadCompleted(fileOffset, buf, bytes, rt->bufTo);
+    self->ReadCompleted(fileOffset, readOffset, buf, bytes, rt->bufTo);
 }
 
 HRESULT
@@ -92,11 +92,12 @@ WWNativeWavReader::PcmReadEnd(void)
 }
 
 void
-WWNativeWavReader::ReadCompleted(const uint64_t fileOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo)
+WWNativeWavReader::ReadCompleted(const uint64_t fileOffset, const uint64_t readOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo)
 {
     // ì«Ç›èoÇµäÆóπéûèàóùÅB
+    printf("offs=%llx bufFrom=%p bufTo=%p bytes=%x\n", readOffset, bufFrom, bufTo, bytes);
 
     const int64_t numFrames = bytes / mOrigPcmFmt.ContainerBytesPerFrame();
 
-    WWPcmFmtConverter(bufFrom, mOrigPcmFmt, bufTo, mTgtPcmFmt, &mChannelMap[0], numFrames);
+    WWPcmFmtConverter(bufFrom, mOrigPcmFmt, &bufTo[readOffset], mTgtPcmFmt, &mChannelMap[0], numFrames);
 }

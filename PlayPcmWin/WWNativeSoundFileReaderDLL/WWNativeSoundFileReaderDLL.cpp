@@ -22,6 +22,26 @@ WWNativeSoundFileReaderInit(void)
     return id;
 }
 
+extern "C" WWNATIVESOUNDFILEREADERDLL_API
+uint8_t * __stdcall
+WWNativeSoundFileReaderAllocNativeBuffer(int64_t bytes)
+{
+    uint8_t *p = (uint8_t*)malloc(bytes);
+    memset(p, 0, bytes);
+
+    printf("Allocated                     %p bytes=%llx\n", p, bytes);
+    return p;
+}
+
+extern "C" WWNATIVESOUNDFILEREADERDLL_API
+void __stdcall
+WWNativeSoundFileReaderReleaseNativeBuffer(uint8_t *ptr)
+{
+    printf("freed %p\n", ptr);
+    return free(ptr);
+}
+
+
 /// 終了処理。
 /// @param id Init()の戻り値のインスタンスID。
 extern "C" WWNATIVESOUNDFILEREADERDLL_API
@@ -51,6 +71,16 @@ WWNativeSoundFileReaderStart(int id, const wchar_t *path, const WWNativePcmFmt &
     if (self == nullptr) {
         // 見つからない。
         return E_INVALIDARG;
+    }
+
+    for (int ch=0; ch<tgtPcmFmt.numChannels; ++ch) {
+        int cm = channelMap[ch];
+
+        // cm==-1の時無音のチャンネルにする。
+        if (cm < -1 || tgtPcmFmt.numChannels <= cm) {
+            printf ("E: WWNativeSoundFileReaderStart ChannelMap invalid\n");
+            return E_INVALIDARG;
+        }
     }
 
     return self->PcmReadStart(path, origPcmFmt, tgtPcmFmt, channelMap);
