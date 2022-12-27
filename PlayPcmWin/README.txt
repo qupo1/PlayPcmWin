@@ -51,6 +51,7 @@ Open Visual Studio x64 Win64 command prompt and enter following commands to crea
  sn -k WWFileFragmentationCount2\WWFileFragmentationCount2.snk
  sn -k WWNativeSoundFileReaderCs\WWNativeSoundFileReaderCs.snk
  sn -k WWAsmCs\WWAsmCs.snk
+ sn -k WWSoundFileRW\WWSoundFileRW.snk
   
 Open PlayPcmWin\PlayPcmWin.sln to build/run PlayPcmWin (choose Release x64 build target)
 

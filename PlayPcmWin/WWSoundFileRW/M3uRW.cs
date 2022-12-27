@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace PlayPcmWin {
+namespace WWSoundFileRW {
     class M3uTrackInfo {
         private string path;
 
@@ -30,7 +30,7 @@ namespace PlayPcmWin {
         }
     };
 
-    class M3uReader : PlaylistReader {
+    class M3uReader : IPlaylistReader {
         private List<M3uTrackInfo> mTrackInfoList;
         private string mDirPath;
 

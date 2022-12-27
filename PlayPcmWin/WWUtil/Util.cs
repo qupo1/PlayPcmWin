@@ -2,8 +2,8 @@
 using System.IO;
 using System.Globalization;
 
-namespace PlayPcmWin {
-    class Util {
+namespace WWUtil {
+    public class Util {
 
         private Util() {
         }

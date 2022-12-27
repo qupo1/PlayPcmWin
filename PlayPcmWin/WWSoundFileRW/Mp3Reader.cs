@@ -1,13 +1,9 @@
 ﻿// 日本語UTF-8
 
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using WWMFReaderCs;
-using System.Linq;
 using WWUtil;
 
-namespace PlayPcmWin {
+namespace WWSoundFileRW {
 
     class Mp3Reader {
         public string path;

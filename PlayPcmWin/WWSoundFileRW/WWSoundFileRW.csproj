@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{25B7AE4F-AA52-4848-8956-E1A167BC8D51}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>WWSoundFileRW</RootNamespace>
+    <AssemblyName>WWSoundFileRW</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>WWSoundFileRW.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AiffReader.cs" />
+    <Compile Include="CueSheetRW.cs" />
+    <Compile Include="DsdiffReader.cs" />
+    <Compile Include="DsfReader.cs" />
+    <Compile Include="FlacDecodeIF.cs" />
+    <Compile Include="M3uRW.cs" />
+    <Compile Include="Mp3Reader.cs" />
+    <Compile Include="WWPcmHeaderReader.cs" />
+    <Compile Include="PcmReader.cs" />
+    <Compile Include="IPlaylistReader.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WWPlaylistItem.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WWSoundFileRW.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PcmData\PcmDataLib.csproj">
+      <Project>{7AF36E7B-839D-4C2F-AAFD-6D8319714D66}</Project>
+      <Name>PcmDataLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WavRWLib2\WavRWLib2.csproj">
+      <Project>{77005090-E2C5-4063-9681-0D0EED33A2B2}</Project>
+      <Name>WavRWLib2</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WWFlacRWCS\WWFlacRWCS.csproj">
+      <Project>{DA071B6A-B2E2-4567-84D1-5A9122DAB75C}</Project>
+      <Name>WWFlacRWCS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WWMFReaderCs\WWMFReaderCs.csproj">
+      <Project>{43047D33-5FDB-45D0-AEF0-4FA81060F2E1}</Project>
+      <Name>WWMFReaderCs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WWNativeSoundFileReaderCs\WWNativeSoundFileReaderCs.csproj">
+      <Project>{778DDF08-891F-4576-922C-EC71D53EDF80}</Project>
+      <Name>WWNativeSoundFileReaderCs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WWUtil\WWUtil.csproj">
+      <Project>{FC57308E-CF56-4B3E-B920-4093660D0A4A}</Project>
+      <Name>WWUtil</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

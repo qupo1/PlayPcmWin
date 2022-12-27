@@ -229,7 +229,7 @@ namespace PlayPcmWin {
 
             {
                 mPlaylistAlternateBackgroundArgb = preference.AlternatingRowBackgroundArgb;
-                rectangleColor.Fill = new SolidColorBrush(Util.ColorFromArgb(
+                rectangleColor.Fill = new SolidColorBrush(WWUtil.Util.ColorFromArgb(
                         preference.AlternatingRowBackgroundArgb));
                 checkBoxAlternateBackground.IsChecked =
                         preference.AlternatingRowBackground;
@@ -627,7 +627,7 @@ namespace PlayPcmWin {
                 ((uint)d.Color.G << 8) +
                 ((uint)d.Color.B << 0);
             rectangleColor.Fill = new SolidColorBrush(
-                Util.ColorFromArgb(mPlaylistAlternateBackgroundArgb));
+                WWUtil.Util.ColorFromArgb(mPlaylistAlternateBackgroundArgb));
         }
 
         private void checkBoxAlternateBackground_Checked(object sender, RoutedEventArgs e) {

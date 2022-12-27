@@ -122,7 +122,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AiffReader.cs" />
     <Compile Include="AudioPlayer.cs" />
     <Compile Include="ChannelMappingSettings.xaml.cs">
       <DependentUpon>ChannelMappingSettings.xaml</DependentUpon>
@@ -130,22 +129,18 @@
     <Compile Include="ChannelSelect.xaml.cs">
       <DependentUpon>ChannelSelect.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Mp3Reader.cs" />
-    <Compile Include="CueSheetRW.cs" />
+    <Compile Include="MainWindowInspectSupportedFormats.cs" />
+    <Compile Include="MainWindowPPWServerWorker.cs" />
+    <Compile Include="MainWindowReadFileWorker.cs" />
+    <Compile Include="MainWindowReadPlayListWorker.cs" />
     <Compile Include="DeviceAttributes.cs" />
     <Compile Include="DeviceSetupParams.cs" />
-    <Compile Include="DsdiffReader.cs" />
     <Compile Include="FileDisappearCheck.cs" />
-    <Compile Include="FlacDecodeIF.cs" />
     <Compile Include="InterceptMediaKeys.cs" />
-    <Compile Include="M3uRW.cs" />
     <Compile Include="MultipleAppInstanceMgr.cs" />
     <Compile Include="NextTask.cs" />
     <Compile Include="PcmDataList.cs" />
-    <Compile Include="PcmHeaderReader.cs" />
-    <Compile Include="PcmReader.cs" />
     <Compile Include="PlayListItemInfo.cs" />
-    <Compile Include="PlaylistRW.cs" />
     <Compile Include="PpwPlaylistRW.cs" />
     <Compile Include="PPWServer.cs" />
     <Compile Include="PPWServerSettingsWindow.xaml.cs">
@@ -162,8 +157,6 @@
     </Compile>
     <Compile Include="SoundEffectsUpdater.cs" />
     <Compile Include="DarkModeCtrl.cs" />
-    <Compile Include="Util.cs" />
-    <Compile Include="DsfReader.cs" />
     <Compile Include="DelaySettingsWindow.xaml.cs">
       <DependentUpon>DelaySettingsWindow.xaml</DependentUpon>
     </Compile>
@@ -321,6 +314,10 @@
     <ProjectReference Include="..\WWNativeSoundFileReaderCs\WWNativeSoundFileReaderCs.csproj">
       <Project>{778DDF08-891F-4576-922C-EC71D53EDF80}</Project>
       <Name>WWNativeSoundFileReaderCs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WWSoundFileRW\WWSoundFileRW.csproj">
+      <Project>{25B7AE4F-AA52-4848-8956-E1A167BC8D51}</Project>
+      <Name>WWSoundFileRW</Name>
     </ProjectReference>
     <ProjectReference Include="..\WWUtil\WWUtil.csproj">
       <Project>{FC57308E-CF56-4B3E-B920-4093660D0A4A}</Project>

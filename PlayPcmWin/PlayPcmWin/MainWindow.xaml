@@ -1,4 +1,4 @@
-﻿<!-- MainWindow dimension is changed when startup. Refer PreferenceStore.MainWindowWidth PreferenceStore.MainWindowHeight -->
+﻿<!-- MainWindow dimension is changed on startup, refers PreferenceStore.MainWindowWidth PreferenceStore.MainWindowHeight -->
 <Window x:Uid="Window_1" x:Class="PlayPcmWin.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

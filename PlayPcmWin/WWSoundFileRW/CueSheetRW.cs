@@ -8,12 +8,12 @@ using System.Text;
 using System.IO;
 using System.Globalization;
 
-namespace PlayPcmWin {
+namespace WWSoundFileRW {
 
     /// <summary>
     /// 1曲の情報
     /// </summary>
-    class CueSheetTrackInfo {
+    public class CueSheetTrackInfo {
         public string path;
         public string title;
         public int    trackId;   // TRACK 10 ==> 10
@@ -122,7 +122,7 @@ namespace PlayPcmWin {
     /// <summary>
     /// CUEシートを書き込むクラス。
     /// </summary>
-    class CueSheetWriter {
+    public class CueSheetWriter {
         private List<CueSheetTrackInfo> m_trackInfoList = new List<CueSheetTrackInfo>();
         private string m_albumTitle     = string.Empty;
         private string m_albumPerformer = string.Empty;
@@ -212,7 +212,7 @@ namespace PlayPcmWin {
     /// <summary>
     /// CUEシートを読むクラス
     /// </summary>
-    class CueSheetReader : PlaylistReader {
+    class CueSheetReader : IPlaylistReader {
         private List<CueSheetTrackInfo> mTrackInfoList;
         private CueSheetTrackInfo mCurrentTrackInfo;
         private string mDirPath;

@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Pipes;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Security.Cryptography;
 
-namespace PlayPcmWin {
-    class FlacDecodeIF {
+namespace WWSoundFileRW {
+    public class FlacDecodeIF {
         private int mBytesPerFrame;
         private long mNumFrames;
 

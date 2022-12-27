@@ -3,8 +3,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using WWUtil;
 
-namespace PlayPcmWin {
+namespace WWSoundFileRW {
 
     class DsdiffReader {
         public enum ResultType {

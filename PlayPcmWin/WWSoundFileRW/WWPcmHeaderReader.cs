@@ -8,8 +8,8 @@ using WavRWLib2;
 using PcmDataLib;
 using WWMFReaderCs;
 
-namespace PlayPcmWin {
-    class PcmHeaderReader {
+namespace WWSoundFileRW {
+    public class WWPcmHeaderReader {
         /// <summary>
         /// アルバムのカバーアート画像のファイル名
         /// </summary>
@@ -24,32 +24,57 @@ namespace PlayPcmWin {
             OnlyMetaFile,
         }
 
-        private List<string> mErrorMessageList = new List<string>();
+        public enum ErrType {
+            ReadFileFailed,
+            CoverArtImgReadFailed,
+            TooManyChannels,
+            NotSupportedBitDepth,
+            NotSupportedFileFormat,
+        }
+
+        public class ErrInf {
+            public ErrType eType;
+            public string path;
+            public string fileType; //< "FLAC" "WAV" etc.
+            public int numChannels;
+            public int bitDepth;
+            public string ex; //< exception toString
+
+            public ErrInf(ErrType et, string p, string ft, int nc, int bd, string e) {
+                eType = et;
+                path = p;
+                fileType = ft;
+                numChannels = nc;
+                bitDepth = bd;
+                ex = e;
+            }
+        }
+
+        private List<ErrInf> mErrorMessageList = new List<ErrInf>();
         private Encoding mEncoding;
         private bool mSortFolderItem;
-        public delegate void AddPcmDataDelegate(PcmData pcmData, bool readSeparatorAfter, bool bReadFromPpwPlaylist);
+        public delegate void AddPcmDataDelegate(PcmData pcmData, PlaylistTrackInfo plti, bool readSeparatorAfter, bool bReadFromPpwPlaylist);
         AddPcmDataDelegate mAddPcmData;
 
         PlaylistTrackInfo mPlaylistTrackMeta;
-        PlaylistItemSave3 mPlis;
+        WWPlaylistItem mPli;
 
-        public PcmHeaderReader(Encoding enc, bool sortFolderItem, AddPcmDataDelegate addPcmData) {
+        public WWPcmHeaderReader(Encoding enc, bool sortFolderItem, AddPcmDataDelegate addPcmData) {
             mEncoding = enc;
             mSortFolderItem = sortFolderItem;
             mAddPcmData = addPcmData;
         }
 
-        public List<string> ErrorMessageList() {
+        public List<ErrInf> ErrorMessageList() {
             return mErrorMessageList;
         }
 
-        private void LoadErrorMessageAdd(string s) {
+        private void LoadErrorMessageAdd(ErrInf s) {
             mErrorMessageList.Add(s);
         }
 
         private void HandleFileReadException(string path, Exception ex) {
-            LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, Properties.Resources.ReadFileFailed + ": {1}{3}{2}{3}",
-                    "", path, ex, Environment.NewLine));
+            LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, "", 0, 0, ex.ToString()));
         }
 
         /// <summary>
@@ -100,7 +125,7 @@ namespace PlayPcmWin {
                 }
             } catch (Exception ex) {
                 // エラーが起きたら読まない。
-                LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, "W: coverart image read failed: {0}", ex));
+                LoadErrorMessageAdd(new ErrInf(ErrType.CoverArtImgReadFailed, path, "", 0, 0, ex.ToString()));
             }
 
             return false;
@@ -112,8 +137,7 @@ namespace PlayPcmWin {
         /// </summary>
         private bool CheckAddPcmData(string path, PcmDataLib.PcmData pcmData, bool bUsePlaylistTrackInfo) {
             if (31 < pcmData.NumChannels) {
-                LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, "{0}: {1} {2}ch{3}",
-                        Properties.Resources.TooManyChannels, path, pcmData.NumChannels, Environment.NewLine));
+                LoadErrorMessageAdd(new ErrInf(ErrType.TooManyChannels, path, "", pcmData.NumChannels, 0, ""));
                 return false;
             }
 
@@ -121,8 +145,7 @@ namespace PlayPcmWin {
                     && pcmData.BitsPerSample != 24
                     && pcmData.BitsPerSample != 32
                     && pcmData.BitsPerSample != 64) {
-                LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, "{0}: {1} {2}bit{3}",
-                        Properties.Resources.NotSupportedQuantizationBitRate, path, pcmData.BitsPerSample, Environment.NewLine));
+                LoadErrorMessageAdd(new ErrInf(ErrType.NotSupportedBitDepth, path, "", 0, pcmData.BitsPerSample, ""));
                 return false;
             }
 
@@ -161,23 +184,23 @@ namespace PlayPcmWin {
             }
 
             bool readSeparatorAfter = false;
-            if (mPlis != null) {
+            if (mPli != null) {
                 // PPWプレイリストの情報で上書きする
-                pcmData.DisplayName = mPlis.Title;
-                pcmData.AlbumTitle = mPlis.AlbumName;
-                pcmData.ArtistName = mPlis.ArtistName;
-                pcmData.ComposerName = mPlis.ComposerName;
-                pcmData.StartTick = mPlis.StartTick;
-                pcmData.EndTick = mPlis.EndTick;
-                pcmData.TrackId = mPlis.TrackId;
-                pcmData.CueSheetIndex = mPlis.CueSheetIndex;
-                readSeparatorAfter = mPlis.ReadSeparaterAfter;
+                pcmData.DisplayName = mPli.Title;
+                pcmData.AlbumTitle = mPli.AlbumName;
+                pcmData.ArtistName = mPli.ArtistName;
+                pcmData.ComposerName = mPli.ComposerName;
+                pcmData.StartTick = mPli.StartTick;
+                pcmData.EndTick = mPli.EndTick;
+                pcmData.TrackId = mPli.TrackId;
+                pcmData.CueSheetIndex = mPli.CueSheetIndex;
+                readSeparatorAfter = mPli.ReadSeparaterAfter;
             }
 
             // カバーアート画像を追加する
             AddCoverart(path, pcmData);
 
-            mAddPcmData(pcmData, readSeparatorAfter, mPlis != null);
+            mAddPcmData(pcmData, mPlaylistTrackMeta, readSeparatorAfter, mPli != null);
             return true;
         }
 
@@ -221,8 +244,7 @@ namespace PlayPcmWin {
                     pd.SetPicture(wavR.PictureBytes, wavR.PictureData);
                     result = CheckAddPcmData(path, pd, true);
                 } else {
-                    LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, Properties.Resources.ReadFileFailed + ": {1} : {2}{3}",
-                            "WAV", path, wavR.ErrorReason, Environment.NewLine));
+                    LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, "WAV", 0,0, ""));
                 }
             }
 
@@ -245,8 +267,7 @@ namespace PlayPcmWin {
                         result = true;
                     }
                 } else {
-                    LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, Properties.Resources.ReadFileFailed + " {1}: {2}{3}",
-                        "AIFF", aiffResult, path, Environment.NewLine));
+                    LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, "AIFF", 0,0, aiffResult.ToString()));
                 }
             }
 
@@ -269,8 +290,7 @@ namespace PlayPcmWin {
                         result = true;
                     }
                 } else {
-                    LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, Properties.Resources.ReadFileFailed + " {1}: {2}{3}",
-                            "DSF", rv, path, Environment.NewLine));
+                    LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, "DSF", 0,0, rv.ToString()));
                 }
             }
 
@@ -293,8 +313,7 @@ namespace PlayPcmWin {
                         result = true;
                     }
                 } else {
-                    LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, Properties.Resources.ReadFileFailed + " {1}: {2}{3}",
-                            "DSDIFF", rv, path, Environment.NewLine));
+                    LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, "DSDIFF", 0,0, rv.ToString()));
                 }
             }
 
@@ -326,8 +345,7 @@ namespace PlayPcmWin {
                     result = true;
                 }
             } else {
-                LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, Properties.Resources.ReadFileFailed + " {1}: {2}{3}",
-                        "MP3", rv, path, Environment.NewLine));
+                LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, "MP3", 0,0, rv.ToString()));
             }
 
             return result;
@@ -358,8 +376,7 @@ namespace PlayPcmWin {
             flacErcd = fdif.ReadHeader(path, out pcmData, out ctiList);
             if (flacErcd != 0) {
                 // FLACヘッダ部分読み込み失敗。
-                LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, Properties.Resources.ReadFileFailed + " {2}: {1}{3}",
-                        "FLAC", path, FlacDecodeIF.ErrorCodeToStr(flacErcd), Environment.NewLine));
+                LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, "FLAC", 0,0, FlacDecodeIF.ErrorCodeToStr(flacErcd)));
                 return false;
             }
 
@@ -419,7 +436,7 @@ namespace PlayPcmWin {
         /// </summary>
         /// <returns>エラーの発生回数を戻す</returns>
         private int ReadCueSheet(string path) {
-            PlaylistReader plr = null;
+            IPlaylistReader plr = null;
             switch (Path.GetExtension(path).ToUpperInvariant()) {
             case ".CUE":
                 plr = new CueSheetReader(mEncoding);
@@ -435,8 +452,7 @@ namespace PlayPcmWin {
 
             bool result = plr.ReadFromFile(path);
             if (!result) {
-                LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, Properties.Resources.ReadFileFailed + ": {1}{2}",
-                        Path.GetExtension(path), path, Environment.NewLine));
+                LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, Path.GetExtension(path), 0,0, ""));
                 return 1;
             }
 
@@ -448,50 +464,25 @@ namespace PlayPcmWin {
             return errCount;
         }
 
-        /// <summary>
-        /// 保存してあった再生リストを読んでm_pcmDataListとm_playListItemsに足す。
-        /// UpdateUIは行わない。
-        /// </summary>
-        /// <param name="path">string.Emptyのとき: IsolatedStorageに保存された再生リストを読む。</param>
-        /// <returns>エラーの発生回数。</returns>
-        private int ReadPpwPlaylist(string path) {
-            int count = 0;
-
-            PlaylistSave3 pl;
-            if (path.Length == 0) {
-                pl = PpwPlaylistRW.Load();
-            } else {
-                pl = PpwPlaylistRW.LoadFrom(path);
-            }
-            foreach (var p in pl.Items) {
-                int rv = ReadFileHeader1(p.PathName, ReadHeaderMode.OnlyConcreteFile, null, p);
-                count += rv;
-            }
-
-            return count;
-        }
-
-        /// <summary>
-        /// N.B. PcmReader.StreamBeginも参照(へぼい)。
-        /// MenuItemFileOpen_Clickも参照。
-        /// </summary>
         /// <returns>エラーの発生回数を戻す</returns>
-        private int ReadFileHeader1(string path, ReadHeaderMode mode,
-                PlaylistTrackInfo plti, PlaylistItemSave3 plis) {
+        public int ReadFileHeader1(string path, ReadHeaderMode mode,
+                PlaylistTrackInfo plti, WWPlaylistItem pli) {
             mPlaylistTrackMeta = plti;
-            mPlis = plis;
+            mPli = pli;
 
             int errCount = 0;
             var ext = System.IO.Path.GetExtension(path).ToUpperInvariant();
 
             try {
                 switch (ext) {
+#if false
                 case ".PPWPL":
                     if (mode != ReadHeaderMode.OnlyConcreteFile) {
                         // PPWプレイリストを読み込み
                         errCount += ReadPpwPlaylist(path);
                     }
                     break;
+#endif
                 case ".CUE":
                 case ".M3U":
                 case ".M3U8":
@@ -541,8 +532,7 @@ namespace PlayPcmWin {
                     // 読まないで無視する。
                     break;
                 default:
-                    LoadErrorMessageAdd(string.Format(CultureInfo.InvariantCulture, "{0}: {1}{2}",
-                            Properties.Resources.NotSupportedFileFormat, path, Environment.NewLine));
+                    LoadErrorMessageAdd(new ErrInf(ErrType.NotSupportedFileFormat, path, Path.GetExtension(path), 0,0, ""));
                     ++errCount;
                     break;
                 }
@@ -573,7 +563,7 @@ namespace PlayPcmWin {
             int nError = 0;
 
             if (System.IO.Directory.Exists(path)) {
-                // pathはディレクトリである。直下のファイル一覧を作って足す。再帰的にはたぐらない。
+                // pathはディレクトリである。直下のファイル一覧を作って足す。1階層のみ。
                 var files = System.IO.Directory.GetFiles(path);
 
                 if (mSortFolderItem) {

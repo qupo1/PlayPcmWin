@@ -1,6 +1,5 @@
-namespace PlayPcmWin {
-
-    class PlaylistTrackInfo {
+namespace WWSoundFileRW {
+    public class PlaylistTrackInfo {
         public string path;
         public string title;
         public int    trackId;   // TRACK 10 ==> 10 (CUE sheets)
@@ -14,7 +13,7 @@ namespace PlayPcmWin {
         public string albumTitle;
     }
     
-    interface PlaylistReader {
+    public interface IPlaylistReader {
         bool ReadFromFile(string path);
         PlaylistTrackInfo GetTrackInfo(int nth);
         int GetTrackInfoCount();

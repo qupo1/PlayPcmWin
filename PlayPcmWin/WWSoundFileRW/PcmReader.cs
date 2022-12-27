@@ -1,22 +1,21 @@
-﻿// このファイルは改善の余地あり。
-// ファイルフォーマットごとのReaderを汎化するスーパークラスを作って抽象化するとここで行われているswitch-case処理は消えてなくなるであろう。
-
-using WavRWLib2;
+﻿using WavRWLib2;
 using PcmDataLib;
 using System;
 using System.IO;
 using System.Globalization;
 using WWMFReaderCs;
 using System.Linq;
+using WWNativeSoundFileReaderCs;
 
-namespace PlayPcmWin {
-    class PcmReader : IDisposable {
+namespace WWSoundFileRW {
+    public class PcmReader : IDisposable {
         private PcmData mPcmData;
         private FlacDecodeIF mFlacR;
         private AiffReader mAiffR;
         private DsfReader mDsfR;
         private DsdiffReader mDsdiffR;
         private WavReader mWaveR;
+        private WWNativeSoundFileReader mNSFR;
         private BinaryReader mBr;
         private Mp3Reader mMp3Reader;
 
@@ -132,7 +131,7 @@ namespace PlayPcmWin {
         /// <summary>
         /// PCMデータを読み出す。
         /// </summary>
-        /// <param name="preferredFrames">読み込みたいフレーム数。1Mフレームぐらいにすると良い。(このフレーム数のデータが戻るとは限らない)</param>
+        /// <param name="preferredFrames">読み込みたいフレーム数(オリジナルSRでフレーム数を数える)。48の倍数が良い。6Mフレームぐらいにすると良い。(このフレーム数のデータが戻るとは限らない)</param>
         /// <returns>PCMデータが詰まったバイト列。0要素の配列の場合、もう終わり。</returns>
         public byte[] StreamReadOne(int preferredFrames, out int ercd) {
             ercd = 0;
@@ -349,6 +348,13 @@ namespace PlayPcmWin {
         private int StreamBeginWave(string path, long startFrame) {
             int ercd = -1;
 
+#if false
+            mReaderConvBitFmt = true; // NativeSoundFileReaderは読み込みながらbitFmtをターゲット形式に変換します。
+
+            mNSFR = new WWNativeSoundFileReader();
+            mNSFR.AllocNativeBuffer(
+#else
+
             mWaveR = new WavReader();
             mBr = new BinaryReader(
                 File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read));
@@ -362,6 +368,7 @@ namespace PlayPcmWin {
                     ercd = 0;
                 }
             }
+#endif
             return ercd;
         }
     }

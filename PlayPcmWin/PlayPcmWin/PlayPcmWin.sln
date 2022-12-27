@@ -77,6 +77,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WWAsmCs", "..\WWAsmCs\WWAsm
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WWAsmDLL", "..\WWAsmDLL\WWAsmDLL.vcxproj", "{164DCE52-FCBF-40B0-917D-49D0CB61F7A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WWSoundFileRW", "..\WWSoundFileRW\WWSoundFileRW.csproj", "{25B7AE4F-AA52-4848-8956-E1A167BC8D51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -269,6 +271,14 @@ Global
 		{164DCE52-FCBF-40B0-917D-49D0CB61F7A2}.Release|x64.Build.0 = Release|x64
 		{164DCE52-FCBF-40B0-917D-49D0CB61F7A2}.Release|x86.ActiveCfg = Release|Win32
 		{164DCE52-FCBF-40B0-917D-49D0CB61F7A2}.Release|x86.Build.0 = Release|Win32
+		{25B7AE4F-AA52-4848-8956-E1A167BC8D51}.Debug|x64.ActiveCfg = Debug|x64
+		{25B7AE4F-AA52-4848-8956-E1A167BC8D51}.Debug|x64.Build.0 = Debug|x64
+		{25B7AE4F-AA52-4848-8956-E1A167BC8D51}.Debug|x86.ActiveCfg = Debug|x86
+		{25B7AE4F-AA52-4848-8956-E1A167BC8D51}.Debug|x86.Build.0 = Debug|x86
+		{25B7AE4F-AA52-4848-8956-E1A167BC8D51}.Release|x64.ActiveCfg = Release|x64
+		{25B7AE4F-AA52-4848-8956-E1A167BC8D51}.Release|x64.Build.0 = Release|x64
+		{25B7AE4F-AA52-4848-8956-E1A167BC8D51}.Release|x86.ActiveCfg = Release|x86
+		{25B7AE4F-AA52-4848-8956-E1A167BC8D51}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
