@@ -1,9 +1,9 @@
-#include "WWFileReader.h"
+ï»¿#include "WWFileReader.h"
 #include <stdio.h>
 #include <assert.h>
 
-// IO Completion ports‚ðŽg—p‚µ‚ÄŒø—¦“I‚Éƒtƒ@ƒCƒ‹‚ð“Ç‚Ý‚Ü‚·B
-// ŽQlFhttps://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports#:~:text=I%2FO%20completion%20ports%20provide%20an%20efficient%20threading%20model,whose%20sole%20purpose%20is%20to%20service%20these%20requests.
+// IO Completion portsã‚’ä½¿ç”¨ã—ã¦åŠ¹çŽ‡çš„ã«ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿ã¾ã™ã€‚
+// å‚è€ƒï¼šhttps://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports#:~:text=I%2FO%20completion%20ports%20provide%20an%20efficient%20threading%20model,whose%20sole%20purpose%20is%20to%20service%20these%20requests.
 
 HRESULT
 WWFileReader::Init(int nQueues)
@@ -12,7 +12,7 @@ WWFileReader::Init(int nQueues)
 
     mNumOfQueues  = nQueues;
 
-    // ReadCtx‚ðì¬‚µ‚Ü‚·B
+    // ReadCtxã‚’ä½œæˆã—ã¾ã™ã€‚
     mReadCtx.resize(mNumOfQueues);
     int idx=0;
     for (auto & it=mReadCtx.begin(); it!=mReadCtx.end(); ++idx, ++it) {
@@ -34,7 +34,7 @@ WWFileReader::Term(void)
         mhIocp = 0;
     }
 
-    // ReadCtx‚ðíœ‚µ‚Ü‚·B
+    // ReadCtxã‚’å‰Šé™¤ã—ã¾ã™ã€‚
     for (auto & it=mReadCtx.begin(); it!=mReadCtx.end(); ++it) {
         ReadCtx &rc = *it;
         rc.Term();
@@ -59,22 +59,22 @@ WWFileReader::Open(const wchar_t *path)
             GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
             FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN | FILE_FLAG_OVERLAPPED, 0);
     if (mhFile == INVALID_HANDLE_VALUE) {
-        // ƒtƒ@ƒCƒ‹‚ªŠJ‚¯‚È‚¢B
+        // ãƒ•ã‚¡ã‚¤ãƒ«ãŒé–‹ã‘ãªã„ã€‚
         hr =  GetLastError();
         printf("Error: CreateFile failed %x\n", hr);
         goto end;
     }
 
-    // ƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹‚ÆIOCP‚Æ‚ðŠÖ˜A•t‚¯B
+    // ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨IOCPã¨ã‚’é–¢é€£ä»˜ã‘ã€‚
     mhIocp = CreateIoCompletionPort(mhFile, nullptr, mCompletionKey, mNumOfQueues);
     if (mhIocp == INVALID_HANDLE_VALUE) {
-        // IOCPŠÖ˜A•t‚¯Ž¸”sB
+        // IOCPé–¢é€£ä»˜ã‘å¤±æ•—ã€‚
         hr =  GetLastError();
         printf("Error: CreateIoCompletionPort failed %x\n", hr);
         goto end;
     }
 
-    // ƒtƒ@ƒCƒ‹ƒTƒCƒY‚ð’²‚×‚Ü‚·B
+    // ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’èª¿ã¹ã¾ã™ã€‚
     br = GetFileSizeEx(mhFile, (PLARGE_INTEGER)&mFileSz);
     if (!br) {
         hr = GetLastError();
@@ -82,7 +82,7 @@ WWFileReader::Open(const wchar_t *path)
         goto end;
     }
 
-    // ¬Œ÷B
+    // æˆåŠŸã€‚
     hr = S_OK;
 
 end:
@@ -100,7 +100,7 @@ WWFileReader::Close(void)
         CloseHandle(mhFile);
         mhFile = INVALID_HANDLE_VALUE;
 
-        // ƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹‚ÆIOCP‚ÌŠÖ˜A•t‚¯‚ª–³‚­‚È‚éBIOCP‚Í‘¼‚Ì—p“r‚ÉŽg—p‚Å‚«‚È‚¢‚Ì‚ÅACloseHandle‚µ‚Ü‚·B
+        // ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨IOCPã®é–¢é€£ä»˜ã‘ãŒç„¡ããªã‚‹ã€‚IOCPã¯ä»–ã®ç”¨é€”ã«ä½¿ç”¨ã§ããªã„ã®ã§ã€CloseHandleã—ã¾ã™ã€‚
         CloseHandle(mhIocp);
         mhIocp = INVALID_HANDLE_VALUE;
     }
@@ -118,7 +118,7 @@ SetReadOffsetToOverlappedMember(int64_t offs, OVERLAPPED &ol)
     ol.OffsetHigh = posLH.HighPart;
 }
 
-// –¢Žg—p‚ÌReadCtx‚ð’T‚µ‚Ü‚·B–³‚¢‚Æ‚«nullptrB
+// æœªä½¿ç”¨ã®ReadCtxã‚’æŽ¢ã—ã¾ã™ã€‚ç„¡ã„ã¨ãnullptrã€‚
 WWFileReader::ReadCtx *
 WWFileReader::FindAvailableReadCtx(void)
 {
@@ -168,22 +168,22 @@ WWFileReader::WaitAnyIOCompletion(ReadCompletedCB cb)
         hr = GetLastError();
 
         // Either of the two
-        // E the function failed to dequeue a completion packet (CompletedOverlapped is not NULL)
-        // E it dequeued a completion packet of a failed I/O operation (CompletedOverlapped is NULL)
+        // ãƒ» the function failed to dequeue a completion packet (CompletedOverlapped is not NULL)
+        // ãƒ» it dequeued a completion packet of a failed I/O operation (CompletedOverlapped is NULL)
         printf("Error: GetQueuedCompletionStatus on the IoPort failed, error %x\n", hr);
         return hr;
     }
 
-    // ¬Œ÷B
+    // æˆåŠŸã€‚
     pRC = (ReadCtx*)completedOverlapped;
 
-    // “Ç‚Ýo‚µŠ®—¹‚µ‚½‚Ì‚ÅƒR[ƒ‹ƒoƒbƒN‚ðŒÄ‚Ñ‚Ü‚·B
+    // èª­ã¿å‡ºã—å®Œäº†ã—ãŸã®ã§ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’å‘¼ã³ã¾ã™ã€‚
     cb(pRC->pos, pRC->buf, pRC->readBytes);
 
     pRC->isUsed = false;
 
-    // ƒLƒ…[‚É“ü‚é‚Æ‚«‚ÍFIFO‡‚¾‚ªA
-    // o‚Ä‚­‚é‡”Ô‚Í•s’èI
+    // ã‚­ãƒ¥ãƒ¼ã«å…¥ã‚‹ã¨ãã¯FIFOé †ã ãŒã€
+    // å‡ºã¦ãã‚‹é †ç•ªã¯ä¸å®šï¼
     // printf("%d ", pRC->idx);
 
     return S_OK;
@@ -198,20 +198,20 @@ WWFileReader::Read(int64_t pos, int64_t bytes, ReadCompletedCB cb)
     for (int64_t cnt=0; cnt<bytes; cnt+= mReadFragmentSz, pos += mReadFragmentSz) {
         ReadCtx  *rc = FindAvailableReadCtx();
         if (nullptr == rc) {
-            // 1ŒÂIO‚ªI‚í‚é‚Ü‚Å‘Ò‚¿‚Ü‚·B
+            // 1å€‹IOãŒçµ‚ã‚ã‚‹ã¾ã§å¾…ã¡ã¾ã™ã€‚
             hr = WaitAnyIOCompletion(cb);
             if (FAILED(hr)) {
                 printf("Read WaitIOCompletion failed %x\n", hr);
                 return E_FAIL;
             }
-            // ¬Œ÷B
+            // æˆåŠŸã€‚
             rc = FindAvailableReadCtx();
             assert(rc != nullptr);
         }
 
         rc->isUsed = true;
 
-        // “Ç‚Ýo‚µŠJŽnˆÊ’u‚ÌƒZƒbƒgB
+        // èª­ã¿å‡ºã—é–‹å§‹ä½ç½®ã®ã‚»ãƒƒãƒˆã€‚
         SetReadOffsetToOverlappedMember(pos, rc->overlapped);
 
         int wantBytes = mReadFragmentSz;

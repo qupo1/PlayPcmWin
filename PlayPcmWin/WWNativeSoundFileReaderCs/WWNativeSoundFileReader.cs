@@ -43,14 +43,22 @@ namespace WWNativeSoundFileReaderCs {
             }
         };
 
-        public unsafe int ReadBegin(string path, ref WWNativePcmFmt origPcmFmt, ref WWNativePcmFmt tgtPcmFmt, ref int[] channelMap) {
+        public unsafe int ReadBegin(
+                string path,
+                WWNativePcmFmt origPcmFmt,
+                WWNativePcmFmt tgtPcmFmt,
+                int[] channelMap) {
             System.Diagnostics.Debug.Assert(0 <= mIdx);
 
             int rv = 0;
 
-            fixed (int* p = &channelMap[0]) {
-                IntPtr ptr = (IntPtr)p;
-                rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, ptr);
+            if (channelMap == null) {
+                rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, IntPtr.Zero);
+            } else {
+                fixed (int* p = &channelMap[0]) {
+                    IntPtr ptr = (IntPtr)p;
+                    rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, ptr);
+                }
             }
 
             return rv;

@@ -13,7 +13,7 @@ namespace PlayPcmWin {
     public enum PreferenceAudioFilterType {
         PolarityInvert,
         MonauralMix,
-        ChannelRouting, //< ChannelMapping。設定ファイルで使用されるフィルター名称は互換性のためにChannelRoutingとする。
+        ChannelRouting, //< ChannelMapping。設定ファイルの互換性のためにChannelRoutingとする。
         MuteChannel,
         SoloChannel,
         ZohNosdacCompensation,

@@ -65,7 +65,12 @@ WWNativeSoundFileReaderTerm(int id)
 /// ファイル読み出し開始。
 extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
-WWNativeSoundFileReaderStart(int id, const wchar_t *path, const WWNativePcmFmt & origPcmFmt, const WWNativePcmFmt & tgtPcmFmt, const int *channelMap)
+WWNativeSoundFileReaderStart(
+        int id,
+        const wchar_t *path,
+        const WWNativePcmFmt & origPcmFmt,
+        const WWNativePcmFmt & tgtPcmFmt,
+        const int *channelMap)
 {
     auto self = gNWRMgr.Find(id);
     if (self == nullptr) {
@@ -73,13 +78,15 @@ WWNativeSoundFileReaderStart(int id, const wchar_t *path, const WWNativePcmFmt &
         return E_INVALIDARG;
     }
 
-    for (int ch=0; ch<tgtPcmFmt.numChannels; ++ch) {
-        int cm = channelMap[ch];
+    if (channelMap != nullptr) {
+        for (int ch=0; ch<tgtPcmFmt.numChannels; ++ch) {
+            int cm = channelMap[ch];
 
-        // cm==-1の時無音のチャンネルにする。
-        if (cm < -1 || tgtPcmFmt.numChannels <= cm) {
-            printf ("E: WWNativeSoundFileReaderStart ChannelMap invalid\n");
-            return E_INVALIDARG;
+            // cm==-1の時無音のチャンネルにする。
+            if (cm < -1 || tgtPcmFmt.numChannels <= cm) {
+                printf ("E: WWNativeSoundFileReaderStart ChannelMap invalid\n");
+                return E_INVALIDARG;
+            }
         }
     }
 

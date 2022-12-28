@@ -404,7 +404,11 @@ namespace Wasapi {
             }
         }
 
-        public static SampleFormatType BitAndFormatToSampleFormatType(int bitsPerSample, int validBitsPerSample, BitFormatType bitFormat) {
+        public static SampleFormatType
+        BitAndFormatToSampleFormatType(
+                int bitsPerSample,
+                int validBitsPerSample,
+                BitFormatType bitFormat) {
             if (bitFormat == BitFormatType.SInt) {
                 // int
                 switch (bitsPerSample) {
@@ -445,7 +449,8 @@ namespace Wasapi {
         /// </summary>
         /// <param name="t">サンプルフォーマットタイプ</param>
         /// <returns>有効ビット数(1サンプル1chあたり。バイト数ではなくビット数)</returns>
-        public static int SampleFormatTypeToValidBitsPerSample(SampleFormatType t) {
+        public static int
+        SampleFormatTypeToValidBitsPerSample(SampleFormatType t) {
             switch (t) {
             case SampleFormatType.Sint16:
                 return 16;
@@ -478,6 +483,20 @@ namespace Wasapi {
                 System.Diagnostics.Debug.Assert(false);
                 return BitFormatType.SInt;
             }
+        }
+
+        public static bool SampleFormatTypeIsFloatingPoint(SampleFormatType t) {
+            switch (t) {
+            case SampleFormatType.Sfloat:
+            case SampleFormatType.Sdouble:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        public static bool SampleFormatTypeIsInteger(SampleFormatType t) {
+            return !SampleFormatTypeIsFloatingPoint(t);
         }
 
         /// numChannels to channelMask

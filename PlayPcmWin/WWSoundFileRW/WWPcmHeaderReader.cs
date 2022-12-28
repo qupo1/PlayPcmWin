@@ -135,9 +135,14 @@ namespace WWSoundFileRW {
         /// メタ情報更新。PcmData読み込み成功後に行う。
         /// FLACとWAVとAIFFで共通。
         /// </summary>
-        private bool CheckAddPcmData(string path, PcmDataLib.PcmData pcmData, bool bUsePlaylistTrackInfo) {
+        private bool CheckAddPcmData(
+                string path,
+                PcmDataLib.PcmData pcmData,
+                bool bUsePlaylistTrackInfo) {
             if (31 < pcmData.NumChannels) {
-                LoadErrorMessageAdd(new ErrInf(ErrType.TooManyChannels, path, "", pcmData.NumChannels, 0, ""));
+                LoadErrorMessageAdd(new ErrInf(
+                        ErrType.TooManyChannels, path, "",
+                        pcmData.NumChannels, 0, ""));
                 return false;
             }
 
@@ -217,8 +222,12 @@ namespace WWSoundFileRW {
                 if (wavR.ReadHeader(br)) {
                     // WAVヘッダ読み込み成功。PcmDataを作って再生リストに足す。
 
-                    pd.SetFormat(wavR.NumChannels, wavR.BitsPerSample, wavR.ValidBitsPerSample,
-                            (int)wavR.SampleRate, wavR.SampleValueRepresentationType, wavR.NumFrames);
+                    pd.SetFormat(
+                            wavR.NumChannels, wavR.BitsPerSample,
+                            wavR.ValidBitsPerSample,
+                            (int)wavR.SampleRate,
+                            wavR.SampleValueRepresentationType,
+                            wavR.NumFrames);
 
                     if (wavR.SampleDataType == WavReader.DataType.DoP) {
                         pd.SampleDataType = PcmData.DataType.DoP;
@@ -464,6 +473,9 @@ namespace WWSoundFileRW {
             return errCount;
         }
 
+        /// <summary>
+        /// ファイル1個のヘッダを調べる。
+        /// </summary>
         /// <returns>エラーの発生回数を戻す</returns>
         public int ReadFileHeader1(string path, ReadHeaderMode mode,
                 PlaylistTrackInfo plti, WWPlaylistItem pli) {

@@ -1,4 +1,4 @@
-#include "WWPcmFmtConverter.h"
+ï»¿#include "WWPcmFmtConverter.h"
 #include "WWNativePcmFmt.h"
 #include "PCM16to24.h"
 #include "PCM16to32.h"
@@ -38,15 +38,15 @@ BitDepthAndIntFloatToSampleFmt(int bitDepth, bool isFloat)
     }
 }
 
-/// 32bit integer PCMƒTƒ“ƒvƒ‹’l‚ğ–ß‚µ‚Ü‚·B32bit float’l‚ª“ü‚Á‚Ä‚¢‚éê‡A‚»‚Ìƒrƒbƒg—ñ‚ª‚»‚Ì‚Ü‚Ü32bit“ü‚è‚Ü‚·B
+/// 32bit integer PCMã‚µãƒ³ãƒ—ãƒ«å€¤ã‚’æˆ»ã—ã¾ã™ã€‚32bit floatå€¤ãŒå…¥ã£ã¦ã„ã‚‹å ´åˆã€ãã®ãƒ“ãƒƒãƒˆåˆ—ãŒãã®ã¾ã¾32bitå…¥ã‚Šã¾ã™ã€‚
 static int32_t
 GetSampleValueI32(const uint8_t *buf, int64_t frameNr, int ch, const WWNativePcmFmt &fmt)
 {
-    // FLOAT‚Ìê‡A32bit‚Ì‚İB
+    // FLOATã®å ´åˆã€32bitã®ã¿ã€‚
     assert(!fmt.isFloat || fmt.validBitDepth == 32);
 
     if (fmt.numChannels <= ch) {
-        // ƒ`ƒƒƒ“ƒlƒ‹”Ô†‚ª”ÍˆÍŠO‚Ìê‡A0‚ğ–ß‚µ‚Ü‚·B
+        // ãƒãƒ£ãƒ³ãƒãƒ«ç•ªå·ãŒç¯„å›²å¤–ã®å ´åˆã€0ã‚’æˆ»ã—ã¾ã™ã€‚
         return 0;
     }
 
@@ -75,14 +75,14 @@ GetSampleValueI32(const uint8_t *buf, int64_t frameNr, int ch, const WWNativePcm
     }
 }
 
-/// 32bit integer PCMƒTƒ“ƒvƒ‹’l‚ğ‘‚«‚İ‚Ü‚·B
+/// 32bit integer PCMã‚µãƒ³ãƒ—ãƒ«å€¤ã‚’æ›¸ãè¾¼ã¿ã¾ã™ã€‚
 static void
 SetSampleValueI32(const int32_t v, uint8_t *buf, int64_t frameNr, int ch, const WWNativePcmFmt &fmt)
 {
-    // FLOAT‚Ìê‡A32bit‚Ì‚İB
+    // FLOATã®å ´åˆã€32bitã®ã¿ã€‚
     assert(!fmt.isFloat || fmt.validBitDepth == 32);
 
-    // ‘‚«‚İƒ`ƒƒƒ“ƒlƒ‹”‚Í”ÍˆÍ“àB
+    // æ›¸ãè¾¼ã¿ãƒãƒ£ãƒ³ãƒãƒ«æ•°ã¯ç¯„å›²å†…ã€‚
     assert(0 <= ch && ch < fmt.numChannels);
 
     int64_t sampleNr = (frameNr * fmt.numChannels + ch);
@@ -139,11 +139,11 @@ ConvertCpp(
 
     for (int64_t i=0; i<frameCount; ++i) {
         for (int chTo=0; chTo<toFmt.numChannels; ++chTo) {
-            // PCM–³‰¹‚Å‰Šú‰»B
+            // PCMç„¡éŸ³ã§åˆæœŸåŒ–ã€‚
             int32_t v = 0;
 
             if (toFmt.isDoP) {
-                // DoP–³‰¹B
+                // DoPç„¡éŸ³ã€‚
                 if (i%2==0) {
                     v = 0x05696900;
                 } else {
@@ -163,7 +163,7 @@ ConvertCpp(
     return S_OK;
 }
 
-/// true: 0¨0, 1¨1A... k¨k ‘Sƒ`ƒƒƒ“ƒlƒ‹“¯ˆê‚Ìƒ`ƒƒƒ“ƒlƒ‹‚ª‘Î‰‚·‚éƒ}ƒbƒvB
+/// true: 0â†’0, 1â†’1ã€... kâ†’k å…¨ãƒãƒ£ãƒ³ãƒãƒ«åŒä¸€ã®ãƒãƒ£ãƒ³ãƒãƒ«ãŒå¯¾å¿œã™ã‚‹ãƒãƒƒãƒ—ã€‚
 static bool
 IsIdenticalMap(int nCh, const int *channelMap)
 {
@@ -194,13 +194,13 @@ WWPcmFmtConverter(
 
     if (fromFmt.numChannels != toFmt.numChannels
             || !IsIdenticalMap(toFmt.numChannels, channelMap)) {
-        // “üo—Íƒ`ƒƒƒ“ƒlƒ‹”‚ªˆÙ‚È‚éB‚Ü‚½‚ÍAƒ`ƒƒƒ“ƒlƒ‹‘Î‰‚ğ“ü‚ê‘Ö‚¦‚éˆ—B
+        // å…¥å‡ºåŠ›ãƒãƒ£ãƒ³ãƒãƒ«æ•°ãŒç•°ãªã‚‹ã€‚ã¾ãŸã¯ã€ãƒãƒ£ãƒ³ãƒãƒ«å¯¾å¿œã‚’å…¥ã‚Œæ›¿ãˆã‚‹å‡¦ç†ã€‚
         return ConvertCpp(
                 pcmFrom, fromFmt,
                 pcmTo,   toFmt, channelMap, frameCount);
     }
 
-    // “üo—ÍƒTƒ“ƒvƒ‹ƒJƒEƒ“ƒg‚Í“¯‚¶(sampleCount)B
+    // å…¥å‡ºåŠ›ã‚µãƒ³ãƒ—ãƒ«ã‚«ã‚¦ãƒ³ãƒˆã¯åŒã˜(sampleCount)ã€‚
     int64_t sampleCount = frameCount * fromFmt.numChannels;
 
     switch (fromSF) {

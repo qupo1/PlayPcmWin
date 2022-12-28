@@ -1,4 +1,4 @@
-#include "WWMMapReadFile.h"
+ï»¿#include "WWMMapReadFile.h"
 #include <assert.h>
 #include <stdio.h>
 
@@ -37,7 +37,7 @@ WWMMapReadFile::Open(const wchar_t *path)
         GENERIC_READ, 0 /* exclusive access */ , nullptr, OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL, 0);
     if (m_hFile == INVALID_HANDLE_VALUE) {
-        // ƒtƒ@ƒCƒ‹‚ªŠJ‚¯‚È‚¢B
+        // ãƒ•ã‚¡ã‚¤ãƒ«ãŒé–‹ã‘ãªã„ã€‚
         printf("Error: CreateFile failed %d\n", GetLastError());
         hr = E_FAIL;
         goto Failed;
@@ -76,7 +76,7 @@ WWMMapReadFile::Open(const wchar_t *path)
         goto Failed;
     }
 
-    // ¬Œ÷B
+    // æˆåŠŸã€‚
     return S_OK;
 
 Failed:

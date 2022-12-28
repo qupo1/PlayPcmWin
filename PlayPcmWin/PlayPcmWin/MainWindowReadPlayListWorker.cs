@@ -49,11 +49,11 @@ namespace PlayPcmWin {
             int readSuccessCount = 0;
             foreach (var p in arg.pl.Items) {
                 int errCount = ReadFileHeader(p.PathName, WWSoundFileRW.WWPcmHeaderReader.ReadHeaderMode.OnlyConcreteFile, null);
-                if (0 == errCount && 0 < ap.PcmDataListForDisp.Count()) {
+                if (0 == errCount && 0 < mAp.PcmDataListForDisp.Count()) {
                     // 読み込み成功。読み込んだPcmDataの曲名、アーティスト名、アルバム名、startTick等を上書きする。
 
                     // pcmDataのメンバ。
-                    var pcmData = ap.PcmDataListForDisp.Last();
+                    var pcmData = mAp.PcmDataListForDisp.Last();
                     pcmData.DisplayName = p.Title;
                     pcmData.AlbumTitle = p.AlbumName;
                     pcmData.ArtistName = p.ArtistName;
@@ -64,7 +64,7 @@ namespace PlayPcmWin {
                     pcmData.TrackId = p.TrackId;
 
                     // playList表のメンバ。
-                    var playListItem = m_playListItems[readSuccessCount];
+                    var playListItem = mPlayListItems[readSuccessCount];
                     playListItem.ReadSeparaterAfter = p.ReadSeparaterAfter;
                     ++readSuccessCount;
                 }
@@ -82,11 +82,11 @@ namespace PlayPcmWin {
             var arg = e.Result as PlaylistReadWorkerArg;
 
             // Showing error MessageBox must be delayed until Window Loaded state because SplashScreen closes all MessageBoxes whose owner is DesktopWindow
-            if (0 < m_loadErrorMessages.Length) {
-                AddLogText(m_loadErrorMessages.ToString());
-                MessageBox.Show(m_loadErrorMessages.ToString(), Properties.Resources.RestoreFailedFiles, MessageBoxButton.OK, MessageBoxImage.Information);
+            if (0 < mLoadErrMsg.Length) {
+                AddLogText(mLoadErrMsg.ToString());
+                MessageBox.Show(mLoadErrMsg.ToString(), Properties.Resources.RestoreFailedFiles, MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            m_loadErrorMessages = null;
+            mLoadErrMsg = null;
             progressBar1.Visibility = System.Windows.Visibility.Collapsed;
 
             switch (arg.mode) {
@@ -97,7 +97,7 @@ namespace PlayPcmWin {
                 break;
             }
 
-            if (0 < m_playListItems.Count) {
+            if (0 < mPlayListItems.Count) {
                 ChangeState(State.再生リストあり);
             } else {
                 ChangeState(State.再生リストなし);

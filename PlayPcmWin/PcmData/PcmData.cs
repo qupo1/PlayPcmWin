@@ -49,7 +49,7 @@ namespace PcmDataLib {
         public int SampleRate { get; set; }
 
         /// <summary>
-        /// 1サンプル値のビット数(無効な0埋めビット含む)
+        /// 1サンプル値のビット数(無効な0埋めビット含む) Container bytes
         /// </summary>
         public int BitsPerSample { get; set; }
 
@@ -270,17 +270,24 @@ namespace PcmDataLib {
             TrackId = 0;
         }
 
+        public PcmData(PcmData rhs) {
+            CopyFrom(rhs);
+        }
+
 
         /// <summary>
-        /// ヘッダー情報、サンプルデータ領域をクローンする。
+        /// ヘッダー情報、サンプルデータ領域をコピーする。
+        /// 自分自身を変更する。
         /// </summary>
-        public void CopyFrom(PcmData rhs) {
+        public PcmData CopyFrom(PcmData rhs) {
             CopyHeaderInfoFrom(rhs);
 
             mSampleLargeArray = null;
             if (rhs.mSampleLargeArray != null) {
                 mSampleLargeArray = rhs.mSampleLargeArray.Clone();
             }
+
+            return this;
         }
 
         // プロパティIO /////////////////////////////////////////////////////
@@ -293,7 +300,7 @@ namespace PcmDataLib {
         }
 
         /// <summary>
-        /// 1フレームあたりのビット数(サンプルあたりビット数×総チャンネル数)
+        /// 1フレームあたりのビット数を計算して戻す。(サンプルあたりビット数×総チャンネル数)
         /// </summary>
         public int BitsPerFrame {
             get { return BitsPerSample * NumChannels; }

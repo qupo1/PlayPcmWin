@@ -7,9 +7,6 @@ using WasapiPcmUtil;
 
 namespace PlayPcmWin {
     public sealed partial class MainWindow : Window {
-        // SIMDの都合により48の倍数。
-        private const int TYPICAL_READ_FRAMES = 6 * 1024 * 1024;
-
         private BackgroundWorker m_readFileWorker;
 
         private void ReadFileWorkerSetup() {
@@ -47,7 +44,7 @@ namespace PlayPcmWin {
 
             //Console.WriteLine("D: ReadFileDoWork({0}) started", readGroupId);
 
-            WWSoundFileRW.PcmReader.CalcMD5SumIfAvailable = m_preference.VerifyFlacMD5Sum;
+            WWSoundFileRW.WWSoundFileReader.CalcMD5SumIfAvailable = mPreference.VerifyFlacMD5Sum;
 
             ReadFileRunWorkerCompletedArgs r = new ReadFileRunWorkerCompletedArgs();
             try {
@@ -57,24 +54,23 @@ namespace PlayPcmWin {
                 System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                 sw.Start();
 
-                m_readProgressInfo = new ReadProgressInfo(
-                        0, 0, 0, 0, ap.PcmDataListForPlay.CountPcmDataOnPlayGroup(readGroupId));
+                mReadProgressInf = new ReadProgressInf(
+                        0, 0, 0, 0, mAp.PcmDataListForPlay.CountPcmDataOnPlayGroup(readGroupId));
 
-                ap.wasapi.ClearPlayList();
+                mAp.wasapi.ClearPlayList();
 
-                mPcmUtil = new PcmUtil(ap.PcmDataListForPlay.At(0).NumChannels);
+                mPcmUtil = new PcmUtil(mAp.PcmDataListForPlay.At(0).NumChannels);
 
                 // ファイルからPCMを読み出す。
 
-                ap.wasapi.AddPlayPcmDataStart();
-                for (int i = 0; i < ap.PcmDataListForPlay.Count(); ++i) {
-                    PcmDataLib.PcmData pd = ap.PcmDataListForPlay.At(i);
+                mAp.wasapi.AddPlayPcmDataStart();
+                for (int i = 0; i < mAp.PcmDataListForPlay.Count(); ++i) {
+                    PcmDataLib.PcmData pd = mAp.PcmDataListForPlay.At(i);
                     if (pd.GroupId != readGroupId) {
                         continue;
                     }
 
-                    // どーなのよ、という感じがするが。
-                    // 効果絶大である。
+                    // 効果絶大である。(メモリ消費量肥大の抑止)
                     GC.Collect();
 
                     WasapiPcmUtil.PcmFormatConverter.ClearClippedCounter();
@@ -103,7 +99,7 @@ namespace PlayPcmWin {
                         return;
                     }
 
-                    ++m_readProgressInfo.trackCount;
+                    ++mReadProgressInf.trackCount;
                 }
 
                 // ダメ押し。
@@ -111,34 +107,34 @@ namespace PlayPcmWin {
 
                 // サンプルレートの変更。
 
-                if (m_preference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Shared) {
+                if (mPreference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Shared) {
                     m_readFileWorker.ReportProgress(90, string.Format(CultureInfo.InvariantCulture, "Resampling...{0}", Environment.NewLine));
                 }
-                r.hr = ap.wasapi.ResampleIfNeeded(m_deviceSetupParams.ResamplerConversionQuality);
+                r.hr = mAp.wasapi.ResampleIfNeeded(mDeviceSetupParams.ResamplerConversionQuality);
                 if (r.hr < 0) {
-                    r.message = "Resample({0}) failed! " + string.Format(CultureInfo.InvariantCulture, "0x{1:X8}", m_deviceSetupParams.ResamplerConversionQuality, r.hr);
+                    r.message = "Resample({0}) failed! " + string.Format(CultureInfo.InvariantCulture, "0x{1:X8}", mDeviceSetupParams.ResamplerConversionQuality, r.hr);
                     args.Result = r;
                     return;
                 }
 
-                ap.wasapi.ScalePcmAmplitude(1.0);
-                if (m_preference.ReduceVolume) {
+                mAp.wasapi.ScalePcmAmplitude(1.0);
+                if (mPreference.ReduceVolume) {
                     // PCMの音量を6dB下げる。
                     // もしもDSDの時は下げない。
-                    double scale = m_preference.ReduceVolumeScale();
-                    ap.wasapi.ScalePcmAmplitude(scale);
-                } else if (m_preference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Shared
-                        && m_preference.SootheLimiterApo) {
+                    double scale = mPreference.ReduceVolumeScale();
+                    mAp.wasapi.ScalePcmAmplitude(scale);
+                } else if (mPreference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Shared
+                        && mPreference.SootheLimiterApo) {
                     // Limiter APO対策の音量制限。
-                    double maxAmplitude = ap.wasapi.ScanPcmMaxAbsAmplitude();
+                    double maxAmplitude = mAp.wasapi.ScanPcmMaxAbsAmplitude();
                     if (SHARED_MAX_AMPLITUDE < maxAmplitude) {
                         m_readFileWorker.ReportProgress(95, string.Format(CultureInfo.InvariantCulture, "Scaling amplitude by {0:0.000}dB ({1:0.000}x) to soothe Limiter APO...{2}",
                                 20.0 * Math.Log10(SHARED_MAX_AMPLITUDE / maxAmplitude), SHARED_MAX_AMPLITUDE / maxAmplitude, Environment.NewLine));
-                        ap.wasapi.ScalePcmAmplitude(SHARED_MAX_AMPLITUDE / maxAmplitude);
+                        mAp.wasapi.ScalePcmAmplitude(SHARED_MAX_AMPLITUDE / maxAmplitude);
                     }
                 }
 
-                ap.wasapi.AddPlayPcmDataEnd();
+                mAp.wasapi.AddPlayPcmDataEnd();
 
                 mPcmUtil = null;
 
@@ -148,7 +144,7 @@ namespace PlayPcmWin {
                 r.hr = 0;
                 args.Result = r;
 
-                m_loadedGroupId = readGroupId;
+                mLoadedGroupId = readGroupId;
 
                 // Console.WriteLine("D: ReadFileSingleDoWork({0}) done", readGroupId);
             } catch (IOException ex) {
@@ -164,11 +160,11 @@ namespace PlayPcmWin {
 
         private void ReadFileReportProgress(long readFrames, WasapiPcmUtil.PcmFormatConverter.BitsPerSampleConvArgs bpsConvArgs) {
             lock (m_readFileWorker) {
-                m_readProgressInfo.readFrames += readFrames;
-                var rpi = m_readProgressInfo;
+                mReadProgressInf.readFrames += readFrames;
+                var rpi = mReadProgressInf;
 
                 double loadCompletedPercent = 100.0;
-                if (m_preference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Shared) {
+                if (mPreference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Shared) {
                     loadCompletedPercent = 90.0;
                 }
 

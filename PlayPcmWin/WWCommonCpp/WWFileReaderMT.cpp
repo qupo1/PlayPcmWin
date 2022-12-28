@@ -1,15 +1,15 @@
-#include "WWFileReaderMT.h"
+ï»¿#include "WWFileReaderMT.h"
 #include <stdio.h>
 #include <assert.h>
 
-// IO Completion ports‚ğg—p‚µ‚ÄŒø—¦“I‚Éƒtƒ@ƒCƒ‹‚ğ“Ç‚İ‚Ü‚·B
-// QlFhttps://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports#:~:text=I%2FO%20completion%20ports%20provide%20an%20efficient%20threading%20model,whose%20sole%20purpose%20is%20to%20service%20these%20requests.
+// IO Completion portsã‚’ä½¿ç”¨ã—ã¦åŠ¹ç‡çš„ã«ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿ã¾ã™ã€‚
+// å‚è€ƒï¼šhttps://docs.microsoft.com/en-us/windows/win32/fileio/i-o-completion-ports#:~:text=I%2FO%20completion%20ports%20provide%20an%20efficient%20threading%20model,whose%20sole%20purpose%20is%20to%20service%20these%20requests.
 
 
-// ThreadPool‚ğg—p‚µA•¡”ƒXƒŒƒbƒh‚ÅŒ‹‰Ê‚ğó‚¯æ‚Á‚Äˆ—‚µ‚Ü‚·B
+// ThreadPoolã‚’ä½¿ç”¨ã—ã€è¤‡æ•°ã‚¹ãƒ¬ãƒƒãƒ‰ã§çµæœã‚’å—ã‘å–ã£ã¦å‡¦ç†ã—ã¾ã™ã€‚
 // Thread Pools https://docs.microsoft.com/en-us/windows/win32/procthread/thread-pools
 // CreateThreadpoolWork https://docs.microsoft.com/en-us/windows/win32/api/threadpoolapiset/nf-threadpoolapiset-createthreadpoolwork
-// CreateThreadpoolWork‚ÌƒR[ƒ‹ƒoƒbƒN https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms687396(v=vs.85)
+// CreateThreadpoolWorkã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms687396(v=vs.85)
 // IoCompletionCallback https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms684124(v=vs.85)
 // GetQueuedCompletionStatus https://docs.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-getqueuedcompletionstatus
 
@@ -30,7 +30,7 @@ WWFileReaderMT::Init(int nQueues)
 
     mNumOfQueues  = nQueues;
 
-    // ReadCtx‚ğì¬‚µ‚Ü‚·B
+    // ReadCtxã‚’ä½œæˆã—ã¾ã™ã€‚
     mReadCtx.resize(mNumOfQueues);
     int idx=0;
     for (auto & it=mReadCtx.begin(); it!=mReadCtx.end(); ++idx, ++it) {
@@ -47,7 +47,7 @@ WWFileReaderMT::Init(int nQueues)
         mWaitEventAry[i] = mReadCtx[i].waitEvent;
     }
 
-    // ThreadpoolAThreadpoolWork‚Í‰½“x‚àg‚¢‚Ü‚í‚¹‚é‚Ì‚ÅAÅ‰‚Éì¬‚µ‚Ü‚·B
+    // Threadpoolã€ThreadpoolWorkã¯ä½•åº¦ã‚‚ä½¿ã„ã¾ã‚ã›ã‚‹ã®ã§ã€æœ€åˆã«ä½œæˆã—ã¾ã™ã€‚
     mTp = CreateThreadpool(nullptr);
     if (nullptr == mTp) {
         hr = GetLastError();
@@ -86,14 +86,14 @@ WWFileReaderMT::Term(void)
         mTpWork = nullptr;
     }
 
-    // ReadCtx‚ğíœ‚µ‚Ü‚·B
+    // ReadCtxã‚’å‰Šé™¤ã—ã¾ã™ã€‚
     for (auto & it=mReadCtx.begin(); it!=mReadCtx.end(); ++it) {
         ReadCtx &rc = *it;
         rc.Term();
     }
     mReadCtx.clear();
 
-    // mReadCtx‚ª•Û‚·‚éWaitEvent‚Ìƒnƒ“ƒhƒ‹‚ğƒNƒ[ƒY‚µ–³Œø‰»‚µ‚½‚Ì‚ÅmWaitEventAry‚ª‚Á‚Ä‚¢‚éQÆ‚ğÁ‚µ‚Ü‚·B
+    // mReadCtxãŒä¿æŒã™ã‚‹WaitEventã®ãƒãƒ³ãƒ‰ãƒ«ã‚’ã‚¯ãƒ­ãƒ¼ã‚ºã—ç„¡åŠ¹åŒ–ã—ãŸã®ã§mWaitEventAryãŒæŒã£ã¦ã„ã‚‹å‚ç…§ã‚’æ¶ˆã—ã¾ã™ã€‚
     mWaitEventAry.clear();
 }
 
@@ -114,23 +114,23 @@ WWFileReaderMT::Open(const wchar_t *path)
             GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
             FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN | FILE_FLAG_OVERLAPPED, 0);
     if (mhFile == INVALID_HANDLE_VALUE) {
-        // ƒtƒ@ƒCƒ‹‚ªŠJ‚¯‚È‚¢B
+        // ãƒ•ã‚¡ã‚¤ãƒ«ãŒé–‹ã‘ãªã„ã€‚
         hr =  GetLastError();
         printf("Error: CreateFile failed %x\n", hr);
         goto end;
     }
 
-    // ƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹‚ÆIOCP‚Æ‚ğŠÖ˜A•t‚¯B
+    // ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨IOCPã¨ã‚’é–¢é€£ä»˜ã‘ã€‚
     assert(mhIocp == INVALID_HANDLE_VALUE);
     mhIocp = CreateIoCompletionPort(mhFile, nullptr, mCompletionKey, mNumOfQueues);
     if (mhIocp == INVALID_HANDLE_VALUE) {
-        // IOCPŠÖ˜A•t‚¯¸”sB
+        // IOCPé–¢é€£ä»˜ã‘å¤±æ•—ã€‚
         hr =  GetLastError();
         printf("Error: CreateIoCompletionPort failed %x\n", hr);
         goto end;
     }
 
-    // ƒtƒ@ƒCƒ‹ƒTƒCƒY‚ğ’²‚×‚Ü‚·B
+    // ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’èª¿ã¹ã¾ã™ã€‚
     br = GetFileSizeEx(mhFile, (PLARGE_INTEGER)&mFileSz);
     if (!br) {
         hr = GetLastError();
@@ -138,7 +138,7 @@ WWFileReaderMT::Open(const wchar_t *path)
         goto end;
     }
 
-    // ¬Œ÷B
+    // æˆåŠŸã€‚
     hr = S_OK;
 
 end:
@@ -156,7 +156,7 @@ WWFileReaderMT::Close(void)
         CloseHandle(mhFile);
         mhFile = INVALID_HANDLE_VALUE;
 
-        // ƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹‚ÆIOCP‚ÌŠÖ˜A•t‚¯‚ª–³‚­‚È‚éBIOCP‚Í‘¼‚Ì—p“r‚Ég—p‚Å‚«‚È‚¢‚Ì‚ÅACloseHandle‚µ‚Ü‚·B
+        // ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨IOCPã®é–¢é€£ä»˜ã‘ãŒç„¡ããªã‚‹ã€‚IOCPã¯ä»–ã®ç”¨é€”ã«ä½¿ç”¨ã§ããªã„ã®ã§ã€CloseHandleã—ã¾ã™ã€‚
         CloseHandle(mhIocp);
         mhIocp = INVALID_HANDLE_VALUE;
     }
@@ -174,7 +174,7 @@ SetReadOffsetToOverlappedMember(int64_t offs, OVERLAPPED &ol)
     ol.OffsetHigh = posLH.HighPart;
 }
 
-// –¢g—p‚ÌReadCtx‚ğ’T‚µ‚Ü‚·B–³‚¢‚Æ‚«nullptrB
+// æœªä½¿ç”¨ã®ReadCtxã‚’æ¢ã—ã¾ã™ã€‚ç„¡ã„ã¨ãnullptrã€‚
 WWFileReaderMT::ReadCtx *
 WWFileReaderMT::FindAvailableReadCtx(void)
 {
@@ -213,7 +213,7 @@ WWFileReaderMT::WaitAnyThreadCompletion(int *idx_return)
 
     *idx_return = -1;
 
-    // ‚Ç‚ê‚©‚ÌƒXƒŒƒbƒh‚ªI‚í‚é‚Ü‚Å‘Ò‚ÂB
+    // ã©ã‚Œã‹ã®ã‚¹ãƒ¬ãƒƒãƒ‰ãŒçµ‚ã‚ã‚‹ã¾ã§å¾…ã¤ã€‚
     DWORD r = WaitForMultipleObjects((DWORD)mWaitEventAry.size(), &mWaitEventAry[0], FALSE, INFINITE);
     if (WAIT_FAILED == r) {
         hr = GetLastError();
@@ -244,13 +244,13 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
     for (int64_t cnt=0; cnt<bytes; cnt+= mReadFragmentSz, fileOffset += mReadFragmentSz) {
         ReadCtx  *rc = FindAvailableReadCtx();
         if (nullptr == rc) {
-            // 1ŒÂIO‚ªI‚í‚é‚Ü‚Å‘Ò‚¿‚Ü‚·B
+            // 1å€‹IOãŒçµ‚ã‚ã‚‹ã¾ã§å¾…ã¡ã¾ã™ã€‚
             hr = WaitAnyThreadCompletion(&idx);
             if (FAILED(hr)) {
                 printf("Read WaitIOCompletion failed %x\n", hr);
                 return E_FAIL;
             }
-            // ¬Œ÷B
+            // æˆåŠŸã€‚
             assert(0 <= idx && idx < (int)mReadCtx.size());
             rc = &mReadCtx[idx];
             assert(rc->isUsed == false);
@@ -258,7 +258,7 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
 
         rc->isUsed = true;
 
-        // “Ç‚İo‚µŠJnˆÊ’u‚ÌƒZƒbƒgB
+        // èª­ã¿å‡ºã—é–‹å§‹ä½ç½®ã®ã‚»ãƒƒãƒˆã€‚
         SetReadOffsetToOverlappedMember(fileOffset, rc->overlapped);
 
         int wantBytes = mReadFragmentSz;
@@ -270,9 +270,10 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
         rc->bytesFromReadStart = cnt;
         rc->readBytes = wantBytes;
 
-        // “Ç‚İo‚µŠJnB
+        // èª­ã¿å‡ºã—é–‹å§‹ã€‚
         br = ReadFile(mhFile, rc->buf, wantBytes, nullptr, &rc->overlapped);
         if (!br) {
+            // PENDING(æ­£å¸¸)ã®å ´åˆã‚‚æœ‰ã‚Šå¾—ã‚‹ã€‚
             hr = GetLastError();
             if (hr != ERROR_IO_PENDING) {
                 printf("Error: FileReader::Read ReadFile failed %d\n", hr);
@@ -280,7 +281,7 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
             }
         }
 
-        // ƒXƒŒƒbƒh‚ğ‹N“®‚µ“Ç‚İo‚µŠ®—¹‚ğ‘Ò‚¿‚Ü‚·B
+        // ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’èµ·å‹•ã—èª­ã¿å‡ºã—å®Œäº†ã‚’å¾…ã¡ã¾ã™ã€‚
         SubmitThreadpoolWork(mTpWork);
     }
 
@@ -295,7 +296,7 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
     return S_OK;
 }
 
-// IO“Ç‚İo‚µŠ®—¹Œãˆ—‚ÌƒXƒŒƒbƒhB
+// IOèª­ã¿å‡ºã—å®Œäº†å¾Œå‡¦ç†ã®ã‚¹ãƒ¬ãƒƒãƒ‰ã€‚
 void
 WWFileReaderMT::ioCallback(void)
 {
@@ -305,7 +306,7 @@ WWFileReaderMT::ioCallback(void)
     BOOL br = FALSE;
     HRESULT hr = E_FAIL;
 
-    // ‰½‚ê‚©‚Ì“Ç‚İo‚µ‚ªŠ®—¹‚·‚é‚Ü‚Å‘Ò‚¿‚Ü‚·B
+    // ä½•ã‚Œã‹ã®èª­ã¿å‡ºã—ãŒå®Œäº†ã™ã‚‹ã¾ã§å¾…ã¡ã¾ã™ã€‚
     br = GetQueuedCompletionStatus(mhIocp, &bytesXfer, &ulKey, &overlapped, INFINITE);
     if (!br) {
         hr = GetLastError();
@@ -317,14 +318,14 @@ WWFileReaderMT::ioCallback(void)
         }
     }
 
-    // IOŠ®—¹ƒR[ƒ‹ƒoƒbƒNB
+    // IOå®Œäº†ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã€‚
     ReadCtx *pRC = (ReadCtx*)overlapped;
 
-    // ƒLƒ…[‚É“ü‚é‚Æ‚«‚ÍFIFO‡‚¾‚ªA
-    // o‚Ä‚­‚é‡”Ô‚Í•s’èI
+    // ã‚­ãƒ¥ãƒ¼ã«å…¥ã‚‹ã¨ãã¯FIFOé †ã ãŒã€
+    // å‡ºã¦ãã‚‹é †ç•ªã¯ä¸å®šï¼
     // printf("%d ", pRC->idx);
 
-    // “Ç‚İo‚µŠ®—¹‚µ‚½‚Ì‚ÅƒR[ƒ‹ƒoƒbƒN‚ğŒÄ‚Ñ‚Ü‚·B
+    // èª­ã¿å‡ºã—å®Œäº†ã—ãŸã®ã§ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’å‘¼ã³ã¾ã™ã€‚
     mReadCompletedCB(pRC->fileOffset, pRC->bytesFromReadStart, pRC->buf, pRC->readBytes, mTag);
 
     pRC->isUsed = false;

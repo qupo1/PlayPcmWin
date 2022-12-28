@@ -1,4 +1,4 @@
-#include "WWSettings.h"
+Ôªø#include "WWSettings.h"
 #include "SimpleIni/SimpleIni.h"
 #include <ShlObj.h>
 #include <assert.h>
@@ -10,11 +10,11 @@ public:
 
 static const wchar_t * DEFAULT_SECTION = L"Common";
 
-// Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°
+// ‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†‚ñ†
 
 WWSettings::~WWSettings(void)
 {
-    assert(mImpl == nullptr); //< TermÇåƒÇ—ñYÇÍÇÈÇ∆î≠ê∂Ç∑ÇÈÅB
+    assert(mImpl == nullptr); //< Term„ÇíÂëº„Å≥Âøò„Çå„Çã„Å®Áô∫Áîü„Åô„Çã„ÄÇ
 }
 
 int
@@ -36,7 +36,7 @@ WWSettings::Init(const wchar_t *programName)
     CoTaskMemFree(localAppFolder);
     localAppFolder = nullptr;
 
-    // ÉfÉBÉåÉNÉgÉäçÏÇÈÅB
+    // „Éá„Ç£„É¨„ÇØ„Éà„É™‰Ωú„Çã„ÄÇ
     hr = CreateDirectory(mFolderPath, nullptr);
     if (hr == ERROR_ALREADY_EXISTS) {
         hr = S_OK;
@@ -46,7 +46,7 @@ WWSettings::Init(const wchar_t *programName)
         return hr;
     }
 
-    // ÉtÉ@ÉCÉãçÏÇÈÅB
+    // „Éï„Ç°„Ç§„É´‰Ωú„Çã„ÄÇ
     swprintf_s(mFilePath, L"%s\\%s.ini", mFolderPath, programName);
 
     mImpl = new WWSettingsImpl();

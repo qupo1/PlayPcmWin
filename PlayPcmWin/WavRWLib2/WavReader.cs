@@ -7,20 +7,32 @@ using System.Diagnostics;
 
 namespace WavRWLib2 {
     public class WavReader {
-        class DataSubChunk {
+        public class DataSubChunk {
+            /// <summary>
+            /// Dataチャンクに書かれていたチャンクサイズ。
+            /// 値が間違っていることがある。
+            /// NumFrames変数には訂正後の値が入っており信用できる。
+            /// </summary>
             public uint ChunkSize { get; set; }
 
-            private LargeArray<byte> mRawData;
-
             /// <summary>
-            /// ファイル先頭から、このデータチャンクのPCMデータ先頭までのオフセット
+            /// Dataチャンクに入っていたPCMデータ。
             /// </summary>
-            public long Offset { get; set; }
-            public long NumFrames { get; set; }
-
+            private LargeArray<byte> mRawData;
             public LargeArray<byte> GetSampleLargeArray() {
                 return mRawData;
             }
+
+            /// <summary>
+            /// ファイル先頭から、このデータチャンクのPCMデータ先頭までのオフセット。
+            /// </summary>
+            public long Offset { get; set; }
+
+            /// <summary>
+            /// このdata chunkに入っているPCMのフレーム数。
+            /// ファイルサイズよりも大きい場合等、正しくない値が入っている場合は訂正される。
+            /// </summary>
+            public long NumFrames { get; set; }
 
             /// <summary>
             /// dataチャンクのヘッダ部分だけを読む。
@@ -44,7 +56,7 @@ namespace WavRWLib2 {
             }
 
             /// <summary>
-            /// PCMデータを無加工で読み出す。
+            /// DataチャンクからPCMデータを無加工で読み出す。
             /// </summary>
             /// <param name="startFrame">0を指定すると最初から。</param>
             /// <param name="endFrame">負の値を指定するとファイルの最後まで。</param>
@@ -100,6 +112,16 @@ namespace WavRWLib2 {
         }
 
         private List<DataSubChunk>  mDscList = new List<DataSubChunk>();
+
+        /// <summary>
+        /// Dataサブチャンクのリスト。
+        /// 1個のWAVファイル内にDataサブチャンクが複数存在することがある。
+        /// </summary>
+        public List<DataSubChunk> DscList() {
+            return mDscList;
+        }
+
+
         private PcmDataLib.ID3Reader mId3Reader = new PcmDataLib.ID3Reader();
 
         /// <summary>
@@ -139,7 +161,6 @@ namespace WavRWLib2 {
         public long Ds64RiffSize { get; set; }
         public long Ds64DataSize { get; set; }
         public long Ds64SampleCount { get; set; }
-        private List<long> mDs64Table;
 
         private enum ReadMode {
             HeaderAndPcmData,
@@ -148,6 +169,21 @@ namespace WavRWLib2 {
 
         // 大体100テラバイトぐらい
         const long INT64_DATA_SIZE_LIMIT = 0x0000ffffffffffffL;
+
+        public int FmtSubChunkSize { get; set; }
+
+        public enum DataType {
+            PCM,
+            DoP
+        };
+
+        /// <summary>
+        /// DoP or PCM
+        /// </summary>
+        public DataType SampleDataType { get; set; }
+
+        int mCurrentDsc = -1;
+        long mDscPosFrame = 0;
 
         public long ReadRiffChunk(BinaryReader br, byte[] chunkId) {
             if (!PcmDataLib.PcmDataUtil.FourCCHeaderIs(chunkId, 0, "RIFF") &&
@@ -172,8 +208,6 @@ namespace WavRWLib2 {
 
             return 8;
         }
-
-        public int FmtSubChunkSize { get; set; }
 
         private long ReadFmtChunk(BinaryReader br, byte[] fourcc) {
             if (!PcmDataLib.PcmDataUtil.FourCCHeaderIs(fourcc, 0, "fmt ")) {
@@ -314,13 +348,11 @@ namespace WavRWLib2 {
                 return 0;
             }
 
-            mDs64Table = new List<long>();
             uint tableLength = br.ReadUInt32();
             for (uint i=0; i < tableLength; ++i) {
-                // 何に使うのかわからないが、取っておく。
+                // 何に使うのかわからない。捨てます。
                 byte[] id = br.ReadBytes(4);
                 long v = br.ReadInt64();
-                mDs64Table.Add(v);
             }
 
             // chunkSize情報自体のサイズ4バイトを足す
@@ -473,16 +505,6 @@ namespace WavRWLib2 {
 
             return result;
         }
-
-        public enum DataType {
-            PCM,
-            DoP
-        };
-
-        /// <summary>
-        /// DoP or PCM
-        /// </summary>
-        public DataType SampleDataType { get; set; }
 
         /// <summary>
         /// DoPマーカーが出てくるか調べ、SampleDataTypeを確定する。
@@ -680,9 +702,6 @@ namespace WavRWLib2 {
             return mDscList[0].GetSampleLargeArray();
         }
 
-        int mCurrentDsc = -1;
-        long mDscPosFrame = 0;
-
         public bool ReadStreamBegin(BinaryReader br, out PcmDataLib.PcmData pcmData) {
             if (!ReadHeader(br)) {
                 pcmData = new PcmDataLib.PcmData();
@@ -700,7 +719,6 @@ namespace WavRWLib2 {
             // 最初のDSCまでシークする。
             return ReadStreamSkip(br, 0);
         }
-
 
         public bool ReadStreamSkip(BinaryReader br, long skipFrames) {
             int frameBytes = BitsPerSample / 8 * NumChannels;

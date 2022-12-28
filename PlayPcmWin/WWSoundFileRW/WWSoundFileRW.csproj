@@ -73,7 +73,7 @@
     <Compile Include="M3uRW.cs" />
     <Compile Include="Mp3Reader.cs" />
     <Compile Include="WWPcmHeaderReader.cs" />
-    <Compile Include="PcmReader.cs" />
+    <Compile Include="WWSoundFileReader.cs" />
     <Compile Include="IPlaylistReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WWPlaylistItem.cs" />

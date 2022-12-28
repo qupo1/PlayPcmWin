@@ -91,20 +91,20 @@ namespace PlayPcmWin {
                         // 再生曲切り替え。
                         if (buttonPlay.IsEnabled && !buttonStop.IsEnabled) {
                             ButtonPlayClicked();
-                        } else if (m_state == State.再生一時停止中) {
+                        } else if (mState == State.再生一時停止中) {
                             // 一時停止中は一時停止ボタンを押すと再生再開する。
                             ButtonPauseClicked();
                         }
 
                         if (0 <= cmd.trackIdx && cmd.trackIdx < dataGridPlayList.Items.Count) {
-                            m_playListMouseDown = true;
+                            mPlayListMouseDown = true;
                             dataGridPlayList.SelectedIndex = cmd.trackIdx;
                         }
                         break;
                     case RemoteCommandType.SelectTrack:
                         // 再生曲切り替え。
                         if (0 <= cmd.trackIdx && cmd.trackIdx < dataGridPlayList.Items.Count) {
-                            m_playListMouseDown = true;
+                            mPlayListMouseDown = true;
                             dataGridPlayList.SelectedIndex = cmd.trackIdx;
                         }
                         break;
@@ -118,7 +118,7 @@ namespace PlayPcmWin {
                             double ratio = (double)cmd.positionMillisec / cmd.trackMillisec;
                             long pos = (long)(ratio * slider1.Maximum);
                             //Console.WriteLine("SEEK {0} {1} {2}", ratio, slider1.Maximum, pos);
-                            ap.wasapi.SetPosFrame(pos);
+                            mAp.wasapi.SetPosFrame(pos);
                         }
                         // TODO
                         break;
@@ -138,7 +138,7 @@ namespace PlayPcmWin {
             cmd.trackIdx = dataGridPlayList.SelectedIndex;
 
             // 大体の再生状態。
-            switch (m_state) {
+            switch (mState) {
             case State.再生中:
                 cmd.state = RemoteCommand.PlaybackState.Playing; break;
             case State.再生一時停止中:
@@ -147,7 +147,7 @@ namespace PlayPcmWin {
                 cmd.state = RemoteCommand.PlaybackState.Stopped; break;
             }
 
-            foreach (var a in m_playListItems) {
+            foreach (var a in mPlayListItems) {
                 int sampleRate = a.PcmData().SampleRate;
                 int bitDepth = a.PcmData().ValidBitsPerSample;
                 if (a.PcmData().SampleDataType == PcmData.DataType.DoP) {

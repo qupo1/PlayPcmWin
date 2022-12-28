@@ -1,4 +1,4 @@
-#include "WWNativeWavReader.h"
+ï»¿#include "WWNativeWavReader.h"
 #include "WWPcmFmtConverter.h"
 
 
@@ -17,6 +17,7 @@ WWNativeWavReader::Init(void)
 
 void WWNativeWavReader::Term(void)
 {
+    mChannelMap.clear();
     mFileReader.Term();
 }
 
@@ -37,6 +38,7 @@ WWNativeWavReader::PcmReadStart(
     mOrigPcmFmt = origPcmFmt;
     mTgtPcmFmt  = tgtPcmFmt;
 
+    mChannelMap.clear();
     if (nullptr == channelMap) {
         for (int ch=0;ch<mTgtPcmFmt.numChannels; ++ch) {
             mChannelMap.push_back(ch);
@@ -88,13 +90,14 @@ WWNativeWavReader::PcmReadOne(const int64_t fileOffset, const int64_t sampleCoun
 void
 WWNativeWavReader::PcmReadEnd(void)
 {
+    mChannelMap.clear();
     mFileReader.Close();
 }
 
 void
 WWNativeWavReader::ReadCompleted(const uint64_t fileOffset, const uint64_t readOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo)
 {
-    // “Ç‚Ýo‚µŠ®—¹Žžˆ—B
+    // èª­ã¿å‡ºã—å®Œäº†æ™‚å‡¦ç†ã€‚
     printf("offs=%llx bufFrom=%p bufTo=%p bytes=%x\n", readOffset, bufFrom, bufTo, bytes);
 
     const int64_t numFrames = bytes / mOrigPcmFmt.ContainerBytesPerFrame();

@@ -105,7 +105,7 @@ namespace PlayPcmWin {
                 pcmDataIdxArray[b] = tmp;
             }
 
-            // ap.PcmDataListForPlayを作成。
+            // mAp.PcmDataListForPlayを作成。
             m_pcmDataListForPlay = new PcmDataList();
             for (int i=0; i < pcmDataIdxArray.Length; ++i) {
                 var idx = pcmDataIdxArray[i];
