@@ -1,4 +1,4 @@
-#include "WWNativeWavReader.h"
+ï»¿#include "WWNativeWavReader.h"
 #include "WWNativePcmFmt.h"
 #include <stdio.h>
 #include <Windows.h>
@@ -23,7 +23,7 @@ struct WavFileInf {
     WWNativePcmFmt pcmFmt;
     int64_t numFrames;
 
-    /// ƒtƒ@ƒCƒ‹æ“ª‚©‚çPCMƒf[ƒ^‚Ìæ“ª‚Ü‚Å‚ÌƒIƒtƒZƒbƒgB
+    /// ãƒ•ã‚¡ã‚¤ãƒ«å…ˆé ­ã‹ã‚‰PCMãƒ‡ãƒ¼ã‚¿ã®å…ˆé ­ã¾ã§ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã€‚
     int64_t pcmDataOffset;
 };
 
@@ -46,12 +46,12 @@ SkipToSpecifiedHeader(FILE *fp, const char *fourcc, uint32_t *payloadBytes_out)
         }
 
         if (0 == memcmp(uh.fourcc, fourcc, 4)) {
-            // ”­Œ©B
+            // ç™ºè¦‹ã€‚
             *payloadBytes_out = uh.bytes;
             return S_OK;
         }
 
-        // Ÿ‚Ìƒwƒbƒ_‚ÉˆÚ“®B
+        // æ¬¡ã®ãƒ˜ãƒƒãƒ€ã«ç§»å‹•ã€‚
         int r = fseek(fp, uh.bytes, SEEK_CUR);
         if (0 != r) {
             printf("Error: find data header failed\n");
@@ -172,13 +172,13 @@ Run(const wchar_t * path)
         return hr;
     }
 
-    // WAVƒtƒ@ƒCƒ‹ƒwƒbƒ_‚ğ“Ç‚İƒtƒH[ƒ}ƒbƒg‚ğ’²‚×‚Ü‚·B
+    // WAVãƒ•ã‚¡ã‚¤ãƒ«ãƒ˜ãƒƒãƒ€ã‚’èª­ã¿ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’èª¿ã¹ã¾ã™ã€‚
     hr = ReadWavHeader(path, &wfi);
     if (FAILED(hr)) {
         return hr;
     }
 
-    // Target Format‚ğŒˆ‚ß‚Ü‚·B
+    // Target Formatã‚’æ±ºã‚ã¾ã™ã€‚
     tgtFmt = wfi.pcmFmt;
     tgtFmt.containerBitDepth = 32;
     tgtFmt.validBitDepth = 24;
