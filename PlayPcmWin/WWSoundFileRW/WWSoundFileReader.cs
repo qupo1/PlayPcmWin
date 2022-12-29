@@ -27,34 +27,37 @@ namespace WWSoundFileRW {
             public bool mUseNativeReader = false;
             public IntPtr mBuf = new IntPtr();
             public long mFileOffset = 0;
+            public int mSrcBytesPerFrame = 0;
             public int mTgtBytesPerFrame = 0;
 
-            public int ReadBegin(string path, long fileOffset, SoundFilePcmFmt origF, SoundFilePcmFmt tgtF) {
+            public int ReadBegin(string path, long fileOffset, SoundFilePcmFmt srcF, SoundFilePcmFmt tgtF) {
                 mFileOffset = fileOffset;
                 mUseNativeReader = true;
+                mSrcBytesPerFrame = srcF.BytesPerFrame;
                 mTgtBytesPerFrame = tgtF.BytesPerFrame;
                 mNSFR = new WWNativeSoundFileReader();
                 mNSFR.Init();
                 mBuf = mNSFR.AllocNativeBuffer(TYPICAL_READ_FRAMES * mTgtBytesPerFrame);
                 return mNSFR.ReadBegin(path,
-                    SoundFilePcmFmtToWWNativePcmFmt(origF),
+                    SoundFilePcmFmtToWWNativePcmFmt(srcF),
                     SoundFilePcmFmtToWWNativePcmFmt(tgtF), null);
             }
 
-            public byte [] ReadOne(int preferredFrames) {
-                if (TYPICAL_READ_FRAMES < preferredFrames) {
+            public byte [] ReadOne(int readFrames) {
+                if (TYPICAL_READ_FRAMES < readFrames) {
                     throw new InternalBufferOverflowException();
                 }
 
-                int rv = mNSFR.ReadOne(mFileOffset, preferredFrames, mBuf, 0);
+                int rv = mNSFR.ReadOne(mFileOffset, readFrames, mBuf, 0);
                 if (0 <= rv) {
                     // 成功。
-                    int bytes = preferredFrames * mTgtBytesPerFrame;
+                    int srcBytes = readFrames * mSrcBytesPerFrame;
+                    int tgtBytes = readFrames * mTgtBytesPerFrame;
                     
-                    var r = new byte[bytes];
-                    System.Runtime.InteropServices.Marshal.Copy(mBuf, r, 0, bytes);
+                    var r = new byte[tgtBytes];
+                    System.Runtime.InteropServices.Marshal.Copy(mBuf, r, 0, tgtBytes);
                     
-                    mFileOffset += bytes;
+                    mFileOffset += srcBytes;
 
                     return r;
                 } else {
@@ -188,7 +191,7 @@ namespace WWSoundFileRW {
         public int StreamBegin(
                 PcmDataLib.PcmData pdCopy,
                 string path,
-                long startFrame, long wantFrames, int typicalReadFrames,
+                long startFrame, long wantFrames,
                 SoundFilePcmFmt desiredFmt) {
 
             var fmt = GuessFileFormatFromFilePath(path);
@@ -231,7 +234,7 @@ namespace WWSoundFileRW {
         /// <summary>
         /// PCMデータを読み出す。
         /// </summary>
-        /// <param name="preferredFrames">読み込みたいフレーム数(オリジナルSRでフレーム数を数える)。48の倍数が良い。6Mフレームぐらいにすると良い。(このフレーム数のデータが戻るとは限らない)</param>
+        /// <param name="readFrames">読み込みたいフレーム数(オリジナルSRでフレーム数を数える)。48の倍数が良い。6Mフレームぐらいにすると良い。(このフレーム数のデータが戻るとは限らない)</param>
         /// <returns>PCMデータが詰まったバイト列。0要素の配列の場合、もう終わり。</returns>
         public byte[] StreamReadOne(int preferredFrames, out int ercd) {
             ercd = 0;
@@ -239,36 +242,36 @@ namespace WWSoundFileRW {
             // FLACのデコーダーはエラーコードを戻すことがある。
             // 他のデコーダーは、データ領域に構造がないので読み出しエラーは特にない。System.IOExceptionが起きることはある。
 
-            byte[] result;
+            byte[] r;
             switch (m_format) {
             case Format.FLAC:
-                result = mFlacR.ReadStreamReadOne(preferredFrames, out ercd);
+                r = mFlacR.ReadStreamReadOne(preferredFrames, out ercd);
                 break;
             case Format.AIFF:
-                result = mAiffR.ReadStreamReadOne(mBr, preferredFrames);
+                r = mAiffR.ReadStreamReadOne(mBr, preferredFrames);
                 break;
             case Format.WAVE:
-                result = ReadOneWav(preferredFrames);
+                r = ReadOneWav(preferredFrames);
                 break;
             case Format.DSF:
-                result = mDsfR.ReadStreamReadOne(mBr, preferredFrames);
+                r = mDsfR.ReadStreamReadOne(mBr, preferredFrames);
                 break;
             case Format.DSDIFF:
-                result = mDsdiffR.ReadStreamReadOne(mBr, preferredFrames);
+                r = mDsdiffR.ReadStreamReadOne(mBr, preferredFrames);
                 break;
             case Format.MP3:
                 if (int.MaxValue < mMp3Reader.data.LongLength) {
-                    result = new byte[0];
+                    r = new byte[0];
                 } else {
-                    result = mMp3Reader.data.ToArray();
+                    r = mMp3Reader.data.ToArray();
                 }
                 break;
             default:
                 System.Diagnostics.Debug.Assert(false);
-                result = new byte[0];
+                r = new byte[0];
                 break;
             }
-            return result;
+            return r;
         }
 
         public void StreamAbort() {

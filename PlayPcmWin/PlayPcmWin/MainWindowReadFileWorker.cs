@@ -7,25 +7,25 @@ using WasapiPcmUtil;
 
 namespace PlayPcmWin {
     public sealed partial class MainWindow : Window {
-        private BackgroundWorker m_readFileWorker;
+        private BackgroundWorker mReadFileWorker;
 
         private void ReadFileWorkerSetup() {
-            m_readFileWorker = new BackgroundWorker();
-            m_readFileWorker.DoWork += new DoWorkEventHandler(ReadFileDoWork);
-            m_readFileWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ReadFileRunWorkerCompleted);
-            m_readFileWorker.WorkerReportsProgress = true;
-            m_readFileWorker.ProgressChanged += new ProgressChangedEventHandler(ReadFileWorkerProgressChanged);
-            m_readFileWorker.WorkerSupportsCancellation = true;
+            mReadFileWorker = new BackgroundWorker();
+            mReadFileWorker.DoWork += new DoWorkEventHandler(ReadFileDoWork);
+            mReadFileWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ReadFileRunWorkerCompleted);
+            mReadFileWorker.WorkerReportsProgress = true;
+            mReadFileWorker.ProgressChanged += new ProgressChangedEventHandler(ReadFileWorkerProgressChanged);
+            mReadFileWorker.WorkerSupportsCancellation = true;
 
         }
 
         private void ReadFileWorkerRunAsync(int loadGroupId) {
-            m_readFileWorker.RunWorkerAsync(loadGroupId);
+            mReadFileWorker.RunWorkerAsync(loadGroupId);
         }
 
         private void ReadFileWorkerCancelBlocking() {
-            m_readFileWorker.CancelAsync();
-            while (m_readFileWorker.IsBusy) {
+            mReadFileWorker.CancelAsync();
+            while (mReadFileWorker.IsBusy) {
                 System.Windows.Threading.Dispatcher.CurrentDispatcher.Invoke(
                         System.Windows.Threading.DispatcherPriority.Background,
                         new System.Threading.ThreadStart(delegate { }));
@@ -35,7 +35,7 @@ namespace PlayPcmWin {
 
         /// <summary>
         ///  バックグラウンド読み込み。
-        ///  m_readFileWorker.RunWorkerAsync(読み込むgroupId)で開始する。
+        ///  mReadFileWorker.RunWorkerAsync(読み込むgroupId)で開始する。
         ///  完了するとReadFileRunWorkerCompletedが呼ばれる。
         /// </summary>
         private void ReadFileDoWork(object o, DoWorkEventArgs args) {
@@ -46,12 +46,12 @@ namespace PlayPcmWin {
 
             WWSoundFileRW.WWSoundFileReader.CalcMD5SumIfAvailable = mPreference.VerifyFlacMD5Sum;
 
-            ReadFileRunWorkerCompletedArgs r = new ReadFileRunWorkerCompletedArgs();
+            var r = new ReadFileRunWorkerCompletedArgs();
             try {
                 r.hr = -1;
                 r.message = string.Empty;
 
-                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                var sw = new System.Diagnostics.Stopwatch();
                 sw.Start();
 
                 mReadProgressInf = new ReadProgressInf(
@@ -108,7 +108,7 @@ namespace PlayPcmWin {
                 // サンプルレートの変更。
 
                 if (mPreference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Shared) {
-                    m_readFileWorker.ReportProgress(90, string.Format(CultureInfo.InvariantCulture, "Resampling...{0}", Environment.NewLine));
+                    mReadFileWorker.ReportProgress(90, string.Format(CultureInfo.InvariantCulture, "Resampling...{0}", Environment.NewLine));
                 }
                 r.hr = mAp.wasapi.ResampleIfNeeded(mDeviceSetupParams.ResamplerConversionQuality);
                 if (r.hr < 0) {
@@ -128,7 +128,7 @@ namespace PlayPcmWin {
                     // Limiter APO対策の音量制限。
                     double maxAmplitude = mAp.wasapi.ScanPcmMaxAbsAmplitude();
                     if (SHARED_MAX_AMPLITUDE < maxAmplitude) {
-                        m_readFileWorker.ReportProgress(95, string.Format(CultureInfo.InvariantCulture, "Scaling amplitude by {0:0.000}dB ({1:0.000}x) to soothe Limiter APO...{2}",
+                        mReadFileWorker.ReportProgress(95, string.Format(CultureInfo.InvariantCulture, "Scaling amplitude by {0:0.000}dB ({1:0.000}x) to soothe Limiter APO...{2}",
                                 20.0 * Math.Log10(SHARED_MAX_AMPLITUDE / maxAmplitude), SHARED_MAX_AMPLITUDE / maxAmplitude, Environment.NewLine));
                         mAp.wasapi.ScalePcmAmplitude(SHARED_MAX_AMPLITUDE / maxAmplitude);
                     }
@@ -159,7 +159,7 @@ namespace PlayPcmWin {
         }
 
         private void ReadFileReportProgress(long readFrames, WasapiPcmUtil.PcmFormatConverter.BitsPerSampleConvArgs bpsConvArgs) {
-            lock (m_readFileWorker) {
+            lock (mReadFileWorker) {
                 mReadProgressInf.readFrames += readFrames;
                 var rpi = mReadProgressInf;
 
@@ -169,10 +169,10 @@ namespace PlayPcmWin {
                 }
 
                 double progressPercentage = loadCompletedPercent * (rpi.trackCount + (double)rpi.readFrames / rpi.WantFramesTotal) / rpi.trackNum;
-                m_readFileWorker.ReportProgress((int)progressPercentage, string.Empty);
+                mReadFileWorker.ReportProgress((int)progressPercentage, string.Empty);
                 /* 頻繁に(1Hz以上の頻度で)Log文字列を更新すると描画が止まることがあるので止めた。
                 if (bpsConvArgs != null && bpsConvArgs.noiseShapingOrDitherPerformed) {
-                    m_readFileWorker.ReportProgress((int)progressPercentage, string.Format(CultureInfo.InvariantCulture,
+                    mReadFileWorker.ReportProgress((int)progressPercentage, string.Format(CultureInfo.InvariantCulture,
                             "{0} {1}/{2} frames done{3}",
                             bpsConvArgs.noiseShaping, rpi.readFrames, rpi.WantFramesTotal, Environment.NewLine));
                 }

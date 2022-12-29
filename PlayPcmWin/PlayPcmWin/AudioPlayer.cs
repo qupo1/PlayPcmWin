@@ -19,7 +19,7 @@ namespace PlayPcmWin {
 
         public WasapiCS wasapi;
 
-        private BackgroundWorker m_playWorker;
+        private BackgroundWorker mPlayWorker;
 
         /// <summary>
         /// true: 再生停止 無音を送出してから停止する
@@ -27,12 +27,12 @@ namespace PlayPcmWin {
         private bool m_bStopGently;
 
         public AudioPlayer() {
-            m_playWorker = new BackgroundWorker();
-            m_playWorker.WorkerReportsProgress = true;
-            m_playWorker.DoWork += new DoWorkEventHandler(PlayDoWork);
-            m_playWorker.ProgressChanged += new ProgressChangedEventHandler(PlayProgressChanged);
-            m_playWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(PlayRunWorkerCompleted);
-            m_playWorker.WorkerSupportsCancellation = true;
+            mPlayWorker = new BackgroundWorker();
+            mPlayWorker.WorkerReportsProgress = true;
+            mPlayWorker.DoWork += new DoWorkEventHandler(PlayDoWork);
+            mPlayWorker.ProgressChanged += new ProgressChangedEventHandler(PlayProgressChanged);
+            mPlayWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(PlayRunWorkerCompleted);
+            mPlayWorker.WorkerSupportsCancellation = true;
         }
 
         public int WasapiInit() {
@@ -194,7 +194,7 @@ namespace PlayPcmWin {
             bool cancelProcessed = false;
 
             while (!wasapi.Run(PROGRESS_REPORT_INTERVAL_MS)) {
-                m_playWorker.ReportProgress(0);
+                mPlayWorker.ReportProgress(0);
 
                 System.Threading.Thread.Sleep(1);
                 if (bw.CancellationPending && !cancelProcessed) {
@@ -223,7 +223,7 @@ namespace PlayPcmWin {
         }
 
         private void PlayProgressChanged(object sender, ProgressChangedEventArgs e) {
-            var ev = new PlayEvent(PlayEventType.ProgressChanged ,0, m_playWorker);
+            var ev = new PlayEvent(PlayEventType.ProgressChanged ,0, mPlayWorker);
             CallEventCallback(ev);
         }
 
@@ -236,7 +236,7 @@ namespace PlayPcmWin {
             }
 
             PlayEventType t = (e.Cancelled) ? PlayEventType.Canceled : PlayEventType.Finished;
-            var ev = new PlayEvent(t, r.hr, m_playWorker);
+            var ev = new PlayEvent(t, r.hr, mPlayWorker);
             CallEventCallback(ev);
         }
 
@@ -249,7 +249,7 @@ namespace PlayPcmWin {
         private void StartPlayWorker(PlayEventCallback cb) {
             m_playEventCb = cb;
 
-            m_playWorker.RunWorkerAsync();
+            mPlayWorker.RunWorkerAsync();
         }
 
         public void SetPlayEventCallback(PlayEventCallback cb) {
@@ -257,7 +257,7 @@ namespace PlayPcmWin {
         }
 
         public bool IsPlayWorkerBusy() {
-            return m_playWorker.IsBusy;
+            return mPlayWorker.IsBusy;
         }
 
         public int StartPlayback(int wavDataId, PlayEventCallback cb) {
@@ -268,12 +268,12 @@ namespace PlayPcmWin {
 
         /// 再生を停止し、再生ワーカースレッドをキャンセルする。ワーカースレッドの停止を待合せる。
         public bool PlayStop(bool stopGently) {
-            if (m_playWorker.IsBusy) {
+            if (mPlayWorker.IsBusy) {
                 m_bStopGently = stopGently;
-                m_playWorker.CancelAsync();
+                mPlayWorker.CancelAsync();
 
                 // バックグラウンドスレッドにjoinして、完全に止まるまで待ち合わせする。
-                while (m_playWorker.IsBusy) {
+                while (mPlayWorker.IsBusy) {
                     System.Windows.Threading.Dispatcher.CurrentDispatcher.Invoke(
                             System.Windows.Threading.DispatcherPriority.Background,
                             new System.Threading.ThreadStart(delegate { }));

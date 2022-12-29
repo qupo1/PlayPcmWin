@@ -163,7 +163,7 @@
     <value>PPWPL files|*.PPWPL</value>
   </data>
   <data name="MainStatusPressPlayButton" xml:space="preserve">
-    <value>Add more files to the playlist or Press play button</value>
+    <value>Press play button or Add more files to the playlist.</value>
   </data>
   <data name="MainStatusReadCompleted" xml:space="preserve">
     <value>Read completed. ready to play.</value>

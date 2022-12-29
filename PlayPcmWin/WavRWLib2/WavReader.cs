@@ -762,7 +762,7 @@ namespace WavRWLib2 {
             }
 
             int frameBytes = BitsPerSample / 8 * NumChannels;
-            var result = br.ReadBytes((int)(readFrames * frameBytes));
+            var r = br.ReadBytes((int)(readFrames * frameBytes));
 
             mDscPosFrame += readFrames;
 
@@ -773,7 +773,7 @@ namespace WavRWLib2 {
                 ++mCurrentDsc;
                 mDscPosFrame = 0;
             }
-            return result;
+            return r;
         }
 
         public void ReadStreamEnd() {

@@ -227,7 +227,7 @@ WWFileReaderMT::WaitAnyThreadCompletion(int *idx_return)
 }
 
 HRESULT
-WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void *tag)
+WWFileReaderMT::Read(int64_t fileOffs, int64_t bytes, ReadCompletedCB cb, void *tag)
 {
     HRESULT hr = E_FAIL;
     BOOL    br = FALSE;
@@ -236,12 +236,12 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
     mReadCompletedCB = cb;
     mTag = tag;
 
-    if (mFileSz < fileOffset + bytes) {
-        bytes = (int)(mFileSz - fileOffset);
+    if (mFileSz < fileOffs + bytes) {
+        printf("WWFileReaderMT::Read bytes too large\n");
+        return E_INVALIDARG;
     }
 
-
-    for (int64_t cnt=0; cnt<bytes; cnt+= mReadFragmentSz, fileOffset += mReadFragmentSz) {
+    for (int64_t cnt=0; cnt<bytes; cnt+= mReadFragmentSz, fileOffs += mReadFragmentSz) {
         ReadCtx  *rc = FindAvailableReadCtx();
         if (nullptr == rc) {
             // 1個IOが終わるまで待ちます。
@@ -253,25 +253,32 @@ WWFileReaderMT::Read(int64_t fileOffset, int64_t bytes, ReadCompletedCB cb, void
             // 成功。
             assert(0 <= idx && idx < (int)mReadCtx.size());
             rc = &mReadCtx[idx];
-            assert(rc->isUsed == false);
+
+            while(rc->isUsed) {
+                // これは、たまに起こる。
+                // printf("%s:%d waiting thread %d completion\n", __FILE__, __LINE__, idx);
+                Sleep(1);
+            }
         }
 
         rc->isUsed = true;
 
         // 読み出し開始位置のセット。
-        SetReadOffsetToOverlappedMember(fileOffset, rc->overlapped);
+        SetReadOffsetToOverlappedMember(fileOffs, rc->overlapped);
 
-        int wantBytes = mReadFragmentSz;
-        if (bytes < cnt + wantBytes) {
-            wantBytes = (int)(bytes - cnt);
+        int readBytes = mReadFragmentSz;
+        if (bytes < cnt + readBytes) {
+            readBytes = (int)(bytes - cnt);
         }
 
-        rc->fileOffset = fileOffset;
+        rc->fileOffs = fileOffs;
         rc->bytesFromReadStart = cnt;
-        rc->readBytes = wantBytes;
+        rc->readBytes = readBytes;
+
+        // printf("%s:%d ReadFile fileOffs=%llx %p %x\n", __FILE__, __LINE__, fileOffs, rc->buf, readBytes);
 
         // 読み出し開始。
-        br = ReadFile(mhFile, rc->buf, wantBytes, nullptr, &rc->overlapped);
+        br = ReadFile(mhFile, rc->buf, readBytes, nullptr, &rc->overlapped);
         if (!br) {
             // PENDING(正常)の場合も有り得る。
             hr = GetLastError();
@@ -326,7 +333,7 @@ WWFileReaderMT::ioCallback(void)
     // printf("%d ", pRC->idx);
 
     // 読み出し完了したのでコールバックを呼びます。
-    mReadCompletedCB(pRC->fileOffset, pRC->bytesFromReadStart, pRC->buf, pRC->readBytes, mTag);
+    mReadCompletedCB(pRC->fileOffs, pRC->bytesFromReadStart, pRC->buf, pRC->readBytes, mTag);
 
     pRC->isUsed = false;
 

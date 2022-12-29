@@ -40,7 +40,7 @@ WWNativeSoundFileReaderStart(int id, const wchar_t *path, const WWNativePcmFmt &
 /// 読み終わるまでブロックします。
 WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
-WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo, const int64_t bufToPos);
+WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t readFrames, uint8_t *bufTo, const int64_t bufToPos);
 
 /// ファイル読み出し終了。
 WWNATIVESOUNDFILEREADERDLL_API

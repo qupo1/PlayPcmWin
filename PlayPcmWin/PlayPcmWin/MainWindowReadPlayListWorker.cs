@@ -3,15 +3,15 @@ using System.Windows;
 
 namespace PlayPcmWin {
     public sealed partial class MainWindow : Window {
-        private BackgroundWorker m_playlistReadWorker;
+        private BackgroundWorker mPlaylistReadWorker;
 
         private void ReadPlayListWorkerSetup() {
-            m_playlistReadWorker = new BackgroundWorker();
-            m_playlistReadWorker.WorkerReportsProgress = true;
-            m_playlistReadWorker.DoWork += new DoWorkEventHandler(PlaylistReadWorker_DoWork);
-            m_playlistReadWorker.ProgressChanged += new ProgressChangedEventHandler(PlaylistReadWorker_ProgressChanged);
-            m_playlistReadWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(PlaylistReadWorker_RunWorkerCompleted);
-            m_playlistReadWorker.WorkerSupportsCancellation = false;
+            mPlaylistReadWorker = new BackgroundWorker();
+            mPlaylistReadWorker.WorkerReportsProgress = true;
+            mPlaylistReadWorker.DoWork += new DoWorkEventHandler(PlaylistReadWorker_DoWork);
+            mPlaylistReadWorker.ProgressChanged += new ProgressChangedEventHandler(PlaylistReadWorker_ProgressChanged);
+            mPlaylistReadWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(PlaylistReadWorker_RunWorkerCompleted);
+            mPlaylistReadWorker.WorkerSupportsCancellation = false;
         }
 
         enum ReadPpwPlaylistMode {
@@ -29,7 +29,7 @@ namespace PlayPcmWin {
         };
 
         private void ReadPlayListRunAsync(PlaylistSave3 pl, ReadPpwPlaylistMode mode) {
-            m_playlistReadWorker.RunWorkerAsync(new PlaylistReadWorkerArg(pl, mode));
+            mPlaylistReadWorker.RunWorkerAsync(new PlaylistReadWorkerArg(pl, mode));
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace PlayPcmWin {
                 }
 
                 ++readAttemptCount;
-                m_playlistReadWorker.ReportProgress(100 * readAttemptCount / arg.pl.Items.Count);
+                mPlaylistReadWorker.ReportProgress(100 * readAttemptCount / arg.pl.Items.Count);
             }
         }
 

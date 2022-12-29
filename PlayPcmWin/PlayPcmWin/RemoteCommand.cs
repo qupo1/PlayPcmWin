@@ -115,7 +115,7 @@ namespace PlayPcmWin {
                 break;
             case FOURCC_PLAY:
             case FOURCC_SELECT_TRACK:
-                /* trackIdx (4 bytes)
+                /* trackIdx (4 tgtBytes)
                  */
                 if (payload.Length != 4) {
                     Console.WriteLine("D: RemoteCommand {0} and payload length is not 4! {1}.", cmd, payload.Length);
@@ -165,7 +165,7 @@ namespace PlayPcmWin {
             case RemoteCommandType.Exit:
             case RemoteCommandType.Stop: {
                 // fourcc             (4bytes)
-                // payload bytes == 0 (8bytes)
+                // payload tgtBytes == 0 (8bytes)
                     r = new byte[12];
                     int fourcc = RemoteCommandTypeToFourCC(cmd);
                     long payloadBytes = 0;
@@ -175,7 +175,7 @@ namespace PlayPcmWin {
 
             case RemoteCommandType.Pause: {
                     /* fourcc             (4bytes)
-                     * payload bytes == 8 (8bytes)
+                     * payload tgtBytes == 8 (8bytes)
                      * trackIdx           (4bytes)
                      */
                     r = new byte[16];
@@ -189,7 +189,7 @@ namespace PlayPcmWin {
 
             case RemoteCommandType.PlayPositionUpdate: {
                     /* fourcc              (4bytes)
-                     * payload bytes == 12 (8bytes)
+                     * payload tgtBytes == 12 (8bytes)
                      * state               (4bytes)
                      * trackIdx            (4bytes)
                      * positionMillisec    (4bytes)
@@ -208,7 +208,7 @@ namespace PlayPcmWin {
             case RemoteCommandType.PlaylistData: {
                 /* 
                 * "PLLS"
-                * Number of payload bytes (int64)
+                * Number of payload tgtBytes (int64)
                 * 
                 * playbackState    (int32)
                 * 
@@ -219,13 +219,13 @@ namespace PlayPcmWin {
                 *   Track0 duration millisec (int32)
                 *   Track0 sampleRate        (int32)
                 *   Track0 bitdepth          (int32)
-                *   Track0 albumName bytes (int32)
+                *   Track0 albumName tgtBytes (int32)
                 *   Track0 albumName (utf8 string)
-                *   Track0 artistName bytes (int32)
+                *   Track0 artistName tgtBytes (int32)
                 *   Track0 artistName (utf8 string)
-                *   Track0 titleName bytes (int32)
+                *   Track0 titleName tgtBytes (int32)
                 *   Track0 titleName (utf8 string)
-                *   Track0 albumCoverArt bytes (int32)
+                *   Track0 albumCoverArt tgtBytes (int32)
                 *   Track0 albumCoverArt (binary)
                 * 
                 *   Track1 

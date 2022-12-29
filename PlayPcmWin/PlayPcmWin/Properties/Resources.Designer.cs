@@ -828,7 +828,7 @@ namespace PlayPcmWin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add more files to the playlist or Press play button.
+        ///   Looks up a localized string similar to Press play button or Add more files to the playlist..
         /// </summary>
         internal static string MainStatusPressPlayButton {
             get {

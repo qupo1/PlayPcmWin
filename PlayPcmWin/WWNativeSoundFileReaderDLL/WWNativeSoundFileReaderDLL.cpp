@@ -4,6 +4,8 @@
 
 static WWInstanceMgr<WWNativeWavReader> gNWRMgr;
 
+#define ALIGN_SIZE (4096)
+
 /// 初期化。スレッドプールの作成、読み出しバッファ確保、スレッド処理完了待ち合わせイベント作成等。
 /// @return 0以上: インスタンスId。負: エラー。
 extern "C" WWNATIVESOUNDFILEREADERDLL_API
@@ -26,10 +28,10 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 uint8_t * __stdcall
 WWNativeSoundFileReaderAllocNativeBuffer(int64_t bytes)
 {
-    uint8_t *p = (uint8_t*)malloc(bytes);
+    uint8_t *p = (uint8_t*)_aligned_malloc(bytes, ALIGN_SIZE);
     memset(p, 0, bytes);
 
-    printf("Allocated                     %p bytes=%llx\n", p, bytes);
+    // printf("WWNativeSoundFileReaderAllocNativeBuffer %p bytes=%llx\n", p, bytes);
     return p;
 }
 
@@ -37,8 +39,8 @@ extern "C" WWNATIVESOUNDFILEREADERDLL_API
 void __stdcall
 WWNativeSoundFileReaderReleaseNativeBuffer(uint8_t *ptr)
 {
-    printf("freed %p\n", ptr);
-    return free(ptr);
+    // printf("WWNativeSoundFileReaderReleaseNativeBuffer %p\n", ptr);
+    _aligned_free(ptr);
 }
 
 
@@ -96,7 +98,7 @@ WWNativeSoundFileReaderStart(
 /// 読み終わるまでブロックします。
 extern "C" WWNATIVESOUNDFILEREADERDLL_API
 int __stdcall
-WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo, const int64_t bufToPos)
+WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t readFrames, uint8_t *bufTo, const int64_t bufToPos)
 {
     auto self = gNWRMgr.Find(id);
     if (self == nullptr) {
@@ -104,7 +106,9 @@ WWNativeSoundFileReaderReadOne(int id, const int64_t fileOffset, const int64_t s
         return E_INVALIDARG;
     }
 
-    return self->PcmReadOne(fileOffset, sampleCount, &bufTo[bufToPos]);
+    //printf("WWNativeSoundFileReaderReadOne fileOffs=%llx readFrames=%llx bufTo=%p\n", fileOffset, readFrames, &bufTo[bufToPos]);
+
+    return self->PcmReadOne(fileOffset, readFrames, &bufTo[bufToPos]);
 }
 
 

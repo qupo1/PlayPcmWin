@@ -346,7 +346,7 @@ namespace MultipleAppInstanceComm {
         /// <summary>
         /// 指定バイト数のbyte arrayを受信。
         /// </summary>
-        /// <param name="bytes">必要バイト数</param>
+        /// <param name="tgtBytes">必要バイト数</param>
         /// <param name="b_inout">受信したデータの置き場。</param>
         /// <returns>true: 受信成功。false:途中で接続が切断し失敗。</returns>
         private static bool StreamRecvBytes(Stream stream, int bytes, out byte[] b_return) {

@@ -346,7 +346,7 @@ namespace PlayPcmWin
             this.AddHandler(Slider.MouseLeftButtonUpEvent, new MouseButtonEventHandler(slider1_MouseLeftButtonUp), true);
 
             // ■■ 順番注意：InitializeComponent()によって、チェックボックスのチェックイベントが発生し
-            // ■■ m_preferenceの内容が変わるので、InitializeComponent()の後にロードする。
+            // ■■ mPreferenceの内容が変わるので、InitializeComponent()の後にロードする。
 
             mPreference = PreferenceStore.Load();
 
@@ -1179,11 +1179,10 @@ namespace PlayPcmWin
         /// 再生中でない場合は、再生停止後イベントtaskAfterStopをここで実行する。
         /// 再生中の場合は、停止完了後にtaskAfterStopを実行する。
         /// </summary>
-        /// <param name="taskAfterStop"></param>
         void Stop(NextTask taskAfterStop, bool stopGently) {
             mTaskAfterStop = taskAfterStop;
 
-            if (mAp.IsPlayWorkerBusy()) {
+            if ( mAp.IsPlayWorkerBusy()) {
                 mAp.PlayStop(stopGently);
                 // 再生停止したらPlayRunWorkerCompletedでイベントを開始する。
             } else {
@@ -1493,7 +1492,7 @@ namespace PlayPcmWin
             ChangeState(State.再生リストなし);
 
             if (mode == PlayListClearMode.ClearWithUpdateUI) {
-                //m_playListView.RefreshCollection();
+                //mPlayListView.RefreshCollection();
 
                 progressBar1.Value = 0;
                 UpdateUIStatus();
@@ -1558,6 +1557,11 @@ namespace PlayPcmWin
                 mPlayListItems.Add(pli);
 
                 pli.PropertyChanged += new PropertyChangedEventHandler(PlayListItemInfoPropertyChanged);
+
+                if (0 < mPlayListItems.Count) {
+                    ChangeState(State.再生リストあり);
+                    UpdateUIStatus();
+                }
             }));
         }
 
@@ -1630,14 +1634,14 @@ namespace PlayPcmWin
             }
 
             RemovePlaylistItems(items);
-            m_FileDisappearedProcAfter = false;
+            mFileDisappeared = false;
 
             AddLogText(Properties.Resources.SomeFilesAreDisappeared + "\n");
 
             return items.Count;
         }
 
-        private bool m_FileDisappearedProcAfter;
+        private bool mFileDisappeared;
 
         private void FileDisappearedEventProc(string path) {
             Dispatcher.BeginInvoke(new Action(delegate() {
@@ -1646,7 +1650,7 @@ namespace PlayPcmWin
                     RemoveDisappearedFilesFromPlayList(path);
                     break;
                 default:
-                    m_FileDisappearedProcAfter = true;
+                    mFileDisappeared = true;
                     break;
                 }
             }));
@@ -1796,11 +1800,6 @@ namespace PlayPcmWin
                 }
 
                 mLoadErrMsg = null;
-
-                if (0 < mPlayListItems.Count) {
-                    ChangeState(State.再生リストあり);
-                }
-                UpdateUIStatus();
             } else {
                 if (bNow) {
                     return false;
@@ -1955,13 +1954,18 @@ namespace PlayPcmWin
         /// <summary>
         /// 分割読み込みのそれぞれのスレッドの読み込み開始位置と読み込みバイト数を計算する。
         /// </summary>
-        private List<ReadPcmTask> SetupReadPcmTasks(BackgroundWorker bw, PcmDataLib.PcmData pd, long startFrame, long endFrame, int fragmentCount) {
+        private List<ReadPcmTask> SetupReadPcmTasks(
+                BackgroundWorker bw,
+                PcmDataLib.PcmData pd,
+                long startFrame,
+                long endFrame,
+                int fragmentCount) {
             var result = new List<ReadPcmTask>();
 
             long readFrames = (endFrame - startFrame) / fragmentCount;
-            // すくなくとも4Mフレームずつ読む。その結果fragmentCountよりも少ない場合がある。
-            if (readFrames < 4 * 1024 * 1024) {
-                readFrames = 4 * 1024 * 1024;
+            // すくなくとも6Mフレームずつ読む。その結果fragmentCountよりも少ない場合がある。
+            if (readFrames < WWSoundFileReader.TYPICAL_READ_FRAMES) {
+                readFrames = WWSoundFileReader.TYPICAL_READ_FRAMES;
             }
 
             long readStartFrame = startFrame;
@@ -1988,11 +1992,12 @@ namespace PlayPcmWin
                     // すると、rpi.ReadFramesも確定する。
                     var sfr = new WWSoundFileRW.WWSoundFileReader();
 
-                    // 都合により、desiredFmtにならないことが多いため、後続の処理で修正します。
+                    // desiredFmtはデバイスが受け付けるPCM形式。
+                    // 現状、読み出し処理でdesiredFmtにならないことが多い。後続の処理で修正します。
                     var desiredFmt = DeviceSetupParamsToSoundFilePcmFmt(mDeviceSetupParams);
                     int ercd = sfr.StreamBegin(
                             new PcmDataLib.PcmData(pd),
-                            pd.FullPath, 0, 0, WWSoundFileReader.TYPICAL_READ_FRAMES,
+                            pd.FullPath, 0, 0,
                             desiredFmt);
                     sfr.StreamEnd();
                     if (ercd < 0) {
@@ -2177,7 +2182,7 @@ namespace PlayPcmWin
 
             var pr = new WWSoundFileReader();
             int ercd = pr.StreamBegin(pdCopy,
-                    pdCopy.FullPath, readStartFrame, wantFramesTotal, WWSoundFileReader.TYPICAL_READ_FRAMES,
+                    pdCopy.FullPath, readStartFrame, wantFramesTotal,
                     DeviceSetupParamsToSoundFilePcmFmt(mDeviceSetupParams));
             if (ercd < 0) {
                 Console.WriteLine("D: ReadOnePcmFileFragment() StreamBegin failed");
@@ -2300,7 +2305,7 @@ namespace PlayPcmWin
         private void UpdatePlayRepeat() {
             bool repeat = false;
             // 1曲リピートか、または(全曲リピート再生で、GroupIdが0しかない)場合、WASAPI再生スレッドのリピート設定が可能。
-            ComboBoxPlayModeType playMode = (ComboBoxPlayModeType)comboBoxPlayMode.SelectedIndex;
+            var playMode = (ComboBoxPlayModeType)comboBoxPlayMode.SelectedIndex;
             if (playMode == ComboBoxPlayModeType.OneTrackRepeat
                     || (playMode == ComboBoxPlayModeType.AllTracksRepeat
                     && 0 == mAp.PcmDataListForPlay.CountPcmDataOnPlayGroup(1))) {
@@ -2346,13 +2351,13 @@ namespace PlayPcmWin
                 // このwavDataIdは、再生開始ボタンが押された時点で選択されていたファイル。
                 int wavDataId = mTaskAfterStop.PcmDataId;
 
-                if (null != m_pliUpdatedByUserSelectWhileLoading) {
+                if (null != mPliUpdatedByUserWhileLoading) {
                     // (Issue 6)再生リストで選択されている曲が違う曲の場合、
                     // 選択されている曲を再生する。
-                    wavDataId = m_pliUpdatedByUserSelectWhileLoading.PcmData().Id;
+                    wavDataId = mPliUpdatedByUserWhileLoading.PcmData().Id;
 
                     // 使い終わったのでクリアーする。
-                    m_pliUpdatedByUserSelectWhileLoading = null;
+                    mPliUpdatedByUserWhileLoading = null;
                 }
 
                 ReadStartPlayByWavDataId(wavDataId);
@@ -2500,7 +2505,7 @@ namespace PlayPcmWin
             }
 
             if (pcmData.GroupId != mLoadedGroupId) {
-                // m_LoadedGroupIdと、wr.GroupIdが異なる場合。
+                // mLoadedGroupIdと、wr.GroupIdが異なる場合。
                 // 再生するためには、ロードする必要がある。
                 UnsetupDevice();
 
@@ -2518,9 +2523,9 @@ namespace PlayPcmWin
                 return true;
             }
 
-            // wavDataIdのグループがm_LoadedGroupIdである。ロードされている。
+            // wavDataIdのグループがmLoadedGroupIdである。ロードされている。
             // 連続再生フラグの設定と、現在のグループが最後のグループかどうかによって
-            // m_LoadedGroupIdの再生が自然に完了したら、行うタスクを決定する。
+            // mLoadedGroupIdの再生が自然に完了したら、行うタスクを決定する。
             UpdateNextTask();
 
             if (!SetupDevice(pcmData.GroupId) ||
@@ -2541,7 +2546,7 @@ namespace PlayPcmWin
 
         /// <summary>
         /// 現在のグループの最後のファイルの再生が終わった後に行うタスクを判定し、
-        /// m_taskにセットする。
+        /// mTaskにセットする。
         /// </summary>
         private void UpdateNextTask() {
             if (0 == mAp.PcmDataListForPlay.CountPcmDataOnPlayGroup(1)) {
@@ -2602,18 +2607,18 @@ namespace PlayPcmWin
                 var stat = mAp.wasapi.GetWorkerThreadSetupResult();
 
                 if (mPreference.RenderThreadTaskType != RenderThreadTaskType.None) {
-                    AddLogText(string.Format(CultureInfo.InvariantCulture, "AvSetMMThreadCharacteristics({0}) result={1:X8}{2}",
+                    AddLogText(string.Format(CultureInfo.InvariantCulture, "AvSetMMThreadCharacteristics({0}) r={1:X8}{2}",
                         mPreference.RenderThreadTaskType, stat.AvSetMmThreadCharacteristicsResult, Environment.NewLine));
                     
 
                     if (mPreference.MMThreadPriority != WasapiCS.MMThreadPriorityType.None) {
-                        AddLogText(string.Format(CultureInfo.InvariantCulture, "AvSetMMThreadPriority({0}) result={1:X8}{2}",
+                        AddLogText(string.Format(CultureInfo.InvariantCulture, "AvSetMMThreadPriority({0}) r={1:X8}{2}",
                             mPreference.MMThreadPriority, stat.AvSetMmThreadPriorityResult, Environment.NewLine));
                     }
                 }
 
                 if (mPreference.DwmEnableMmcssCall) {
-                    AddLogText(string.Format(CultureInfo.InvariantCulture, "DwmEnableMMCSS({0}) result={1:X8}{2}",
+                    AddLogText(string.Format(CultureInfo.InvariantCulture, "DwmEnableMMCSS({0}) r={1:X8}{2}",
                         mPreference.DwmEnableMmcss, stat.DwmEnableMMCSSResult, Environment.NewLine));
                 }
             }
@@ -2756,7 +2761,7 @@ namespace PlayPcmWin
         }
 
         /// <summary>
-        /// m_taskに指定されているグループをロードし、ロード完了したら指定ファイルを再生開始する。
+        /// mTaskに指定されているグループをロードし、ロード完了したら指定ファイルを再生開始する。
         /// ファイル読み込み完了状態にいるときに呼ぶ。
         /// </summary>
         private void StartReadPlayGroupOnTask() {
@@ -2791,7 +2796,7 @@ namespace PlayPcmWin
                     mAp.CreateOneTrackPlayList(mTaskAfterStop.PcmDataId);
                 }
 
-                if (null == m_pliUpdatedByUserSelectWhileLoading) {
+                if (null == mPliUpdatedByUserWhileLoading) {
                     // 次に再生する曲を選択状態にする。
                     dataGridPlayList.SelectedIndex =
                         GetPlayListIndexOfPcmDataId(mTaskAfterStop.PcmDataId);
@@ -2818,7 +2823,7 @@ namespace PlayPcmWin
         /// 再生終了後タスクを実行する。
         /// </summary>
         private void PerformPlayCompletedTask() {
-            if (m_FileDisappearedProcAfter && 0 < RemoveDisappearedFilesFromPlayList("")) {
+            if (mFileDisappeared && 0 < RemoveDisappearedFilesFromPlayList("")) {
                 // 1個以上ファイルが消えた。再生終了後タスクを実行せずに停止する。
                 
                 mTaskAfterStop.Type = NextTaskType.None;
@@ -2874,6 +2879,10 @@ namespace PlayPcmWin
         }
 
         private void ButtonStopClicked() {
+            if (mState == State.再生停止開始) {
+                return;
+            }
+
             ChangeState(State.再生停止開始);
             UpdateUIStatus();
 
@@ -2944,7 +2953,7 @@ namespace PlayPcmWin
             UpdateUIStatus();
         }
 
-        List<string> m_logList = new List<string>();
+        List<string> mLogList = new List<string>();
 
         /// <summary>
         /// ログを追加する。
@@ -2955,13 +2964,13 @@ namespace PlayPcmWin
 
             // ログを適当なエントリ数で流れるようにする。
             // sは複数行の文字列が入っていたり、改行が入っていなかったりするので、行数制限にはなっていない。
-            m_logList.Add(s);
-            while (LOG_LINE_NUM < m_logList.Count) {
-                m_logList.RemoveAt(0);
+            mLogList.Add(s);
+            while (LOG_LINE_NUM < mLogList.Count) {
+                mLogList.RemoveAt(0);
             }
 
             var sb = new StringBuilder();
-            foreach (var item in m_logList) {
+            foreach (var item in mLogList) {
                 sb.Append(item);
             }
 
@@ -2974,7 +2983,7 @@ namespace PlayPcmWin
         /// ChangePlayWavDataById()でセットし
         /// ReadFileRunWorkerCompleted()で参照する。
         /// </summary>
-        private PlayListItemInfo m_pliUpdatedByUserSelectWhileLoading = null;
+        private PlayListItemInfo mPliUpdatedByUserWhileLoading = null;
 
         /// <summary>
         /// 再生中に、再生曲をwavDataIdの曲に切り替える。
@@ -2993,7 +3002,7 @@ namespace PlayPcmWin
                 // 再生中でなく、ロード中の場合。
                 // ロード完了後ReadFileRunWorkerCompleted()で再生する曲を切り替えるための
                 // 情報をセットする。
-                m_pliUpdatedByUserSelectWhileLoading = mPlayListItems[dataGridPlayList.SelectedIndex];
+                mPliUpdatedByUserWhileLoading = mPlayListItems[dataGridPlayList.SelectedIndex];
                 return;
             }
 
@@ -3071,7 +3080,7 @@ namespace PlayPcmWin
 
 
         /// <summary>
-        /// PPW再生リストを読んでm_pcmDataListとm_playListItemsに足す。
+        /// PPW再生リストを読んでmPcmDataListとmPlayListItemsに足す。
         /// UpdateUIは行わない。
         /// </summary>
         /// <param name="path">string.Emptyのとき: IsolatedStorageに保存された再生リストを読む。</param>
@@ -3488,8 +3497,8 @@ namespace PlayPcmWin
                 // 行がドラッグされていない。(セルがドラッグされている)
             } else {
                 // 再生リスト項目のドロップ。
-                m_dropTargetPlayListItem = row.Item as PlayListItemInfo;
-                if (m_dropTargetPlayListItem != null) {
+                mDropTargetPlayListItem = row.Item as PlayListItemInfo;
+                if (mDropTargetPlayListItem != null) {
                     e.Effects = DragDropEffects.Move;
                 }
             }
@@ -3517,20 +3526,20 @@ namespace PlayPcmWin
 
             // MainWindow.Drop()イベントを発生させる(ブロック)。
             var finalDropEffect = DragDrop.DoDragDrop(row, pli, DragDropEffects.Move);
-            if (finalDropEffect == DragDropEffects.Move && m_dropTargetPlayListItem != null) {
+            if (finalDropEffect == DragDropEffects.Move && mDropTargetPlayListItem != null) {
                 // ドロップ操作実行。
                 // Console.WriteLine("MouseMove do move");
 
                 var oldIndex = mPlayListItems.IndexOf(pli);
-                var newIndex = mPlayListItems.IndexOf(m_dropTargetPlayListItem);
+                var newIndex = mPlayListItems.IndexOf(mDropTargetPlayListItem);
                 if (oldIndex != newIndex) {
                     // 項目が挿入された。PcmDataも挿入処理する。
                     mPlayListItems.Move(oldIndex, newIndex);
                     PcmDataListItemsMove(oldIndex, newIndex);
-                    // m_playListView.RefreshCollection();
+                    // mPlayListView.RefreshCollection();
                     dataGridPlayList.UpdateLayout();
                 }
-                m_dropTargetPlayListItem = null;
+                mDropTargetPlayListItem = null;
             }
         }
 
@@ -3547,7 +3556,7 @@ namespace PlayPcmWin
             return null;
         }
 
-        private PlayListItemInfo m_dropTargetPlayListItem = null;
+        private PlayListItemInfo mDropTargetPlayListItem = null;
 
 #endregion
 

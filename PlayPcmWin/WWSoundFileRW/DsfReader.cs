@@ -372,7 +372,7 @@ namespace WWSoundFileRW {
                 // data is stored in following order:
                 // L channel 4096bytes consecutive data, R channel 4096bytes consecutive data, L channel 4096bytes consecutive data, ...
                 //
-                // read 4096 x numChannels bytes.
+                // read 4096 x numChannels tgtBytes.
                 byte [] blockData = br.ReadBytes(blockBytes);
                 mPosFrame += blockData.Length / 2 / NumChannels;
 

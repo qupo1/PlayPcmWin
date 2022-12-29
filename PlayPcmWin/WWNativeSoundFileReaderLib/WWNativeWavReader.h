@@ -17,11 +17,11 @@ public:
     HRESULT PcmReadStart(const wchar_t *path, const WWNativePcmFmt & origPcmFmt, const WWNativePcmFmt & tgtPcmFmt, const int *channelMap);
 
     /// 読み終わるまでブロックします。
-    HRESULT PcmReadOne(const int64_t fileOffset, const int64_t sampleCount, uint8_t *bufTo);
+    HRESULT PcmReadOne(const int64_t fileOffset, const int64_t readFrames, uint8_t *bufTo);
 
     void PcmReadEnd(void);
 
-    void ReadCompleted(const uint64_t fileOffset, const uint64_t readOffset, const uint8_t *bufFrom, const int bytes, uint8_t *bufTo);
+    void ReadCompleted(const uint64_t fileOffset, const uint64_t readOffset, const uint8_t *bufFrom, const int readBytes, uint8_t *bufTo);
 
 private:
     WWNativePcmFmt mOrigPcmFmt;

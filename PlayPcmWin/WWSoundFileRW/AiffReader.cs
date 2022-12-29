@@ -192,7 +192,7 @@ namespace WWSoundFileRW {
 
             if (mode == ReadHeaderMode.ReadStopBeforeSoundData) {
                 // SSNDのsound data直前まで移動。
-                // offset == unused bytes。 読み飛ばす
+                // offset == unused tgtBytes。 読み飛ばす
                 ReadStreamSkip(br, offset);
             } else {
                 // SoundDataチャンクの最後まで移動。

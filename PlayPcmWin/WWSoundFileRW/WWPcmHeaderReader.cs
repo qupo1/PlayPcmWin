@@ -217,40 +217,40 @@ namespace WWSoundFileRW {
             bool result = false;
             var pd = new PcmData();
 
-            var wavR = new WavReader();
-            using (BinaryReader br = new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))) {
-                if (wavR.ReadHeader(br)) {
+            var wr = new WavReader();
+            using (var br = new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))) {
+                if (wr.ReadHeader(br)) {
                     // WAVヘッダ読み込み成功。PcmDataを作って再生リストに足す。
 
                     pd.SetFormat(
-                            wavR.NumChannels, wavR.BitsPerSample,
-                            wavR.ValidBitsPerSample,
-                            (int)wavR.SampleRate,
-                            wavR.SampleValueRepresentationType,
-                            wavR.NumFrames);
+                            wr.NumChannels, wr.BitsPerSample,
+                            wr.ValidBitsPerSample,
+                            (int)wr.SampleRate,
+                            wr.SampleValueRepresentationType,
+                            wr.NumFrames);
 
-                    if (wavR.SampleDataType == WavReader.DataType.DoP) {
+                    if (wr.SampleDataType == WavReader.DataType.DoP) {
                         pd.SampleDataType = PcmData.DataType.DoP;
                     }
 
-                    if ("RIFFINFO_INAM".Equals(wavR.Title) &&
-                            "RIFFINFO_IART".Equals(wavR.ArtistName)) {
+                    if ("RIFFINFO_INAM".Equals(wr.Title) &&
+                            "RIFFINFO_IART".Equals(wr.ArtistName)) {
                         // Issue 79 workaround
                     } else {
-                        if (wavR.Title != null) {
-                            pd.DisplayName = wavR.Title;
+                        if (wr.Title != null) {
+                            pd.DisplayName = wr.Title;
                         }
-                        if (wavR.AlbumName != null) {
-                            pd.AlbumTitle = wavR.AlbumName;
+                        if (wr.AlbumName != null) {
+                            pd.AlbumTitle = wr.AlbumName;
                         }
-                        if (wavR.ArtistName != null) {
-                            pd.ArtistName = wavR.ArtistName;
+                        if (wr.ArtistName != null) {
+                            pd.ArtistName = wr.ArtistName;
                         }
-                        if (wavR.ComposerName != null) {
-                            pd.ComposerName = wavR.ComposerName;
+                        if (wr.ComposerName != null) {
+                            pd.ComposerName = wr.ComposerName;
                         }
                     }
-                    pd.SetPicture(wavR.PictureBytes, wavR.PictureData);
+                    pd.SetPicture(wr.PictureBytes, wr.PictureData);
                     result = CheckAddPcmData(path, pd, true);
                 } else {
                     LoadErrorMessageAdd(new ErrInf(ErrType.ReadFileFailed, path, "WAV", 0,0, ""));

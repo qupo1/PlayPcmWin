@@ -66,13 +66,13 @@ namespace WWNativeSoundFileReaderCs {
 
         /// <summary>
         /// ファイルのfileOffset位置からsampleCount読んでbufTo[bufToPos]に書き込みます。
-        /// 読み出しバイト数はsampleCount * origPcmFmt.numChannels * containerBitDepth / 8
-        /// 書き込みバイト数はsampleCount * tgtPcmFmt.numChannels * containerBitDepth / 8
+        /// 読み出しバイト数はsampleCount * origPcmFmt.BytesPerFrame
+        /// 書き込みバイト数はsampleCount * tgtPcmFmt.BytesPerFrame
         /// </summary>
-        public int ReadOne(long fileOffset, long sampleCount, IntPtr bufTo, long bufToPos) {
+        public int ReadOne(long fileOffset, long readFrames, IntPtr bufTo, long bufToPos) {
             System.Diagnostics.Debug.Assert(0 <= mIdx);
 
-            return NativeMethods.WWNativeSoundFileReaderReadOne(mIdx, fileOffset, sampleCount, bufTo, bufToPos);
+            return NativeMethods.WWNativeSoundFileReaderReadOne(mIdx, fileOffset, readFrames, bufTo, bufToPos);
         }
 
         public void ReadEnd() {
@@ -113,7 +113,7 @@ namespace WWNativeSoundFileReaderCs {
             /// 読み終わるまでブロックします。
             [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
             internal extern static int
-            WWNativeSoundFileReaderReadOne(int id, long fileOffset, long sampleCount, IntPtr bufTo, long bufToPos);
+            WWNativeSoundFileReaderReadOne(int id, long fileOffset, long readFrames, IntPtr bufTo, long bufToPos);
 
             /// ファイル読み出し終了。
             [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
