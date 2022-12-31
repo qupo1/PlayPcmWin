@@ -1029,8 +1029,11 @@ namespace WasapiBitmatchChecker {
                             var fragment = new byte[bytesPerSample];
                             for (long pos = 0; pos<metaData.totalSamples;++pos) {
                                 for (int ch = 0; ch < NUM_CHANNELS; ++ch) {
-                                    flacRW.GetDecodedPcmBytes(ch, pos * bytesPerSample, out fragment, bytesPerSample);
-                                    pcmBytes.CopyFrom(fragment, 0, (long)bytesPerSample * (NUM_CHANNELS * pos + ch), bytesPerSample);
+                                    flacRW.GetPcmOfChannel(
+                                            ch, pos * bytesPerSample, ref fragment, bytesPerSample);
+                                    pcmBytes.CopyFrom(
+                                            fragment, 0,
+                                            (long)bytesPerSample * (NUM_CHANNELS * pos + ch), bytesPerSample);
                                 }
                             }
 
