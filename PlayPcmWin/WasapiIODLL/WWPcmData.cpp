@@ -14,6 +14,34 @@
 #define SPLICE_NOISE_SAMPLES   (10)
 #define SPLICE_READ_FRAME_NUM  (10)
 
+// SIMD命令を使用するために、ある程度アラインメントします。
+#define ALLOC_ALIGN (4096)
+
+/// float値のサンプル値 -1.0f ≤ v < 1.0fのクリッピング処理。
+static float
+SaturateForInt24(const float v) {
+    if (v < -1.0f) {
+        return -1.0f;
+    }
+    if (8388607.0f / 8388608.0f < v) {
+        return 8388607.0f / 8388608.0f;
+    }
+    return v;
+}
+
+/// -1.0f ≤ v < +1.0fの範囲にクリップします。
+static float
+SaturateFloat(const float v)
+{
+    if (v < -1.0f) {
+        return -1.0f;
+    }
+    if (8388607.0f / 8388608.0f < v) {
+        return 8388607.0f / 8388608.0f;
+    }
+    return v;
+}
+
 const char *
 WWPcmDataContentTypeToStr(WWPcmDataContentType w)
 {
@@ -155,7 +183,6 @@ WWPcmDataSampleFormatTypeIsInt(WWPcmDataSampleFormatType t)
 int
 WWPcmData::GetSampleValueInt(int ch, int64_t posFrame) const
 {
-    assert(mSampleFormat != WWPcmDataSampleFormatSfloat);
     assert(0 <= ch && ch < mChannels);
 
     if (posFrame < 0 ||
@@ -205,17 +232,7 @@ WWPcmData::GetSampleValueInt(int ch, int64_t posFrame) const
     return result;
 }
 
-static float
-SaturateForInt24(const float v) {
-    if (v < -1.0f) {
-        return -1.0f;
-    }
-    if (8388607.0f / 8388608.0f < v) {
-        return 8388607.0f / 8388608.0f;
-    }
-    return v;
-}
-
+/// 24bit int値のサンプル値を戻します。
 int
 WWPcmData::GetSampleValueAsInt24(int ch, int64_t posFrame) const
 {
@@ -342,8 +359,13 @@ WWPcmData::GetSampleValueAsFloat(int ch, int64_t posFrame) const
     return result;
 }
 
+/// vは、以下の形式の符号付き整数PCM。
+/// mSampleFormatがSint16の時16bit int
+/// Sint24の時24bit int
+/// Sint32V24の時24bit int
+/// Sint32の時32bit int
 bool
-WWPcmData::SetSampleValueInt(int ch, int64_t posFrame, int v)
+WWPcmData::SetSampleValueInt(int ch, int64_t posFrame, int64_t v)
 {
     assert(mSampleFormat != WWPcmDataSampleFormatSfloat);
     assert(0 <= ch && ch < mChannels);
@@ -356,6 +378,12 @@ WWPcmData::SetSampleValueInt(int ch, int64_t posFrame, int v)
     switch (mSampleFormat) {
     case WWPcmDataSampleFormatSint16:
         {
+            if (v < -32768) {
+                v = -32768;
+            } else if (32767 < v) {
+                v = 32767;
+            }
+            
             short *p =
                 (short*)(&mStream[2 * (mChannels * posFrame + ch)]);
             *p = (short)v;
@@ -363,6 +391,12 @@ WWPcmData::SetSampleValueInt(int ch, int64_t posFrame, int v)
         break;
     case WWPcmDataSampleFormatSint24:
         {
+            if (v < -8388608) {
+                v = -8388608;
+            } else if (8388607 < v) {
+                v = 8388607;
+            }
+
             unsigned char *p =
                 (unsigned char*)(&mStream[3 * (mChannels * posFrame + ch)]);
             p[0] = (unsigned char)(v & 0xff);
@@ -372,6 +406,12 @@ WWPcmData::SetSampleValueInt(int ch, int64_t posFrame, int v)
         break;
     case WWPcmDataSampleFormatSint32V24:
         {
+            if (v < -8388608) {
+                v = -8388608;
+            } else if (8388607 < v) {
+                v = 8388607;
+            }
+
             unsigned char *p =
                 (unsigned char*)(&mStream[4 * (mChannels * posFrame + ch)]);
             p[0] = 0;
@@ -382,9 +422,15 @@ WWPcmData::SetSampleValueInt(int ch, int64_t posFrame, int v)
         break;
     case WWPcmDataSampleFormatSint32:
         {
+            if (v < -2147483648LL) {
+                v = -2147483648LL;
+            } else if (2147483647LL < v) {
+                v = 2147483647LL;
+            }
+
             // bus errorは起きない。
             int *p = (int*)(&mStream[4 * (mChannels * posFrame + ch)]);
-            *p = v;
+            *p = (int)v;
         }
         break;
     default:
@@ -481,14 +527,14 @@ WWPcmData::SetSampleValueAsFloat(int ch, int64_t posFrame, float v)
 
     switch (mSampleFormat) {
     case WWPcmDataSampleFormatSint16:
-        result = SetSampleValueInt(ch, posFrame, (int)(v * 32768.0f));
+        result = SetSampleValueInt(ch, posFrame, (int64_t)(v * 32768.0f));
         break;
     case WWPcmDataSampleFormatSint24:
     case WWPcmDataSampleFormatSint32V24:
-        result = SetSampleValueInt(ch, posFrame, (int)(v * 8388608.0f));
+        result = SetSampleValueInt(ch, posFrame, (int64_t)(v * 8388608.0f));
         break;
     case WWPcmDataSampleFormatSint32:
-        result = SetSampleValueInt(ch, posFrame, (int)(v * 2147483648.0f));
+        result = SetSampleValueInt(ch, posFrame, (int64_t)(v * 2147483648.0f));
         break;
     case WWPcmDataSampleFormatSfloat:
     case WWPcmDataSampleFormatSdouble:
@@ -505,36 +551,17 @@ bool
 WWPcmData::ScaleSampleValue(float scale)
 {
     if (mStreamType == WWStreamDop) {
-        // 未対応: DoPの音量をこのアルゴリズムで変えたら再生が出来なくなる。
+        // 未対応: DoPの音量をこのアルゴリズムで変えたらDoPマーカーが壊れDoP再生が出来なくなる。
         return false;
     }
 
-    if (mSampleFormat == WWPcmDataSampleFormatSfloat) {
-        // float
-
-        float *p = (float *)mStream;
-        for (int64_t i=0; i<mFrames * mChannels; ++i) {
-            p[i] = p[i] * scale;
-        }
-        return true;
-    }
-    if (mSampleFormat == WWPcmDataSampleFormatSdouble) {
-        // double
-
-        double *p = (double *)mStream;
-        for (int64_t i=0; i<mFrames * mChannels; ++i) {
-            p[i] = p[i] * scale;
-        }
-        return true;
-    }
-
-    // 整数の場合。
-    for (int64_t pos=0; pos<mFrames; ++pos) {
+    for (int64_t i=0; i<mFrames; ++i) {
         for (int ch=0; ch<mChannels; ++ch) {
-            double v = GetSampleValueInt(ch,pos);
-            SetSampleValueInt(ch, pos, (int)(v*scale));
+            float v = GetSampleValueAsFloat(ch, i);
+            SetSampleValueAsFloat(ch, i, v*scale);
         }
     }
+
     return true;
 }
 
@@ -545,7 +572,7 @@ WWPcmData::Term(void)
 {
     dprintf("D: %s() mStream=%p\n", __FUNCTION__, mStream);
 
-    free(mStream);
+    _aligned_free(mStream);
     mStream = nullptr;
 }
 
@@ -594,7 +621,7 @@ WWPcmData::Init(
     }
 #endif
 
-    BYTE *p = (BYTE *)malloc(bytes);
+    BYTE *p = (BYTE *)_aligned_malloc(bytes, ALLOC_ALIGN);
     if (nullptr == p) {
         // 失敗…
         return false;
@@ -987,18 +1014,6 @@ WWPcmData::FillDopSilentData(void)
         // DoPに対応していないデバイスでDoP再生しようとするとここに来ることがある。何もしない。
         break;
     }
-}
-
-static float
-SaturateFloat(const float v)
-{
-    if (v < -1.0f) {
-        return -1.0f;
-    }
-    if (8388607.0f / 8388608.0f < v) {
-        return 8388607.0f / 8388608.0f;
-    }
-    return v;
 }
 
 /// Dop DSD→ PCM変換。

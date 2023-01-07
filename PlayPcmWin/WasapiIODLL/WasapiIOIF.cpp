@@ -1,4 +1,4 @@
-// 日本語。
+﻿// 日本語。
 
 #include "WasapiIOIF.h"
 #include "WasapiUser.h"
@@ -235,6 +235,7 @@ WasapiIO::OnDeviceStateChanged(LPCWSTR pwstrDeviceId, DWORD dwNewState)
 
 static std::map<int, WasapiIO *> gSelf;
 
+/// インスタンスを取得。
 static WasapiIO *
 Instance(int id)
 {
@@ -395,7 +396,41 @@ WasapiIO_AddPlayPcmData(int instanceId, int pcmId, unsigned char *data, int64_t 
 
 __declspec(dllexport)
 bool __stdcall
-WasapiIO_AddPlayPcmDataSetPcmFragment(int instanceId, int pcmId, int64_t posBytes, unsigned char *data, int64_t bytes)
+WasapiIO_TrimPlayPcmDataFrameCount(int instanceId, int pcmId, int64_t nFrames)
+{
+    WasapiIO *self = Instance(instanceId);
+    assert(self);
+
+    auto *pd = self->playPcmGroup.FindPcmDataById(pcmId);
+    if (pd == nullptr) {
+        dprintf("E: %s(%p, %lld) PcmData not found\n", __FUNCTION__, pcmId, nFrames);
+        return false;
+    }
+
+    pd->TrimNumFrames(nFrames);
+    return true;
+}
+
+__declspec(dllexport)
+unsigned char * __stdcall
+WasapiIO_GetPlayPcmDataPtr(
+        int instanceId, int pcmId, int64_t posBytes)
+{
+    WasapiIO *self = Instance(instanceId);
+    assert(self);
+
+    WWPcmData *p = self->playPcmGroup.FindPcmDataById(pcmId);
+    if (nullptr == p) {
+        return false;
+    }
+
+    return &(p->Stream()[posBytes]);
+}
+
+__declspec(dllexport)
+bool __stdcall
+WasapiIO_AddPlayPcmDataSetPcmFragment(
+        int instanceId, int pcmId, int64_t posBytes, unsigned char *data, int64_t bytes)
 {
     WasapiIO *self = Instance(instanceId);
     assert(self);

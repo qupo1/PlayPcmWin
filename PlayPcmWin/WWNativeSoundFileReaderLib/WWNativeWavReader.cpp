@@ -65,7 +65,9 @@ struct ReadTag {
 };
 
 static void
-gReadCompleted(const uint64_t fileOffs, const uint64_t readOffs, const uint8_t *buf, const int readBytes, void *tag)
+gReadCompleted(
+        const uint64_t fileOffs, const uint64_t readOffs,
+        const uint8_t *buf, const int readBytes, void *tag)
 {
     ReadTag *rt = (ReadTag*)tag;
 
@@ -74,14 +76,15 @@ gReadCompleted(const uint64_t fileOffs, const uint64_t readOffs, const uint8_t *
 }
 
 void
-WWNativeWavReader::ReadCompleted(const uint64_t fileOffs, const uint64_t readOffs,
+WWNativeWavReader::ReadCompleted(
+        const uint64_t fileOffs, const uint64_t readOffs,
         const uint8_t *bufFrom, const int readBytes, uint8_t *bufTo)
 {
     // 読み出し完了時処理。
 
-    const int64_t offsFrames = readOffs / mOrigPcmFmt.ContainerBytesPerFrame();
-    const int64_t readFrames = readBytes / mOrigPcmFmt.ContainerBytesPerFrame();
-    const int64_t writeOffs = offsFrames * mTgtPcmFmt.ContainerBytesPerFrame();
+    const int64_t offsFrames = readOffs   / mOrigPcmFmt.ContainerBytesPerFrame();
+    const int64_t readFrames = readBytes  / mOrigPcmFmt.ContainerBytesPerFrame();
+    const int64_t writeOffs  = offsFrames * mTgtPcmFmt.ContainerBytesPerFrame();
 
     // printf("WWNativeWavReader::ReadCompleted fileOffs=%llx readOffs=%llx writeOffs=%llx readFrames=%llx bufFrom=%p bufTo=%p\n",
     //     fileOffs, readOffs, writeOffs, readFrames, bufFrom, &bufTo[writeOffs]);
@@ -90,7 +93,8 @@ WWNativeWavReader::ReadCompleted(const uint64_t fileOffs, const uint64_t readOff
 }
 
 HRESULT
-WWNativeWavReader::PcmReadOne(const int64_t fileOffs, const int64_t readFrames, uint8_t *bufTo)
+WWNativeWavReader::PcmReadOne(
+        const int64_t fileOffs, const int64_t readFrames, uint8_t *bufTo)
 {
     HRESULT hr = E_FAIL;
 

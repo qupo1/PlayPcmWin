@@ -6,6 +6,7 @@
 #include <mmsystem.h>
 #include <MMReg.h>
 #include <stdint.h>
+#include <assert.h>
 
 /// PCMデータの用途。
 enum WWPcmDataContentType {
@@ -211,6 +212,12 @@ public:
         mPosFrame = n;
     }
 
+    /// 利用可能フレーム数を減らします。
+    void TrimNumFrames(int64_t nFrames) {
+        assert(nFrames <= mFrames);
+        mFrames = nFrames;
+    }
+
     void SetNext(WWPcmData *n) {
         mNext = n;
     }
@@ -245,6 +252,7 @@ private:
     BYTE      *mStream;
 
     /** get sample value on posFrame.
+     * 16 bit signed int value is returned when Sint16
      * 24 bit signed int value is returned when Sint32V24
      */
     int GetSampleValueInt(int ch, int64_t posFrame) const;
@@ -252,7 +260,7 @@ private:
     int GetSampleValueAsInt24(int ch, int64_t posFrame) const;
     float GetSampleValueAsFloat(int ch, int64_t posFrame) const;
 
-    bool SetSampleValueInt(int ch, int64_t posFrame, int v);
+    bool SetSampleValueInt(int ch, int64_t posFrame, int64_t v);
     bool SetSampleValueFloat(int ch, int64_t posFrame, float v);
     bool SetSampleValueAsInt24(int ch, int64_t posFrame, int v);
     bool SetSampleValueAsFloat(int ch, int64_t posFrame, float v);

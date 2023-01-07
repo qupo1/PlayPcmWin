@@ -184,8 +184,12 @@ namespace PlayPcmWin {
             }
 
             checkBoxIsFormatSupported.IsChecked = preference.IsFormatSupportedCall;
+#if true
+            preference.ParallelRead = false;
+            checkBoxParallelRead.IsChecked = false;
+#else
             checkBoxParallelRead.IsChecked = preference.ParallelRead;
-
+#endif
             if (10000 == preference.TimePeriodHundredNanosec) {
                 comboBoxTimePeriod.SelectedItem = cbItemTimerResolution1Millisec;
             } else {

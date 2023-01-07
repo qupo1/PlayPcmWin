@@ -19,6 +19,9 @@ namespace PlayPcmWin {
 
         }
 
+        /// <summary>
+        /// 読み出しスレッド開始。
+        /// </summary>
         private void ReadFileWorkerRunAsync(int loadGroupId) {
             mReadFileWorker.RunWorkerAsync(loadGroupId);
         }
@@ -158,7 +161,7 @@ namespace PlayPcmWin {
             }
         }
 
-        private void ReadFileReportProgress(long readFrames, WasapiPcmUtil.PcmFormatConverter.BitsPerSampleConvArgs bpsConvArgs) {
+        private void ReadFileReportProgress(long readFrames) {
             lock (mReadFileWorker) {
                 mReadProgressInf.readFrames += readFrames;
                 var rpi = mReadProgressInf;
@@ -168,15 +171,11 @@ namespace PlayPcmWin {
                     loadCompletedPercent = 90.0;
                 }
 
-                double progressPercentage = loadCompletedPercent * (rpi.trackCount + (double)rpi.readFrames / rpi.WantFramesTotal) / rpi.trackNum;
+                double progressPercentage = loadCompletedPercent * (rpi.trackCount
+                        + (double)rpi.readFrames / rpi.WantFramesTotal) / rpi.trackNum;
+
+                // 頻繁に(1Hz以上の頻度で)Log文字列を更新すると描画が止まることがあるのでログの出力を止めた。
                 mReadFileWorker.ReportProgress((int)progressPercentage, string.Empty);
-                /* 頻繁に(1Hz以上の頻度で)Log文字列を更新すると描画が止まることがあるので止めた。
-                if (bpsConvArgs != null && bpsConvArgs.noiseShapingOrDitherPerformed) {
-                    mReadFileWorker.ReportProgress((int)progressPercentage, string.Format(CultureInfo.InvariantCulture,
-                            "{0} {1}/{2} frames done{3}",
-                            bpsConvArgs.noiseShaping, rpi.readFrames, rpi.WantFramesTotal, Environment.NewLine));
-                }
-                */
             }
         }
 

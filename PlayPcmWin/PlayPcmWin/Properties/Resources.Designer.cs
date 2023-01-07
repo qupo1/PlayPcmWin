@@ -1128,7 +1128,7 @@ namespace PlayPcmWin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Read playgroup {0} completed. Elapsed time: {1}ms.
+        ///   Looks up a localized string similar to Read playgroup {0} completed. Elapsed time: {1}ms..
         /// </summary>
         internal static string ReadPlayGroupNCompleted {
             get {

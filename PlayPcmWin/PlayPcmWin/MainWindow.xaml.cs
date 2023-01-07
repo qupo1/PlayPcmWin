@@ -1882,6 +1882,7 @@ namespace PlayPcmWin
             }
         }
 
+#if false
         private class ReadPcmTask : IDisposable {
             MainWindow mw;
             BackgroundWorker bw;
@@ -1904,7 +1905,8 @@ namespace PlayPcmWin
                 GC.SuppressFinalize(this);
             }
 
-            public ReadPcmTask(MainWindow mw, BackgroundWorker bw, PcmDataLib.PcmData pd, long readStartFrame, long readFrames, long writeOffsFrame) {
+            public ReadPcmTask(MainWindow mw, BackgroundWorker bw, PcmDataLib.PcmData pd,
+                    long readStartFrame, long readFrames, long writeOffsFrame) {
                 this.mw = mw;
                 this.bw = bw;
 
@@ -1981,46 +1983,59 @@ namespace PlayPcmWin
             } while (readStartFrame < endFrame);
             return result;
         }
+#endif
 
+        /// <summary>
+        /// pdの1トラックぶんのPCMを読み出し、再生できる形式に変換しwasapiネイティブ層にセットします。
+        /// バックグラウンド読み出しスレッドのReadFileDoWorkから呼び出されます。
+        /// </summary>
         private bool ReadOnePcmFile(BackgroundWorker bw, PcmDataLib.PcmData pd,
-                long startFrame, long endFrame, ref ReadFileRunWorkerCompletedArgs r) {
+                long startFrame, long endFrame,
+                ref ReadFileRunWorkerCompletedArgs r) {
             if (endFrame < 0) {
+                // 負：ファイルを最後まで読むという意味。
+
                 if (0 < pd.NumFrames) {
+                    // ファイルの最後が既知。
                     endFrame = pd.NumFrames;
                 } else {
-                    // endFrameの位置を確定する。
-                    // すると、rpi.ReadFramesも確定する。
-                    var sfr = new WWSoundFileRW.WWSoundFileReader();
+                    // endFrameが不明。調べる。
+                    // rpi.ReadFramesも確定する。
 
-                    // desiredFmtはデバイスが受け付けるPCM形式。
-                    // 現状、読み出し処理でdesiredFmtにならないことが多い。後続の処理で修正します。
-                    var desiredFmt = DeviceSetupParamsToSoundFilePcmFmt(mDeviceSetupParams);
-                    int ercd = sfr.StreamBegin(
-                            new PcmDataLib.PcmData(pd),
-                            pd.FullPath, 0, 0,
-                            desiredFmt);
-                    sfr.StreamEnd();
-                    if (ercd < 0) {
-                        r.hr = ercd;
-                        r.message = string.Format(CultureInfo.InvariantCulture,
-                                "{0}! {1}{5}{2}{5}{3}: {4} (0x{4:X8})",
-                                Properties.Resources.ReadError, pd.FullPath,
-                                FlacDecodeIF.ErrorCodeToStr(ercd),
-                                Properties.Resources.ErrorCode, ercd, Environment.NewLine);
-                        Console.WriteLine("D: ReadFileSingleDoWork() failed");
-                        return false;
-                    }
-                    if (sfr.NumFrames < endFrame) {
-                        endFrame = sfr.NumFrames;
+                    using (var sr = new WWSoundFileRW.WWSoundFileReader()) {
+                        // desiredFmtはデバイスが受け付けるPCM形式。
+                        // 現状、読み出し処理でdesiredFmtにならないことが多い。
+                        // 後続の処理で修正します。
+                        var desiredFmt = DeviceSetupParamsToSoundFilePcmFmt(
+                                mDeviceSetupParams);
+                        int ercd = sr.StreamBegin(
+                                new PcmDataLib.PcmData(pd),
+                                pd.FullPath, 0, 0,
+                                desiredFmt, IntPtr.Zero);
+                        sr.StreamEnd();
+                        if (ercd < 0) {
+                            r.hr = ercd;
+                            r.message = string.Format(CultureInfo.InvariantCulture,
+                                    "{0}! {1}{5}{2}{5}{3}: {4} (0x{4:X8})",
+                                    Properties.Resources.ReadError, pd.FullPath,
+                                    FlacDecodeIF.ErrorCodeToStr(ercd),
+                                    Properties.Resources.ErrorCode, ercd,
+                                    Environment.NewLine);
+                            Console.WriteLine("D: ReadFileSingleDoWork() failed");
+                            return false;
+                        }
+                        if (sr.NumFrames < endFrame) {
+                            endFrame = sr.NumFrames;
+                        }
                     }
                 }
             }
 
-            // endFrameが確定したので、総フレーム数をPcmDataにセット。
+            // endFrame値が確定。読み出すフレーム数をPcmDataにセット。
             long wantFramesTotal = endFrame - startFrame;
             pd.SetNumFrames(wantFramesTotal);
             mReadProgressInf.FileReadStart(pd.Id, startFrame, endFrame);
-            ReadFileReportProgress(0, null);
+            ReadFileReportProgress(0);
 
             {
                 // このトラックのWasapi PCMデータ領域を確保する。
@@ -2036,6 +2051,9 @@ namespace PlayPcmWin
             GC.Collect();
 
             bool result = true;
+#if true
+            {
+#else
             if (mPreference.ParallelRead
                     && WWSoundFileReader.IsTheFormatParallelizable(WWSoundFileReader.GuessFileFormatFromFilePath(pd.FullPath))
                     && ((mPreference.BpsConvNoiseShaping == NoiseShapingType.None)
@@ -2063,8 +2081,12 @@ namespace PlayPcmWin
                 rri.Clear();
                 doneEventArray = null;
             } else {
+#endif
+                // 書き込み先メモリ領域の先頭。
+                var writeBeginPtr = mAp.wasapi.GetPlayPcmDataPtr(pd.Id, 0);
+
                 // ファイルのstartFrameからendFrameまでを読み出す。(1スレッド)
-                var ri = ReadOnePcmFileFragment(bw, pd, startFrame, wantFramesTotal, 0);
+                var ri = ReadOnePcmFileFragment(bw, pd, startFrame, wantFramesTotal, 0, writeBeginPtr);
                 if (ri.HasMessage) {
                     r.individualResultList.Add(ri);
                 }
@@ -2077,215 +2099,132 @@ namespace PlayPcmWin
             return result;
         }
 
-        abstract class ReadFileResult {
-            public bool IsSucceeded { get; set; }
-            public bool HasMessage { get; set; }
-            public int PcmDataId { get; set; }
-            public abstract string ToString(string fileName);
-        }
-
-        class ReadFileResultSuccess : ReadFileResult {
-            public ReadFileResultSuccess(int pcmDataId) {
-                PcmDataId = pcmDataId;
-                IsSucceeded = true;
-                HasMessage = false;
-            }
-
-            public override string ToString(string fileName) {
-                return string.Empty;
-            }
-        };
-
-        class ReadFileResultFailed : ReadFileResult {
-            private string message;
-
-            public ReadFileResultFailed(int pcmDataId, string message) {
-                PcmDataId = pcmDataId;
-                this.message = message;
-                IsSucceeded = false;
-                HasMessage = !String.IsNullOrEmpty(this.message);
-            }
-
-            public override string ToString(string fileName) {
-                return message;
-            }
-        };
-
-        class ReadFileResultClipped : ReadFileResult {
-            private long clippedCount;
-
-            public ReadFileResultClipped(int pcmDataId, long clippedCount) {
-                PcmDataId = pcmDataId;
-                this.clippedCount = clippedCount;
-                IsSucceeded = false;
-                HasMessage = true;
-            }
-
-            public override string ToString(string fileName) {
-                return string.Format(CultureInfo.InvariantCulture, Properties.Resources.ClippedSampleDetected,
-                        fileName, clippedCount);
-            }
-        };
-
-        class ReadFileResultMD5Sum : ReadFileResult {
-            private byte [] md5SumOfPcm;
-            private byte [] md5SumInMetadata;
-
-            public ReadFileResultMD5Sum(int pcmDataId, byte[] md5SumOfPcm, byte[] md5SumInMetadata) {
-                PcmDataId = pcmDataId;
-                this.md5SumOfPcm = md5SumOfPcm;
-                this.md5SumInMetadata = md5SumInMetadata;
-                if (null == md5SumInMetadata) {
-                    // MD5値がメタ情報から取得できなかったので照合は行わずに成功を戻す。
-                    IsSucceeded = true;
-                } else {
-                    IsSucceeded = md5SumOfPcm.SequenceEqual(md5SumInMetadata);
-                }
-                HasMessage = true;
-            }
-
-            public override string ToString(string fileName) {
-                if (null == md5SumInMetadata) {
-                    return string.Format(CultureInfo.InvariantCulture, Properties.Resources.MD5SumNotAvailable,
-                        fileName, MD5SumToStr(md5SumOfPcm)) + Environment.NewLine;
-                }
-
-                if (IsSucceeded) {
-                    return string.Format(CultureInfo.InvariantCulture, Properties.Resources.MD5SumValid,
-                        fileName, MD5SumToStr(md5SumInMetadata)) + Environment.NewLine;
-                }
-
-                return string.Format(CultureInfo.InvariantCulture, Properties.Resources.MD5SumMismatch,
-                        fileName, MD5SumToStr(md5SumInMetadata), MD5SumToStr(md5SumOfPcm)) + Environment.NewLine;
-
-            }
-
-            private static string MD5SumToStr(byte[] a) {
-                if (null == a) {
-                    return "NA";
-                }
-                return string.Format(CultureInfo.InvariantCulture,
-                        "{0:x2}{1:x2}{2:x2}{3:x2}{4:x2}{5:x2}{6:x2}{7:x2}{8:x2}{9:x2}{10:x2}{11:x2}{12:x2}{13:x2}{14:x2}{15:x2}",
-                        a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7],
-                        a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15]);
-            }
-        };
-
         private ReadFileResult ReadOnePcmFileFragment(
                 BackgroundWorker bw,
                 PcmDataLib.PcmData pd, long readStartFrame,
-                long wantFramesTotal, long writeOffsFrame) {
+                long wantFramesTotal, long writeOffsFrame,
+                IntPtr writeBeginPtr) {
             var lowMemoryFailed = new ReadFileResultFailed(pd.Id, "Low memory");
             var ri = new ReadFileResultSuccess(pd.Id) as ReadFileResult;
 
             var pdCopy = new PcmDataLib.PcmData().CopyFrom(pd);
 
-            var pr = new WWSoundFileReader();
-            int ercd = pr.StreamBegin(pdCopy,
-                    pdCopy.FullPath, readStartFrame, wantFramesTotal,
-                    DeviceSetupParamsToSoundFilePcmFmt(mDeviceSetupParams));
-            if (ercd < 0) {
-                Console.WriteLine("D: ReadOnePcmFileFragment() StreamBegin failed");
-                return new ReadFileResultFailed(pd.Id, FlacDecodeIF.ErrorCodeToStr(ercd));
-            }
-
-            long frameCount = 0;
-            do {
-                // 読み出したいフレーム数wantFrames。
-                int wantFrames = WWSoundFileReader.TYPICAL_READ_FRAMES;
-                if (wantFramesTotal < frameCount + wantFrames) {
-                    wantFrames = (int)( wantFramesTotal - frameCount );
+            using (var sr = new WWSoundFileReader()) {
+                int ercd = sr.StreamBegin(pdCopy,
+                        pdCopy.FullPath, readStartFrame, wantFramesTotal,
+                        DeviceSetupParamsToSoundFilePcmFmt(mDeviceSetupParams),
+                        writeBeginPtr);
+                if (ercd < 0) {
+                    Console.WriteLine("D: ReadOnePcmFileFragment() StreamBegin failed");
+                    return new ReadFileResultFailed(pd.Id, FlacDecodeIF.ErrorCodeToStr(ercd));
                 }
 
-                int readResult;
-                var part = pr.StreamReadOne(wantFrames, out readResult);
-                if (null == part) {
-                    pr.StreamEnd();
-                    if (readResult < 0) {
-                        return new ReadFileResultFailed(pdCopy.Id, WWFlacRWCS.FlacRW.ErrorCodeToStr(readResult));
+                long frameCount = 0;
+                do {
+                    // 読み出したいフレーム数wantFrames。
+                    int wantFrames = WWSoundFileReader.TYPICAL_READ_FRAMES;
+                    if (wantFramesTotal < frameCount + wantFrames) {
+                        wantFrames = (int)(wantFramesTotal - frameCount);
                     }
 
-                    Console.WriteLine("D: ReadOnePcmFileFragment() lowmemory");
-                    return lowMemoryFailed;
+                    int readFrames = 0;
+                    byte[] part = null;
+                    int readResult = sr.StreamReadOne(wantFrames, out part, out readFrames);
+                    if (part == null || part.Count() == 0) {
+                        if (readResult < 0) {
+                            // 読み出しエラー。
+                            sr.StreamEnd();
+                            return new ReadFileResultFailed(
+                                    pdCopy.Id, WWFlacRWCS.FlacRW.ErrorCodeToStr(readResult));
+                        } else if (readResult == WWSoundFileReader.ERROR_HANDLE_EOF) {
+                            // EOFに達した。
+                            mAp.wasapi.TrimPlayPcmDataFrameCount(pdCopy.Id, frameCount);
+                            break;
+                        }
+                    }
+
+                    if (part != null && 0 < part.Length) {
+                        //Console.WriteLine("part size = {0}", part.Length);
+
+                        pdCopy.SetSampleLargeArray(new LargeArray<byte>(part));
+                        part = null;
+                        //Console.WriteLine("pd.SetSampleLargeArray {0}", pd.GetSampleLargeArray().LongLength);
+
+                        // 必要に応じてpartの量子化ビット数の変更処理を行い、pdAfterに新しく確保したPCMデータ配列をセット。
+
+                        var bca = new PcmFormatConverter.BitsPerSampleConvArgs(mPreference.BpsConvNoiseShaping);
+                        if (mPreference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Exclusive) {
+                            pdCopy = mPcmUtil.BitsPerSampleConvWhenNecessary(
+                                    pdCopy, mDeviceSetupParams.SampleFormat, bca);
+                        }
+
+                        if (pdCopy.GetSampleLargeArray() == null ||
+                                0 == pdCopy.GetSampleLargeArray().LongLength) {
+                            // サンプルが存在しないのでWasapiにAddしない。
+                            break;
+                        }
+
+                        //Console.WriteLine("pdCopy.SampleLargeArray {0}", pdCopy.GetSampleLargeArray().LongLength);
+
+                        if (pdCopy.NumChannels == 1) {
+                            // モノラル1ch→ステレオ2ch変換。
+                            pdCopy = pdCopy.MonoToStereo();
+                        }
+                        if (mPreference.AddSilentForEvenChannel) {
+                            // 偶数チャンネルにするために無音を追加。
+                            pdCopy = pdCopy.AddSilentForEvenChannel();
+                        }
+
+                        pdCopy = pdCopy.ConvertChannelCount(mDeviceSetupParams.NumChannels);
+
+                        /*
+                        // これは駄目だった！もっと手前でDoPマーカーの判定をしてDoPとPCMが混在しないようにする必要がある。
+                        // PCMのとき、DoPマーカーが付いていたらDSDフラグを立てる。
+                        if (mDeviceSetupParams.SharedOrExclusive == WasapiSharedOrExclusiveType.Exclusive &&
+                                pdCopy.ScanDopMarkerAndUpdate()) {
+                            mAp.wasapi.UpdateStreamType(pd.Id, WasapiCS.StreamType.DoP);
+                        }
+                        */
+
+                        //Console.WriteLine("pdCopy.ConvertChannelCount({0}) SampleLargeArray {1}", mDeviceSetupParams.NumChannels, pdCopy.GetSampleLargeArray().LongLength);
+
+                        long posBytes = (writeOffsFrame + frameCount) * pdCopy.BitsPerFrame / 8;
+
+                        bool result = false;
+                        lock (pd) {
+                            //Console.WriteLine("mAp.wasapi.AddPlayPcmDataSetPcmFragment({0}, {1} {2})", pd.Id, posBytes, pdCopy.GetSampleLargeArray().ToArray().Length);
+
+                            // PCMデータをWasapiネイティブ層にセット。
+                            result = mAp.wasapi.AddPlayPcmDataSetPcmFragment(
+                                    pdCopy.Id, posBytes, pdCopy.GetSampleLargeArray().ToArray());
+                        }
+                        System.Diagnostics.Debug.Assert(result);
+
+                        pdCopy.ForgetDataPart();
+                    }
+
+                    // frameCountを進める
+                    frameCount += readFrames;
+
+                    ReadFileReportProgress(readFrames);
+
+                    if (bw.CancellationPending) {
+                        sr.StreamAbort();
+                        return new ReadFileResultFailed(pdCopy.Id, string.Empty);
+                    }
+                } while (frameCount < wantFramesTotal);
+
+                ercd = sr.StreamEnd();
+
+                if (ercd < 0) {
+                    return new ReadFileResultFailed(
+                            pd.Id, string.Format(CultureInfo.InvariantCulture,
+                                "{0}: {1}", FlacDecodeIF.ErrorCodeToStr(ercd), pd.FullPath));
                 }
 
-                // 実際に読み出されたフレーム数readFrames。
-                int readFrames = part.Length / ( pdCopy.BitsPerFrame / 8 );
-
-                //Console.WriteLine("part size = {0}", part.Length);
-
-                pdCopy.SetSampleLargeArray(new LargeArray<byte>(part));
-                part = null;
-
-                //Console.WriteLine("pd.SetSampleLargeArray {0}", pd.GetSampleLargeArray().LongLength);
-
-                // 必要に応じてpartの量子化ビット数の変更処理を行い、pdAfterに新しく確保したPCMデータ配列をセット。
-
-                var bpsConvArgs = new PcmFormatConverter.BitsPerSampleConvArgs(mPreference.BpsConvNoiseShaping);
-                if (mPreference.WasapiSharedOrExclusive == WasapiSharedOrExclusiveType.Exclusive) {
-                    pdCopy = mPcmUtil.BitsPerSampleConvWhenNecessary(pdCopy, mDeviceSetupParams.SampleFormat, bpsConvArgs);
+                if (sr.MD5SumOfPcm != null) {
+                    ri = new ReadFileResultMD5Sum(pd.Id, sr.MD5SumOfPcm, sr.MD5SumInMetadata);
                 }
-
-                if (pdCopy.GetSampleLargeArray() == null ||
-                        0 == pdCopy.GetSampleLargeArray().LongLength) {
-                    // サンプルが存在しないのでWasapiにAddしない。
-                    break;
-                }
-
-                //Console.WriteLine("pdCopy.SampleLargeArray {0}", pdCopy.GetSampleLargeArray().LongLength);
-
-                if (pdCopy.NumChannels == 1) {
-                    // モノラル1ch→ステレオ2ch変換。
-                    pdCopy = pdCopy.MonoToStereo();
-                }
-                if (mPreference.AddSilentForEvenChannel) {
-                    // 偶数チャンネルにするために無音を追加。
-                    pdCopy = pdCopy.AddSilentForEvenChannel();
-                }
-
-                pdCopy = pdCopy.ConvertChannelCount(mDeviceSetupParams.NumChannels);
-
-                /*
-                // これは駄目だった！もっと手前でDoPマーカーの判定をしてDoPとPCMが混在しないようにする必要がある。
-                // PCMのとき、DoPマーカーが付いていたらDSDフラグを立てる。
-                if (mDeviceSetupParams.SharedOrExclusive == WasapiSharedOrExclusiveType.Exclusive &&
-                        pdCopy.ScanDopMarkerAndUpdate()) {
-                    mAp.wasapi.UpdateStreamType(pd.Id, WasapiCS.StreamType.DoP);
-                }
-                */
-
-                //Console.WriteLine("pdCopy.ConvertChannelCount({0}) SampleLargeArray {1}", mDeviceSetupParams.NumChannels, pdCopy.GetSampleLargeArray().LongLength);
-
-                long posBytes = ( writeOffsFrame + frameCount ) * pdCopy.BitsPerFrame / 8;
-
-                bool result = false;
-                lock (pd) {
-                    //Console.WriteLine("mAp.wasapi.AddPlayPcmDataSetPcmFragment({0}, {1} {2})", pd.Id, posBytes, pdCopy.GetSampleLargeArray().ToArray().Length);
-
-                    result = mAp.wasapi.AddPlayPcmDataSetPcmFragment(pdCopy.Id, posBytes, pdCopy.GetSampleLargeArray().ToArray());
-                }
-                System.Diagnostics.Debug.Assert(result);
-
-                pdCopy.ForgetDataPart();
-
-                // frameCountを進める
-                frameCount += readFrames;
-
-                ReadFileReportProgress(readFrames, bpsConvArgs);
-
-                if (bw.CancellationPending) {
-                    pr.StreamAbort();
-                    return new ReadFileResultFailed(pdCopy.Id, string.Empty);
-                }
-            } while (frameCount < wantFramesTotal);
-
-            ercd = pr.StreamEnd();
-            if (ercd < 0) {
-                return new ReadFileResultFailed(pd.Id, string.Format(CultureInfo.InvariantCulture, "{0}: {1}", FlacDecodeIF.ErrorCodeToStr(ercd), pd.FullPath));
-            }
-
-            if (pr.MD5SumOfPcm != null) {
-                ri = new ReadFileResultMD5Sum(pd.Id, pr.MD5SumOfPcm, pr.MD5SumInMetadata);
             }
 
             return ri;

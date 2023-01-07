@@ -109,6 +109,16 @@ namespace Wasapi {
         private extern static bool
         WasapiIO_AddPlayPcmData(int instanceId, int pcmId, byte[] data, long bytes);
 
+        /// PcmDataの利用可能PCM総量を減らします。
+        [DllImport("WasapiIODLL.dll")]
+        private extern static bool
+        WasapiIO_TrimPlayPcmDataFrameCount(int instanceId, int pcmId, long nFrames);
+
+        /// @return PCMデータの途中を指すポインタを戻します。
+        [DllImport("WasapiIODLL.dll")]
+        private extern static IntPtr
+        WasapiIO_GetPlayPcmDataPtr(int instanceId, int pcmId, long posBytes);
+
         [DllImport("WasapiIODLL.dll")]
         private extern static bool
         WasapiIO_AddPlayPcmDataSetPcmFragment(int instanceId, int pcmId, long posBytes, byte[] data, long bytes);
@@ -757,8 +767,23 @@ namespace Wasapi {
             return true;
         }
 
+        /// <summary>
+        /// PCMデータを置く領域を確保。
+        /// </summary>
         public bool AddPlayPcmDataAllocateMemory(int pcmId, long bytes) {
             return WasapiIO_AddPlayPcmData(mId, pcmId, null, bytes);
+        }
+
+        /// <summary>
+        /// PCMデータ総量を減らします。
+        /// </summary>
+        public bool TrimPlayPcmDataFrameCount(int pcmId, long nFrames) {
+            return WasapiIO_TrimPlayPcmDataFrameCount(mId, pcmId, nFrames);
+        }
+
+        /// @return PCMデータの途中を指すポインタを戻します。
+        public IntPtr GetPlayPcmDataPtr(int pcmId, long posBytes) {
+            return WasapiIO_GetPlayPcmDataPtr(mId, pcmId, posBytes);
         }
 
         public bool AddPlayPcmDataSetPcmFragment(int pcmId, long posBytes, byte[] data) {

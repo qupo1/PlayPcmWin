@@ -52,14 +52,16 @@ namespace WWNativeSoundFileReaderCs {
 
             int rv = 0;
 
+            IntPtr ptr;
             if (channelMap == null) {
-                rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, IntPtr.Zero);
+                ptr = IntPtr.Zero;
             } else {
                 fixed (int* p = &channelMap[0]) {
-                    IntPtr ptr = (IntPtr)p;
-                    rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, ptr);
+                    ptr = (IntPtr)p;
                 }
             }
+
+            rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, ptr);
 
             return rv;
         }

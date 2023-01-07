@@ -148,6 +148,7 @@
     </Compile>
     <Compile Include="PreferenceAudioFilter.cs" />
     <Compile Include="PreferenceAudioFilterStore.cs" />
+    <Compile Include="ReadFileResult.cs" />
     <Compile Include="RemoteCommand.cs" />
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>

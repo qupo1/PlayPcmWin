@@ -116,13 +116,28 @@ __declspec(dllexport)
 bool __stdcall
 WasapiIO_AddPlayPcmDataStart(int instanceId);
 
+/// @param data nullptrを渡すと領域を確保し、ZeroMemoryします。
 __declspec(dllexport)
 bool __stdcall
 WasapiIO_AddPlayPcmData(int instanceId, int pcmId, unsigned char *data, int64_t bytes);
 
+/// PcmDataの利用可能PCM総量を減らします。
+__declspec(dllexport)
+bool __stdcall
+WasapiIO_TrimPlayPcmDataFrameCount(int instanceId, int pcmId, int64_t nFrames);
+
+/// @return PCMデータの途中を指すポインタを戻します。
+__declspec(dllexport)
+unsigned char * __stdcall
+WasapiIO_GetPlayPcmDataPtr(int instanceId, int pcmId, int64_t posBytes);
+
 __declspec(dllexport)
 bool __stdcall
 WasapiIO_AddPlayPcmDataSetPcmFragment(int instanceId, int pcmId, int64_t posBytes, unsigned char *data, int64_t bytes);
+
+__declspec(dllexport)
+bool __stdcall
+WasapiIO_AddPlayPcmDataSetPcmFragmentPtr(int instanceId, int pcmId, int64_t posBytes, char *data, int64_t bytes);
 
 /// @return HRESULT
 __declspec(dllexport)

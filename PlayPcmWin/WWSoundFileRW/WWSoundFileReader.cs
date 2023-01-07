@@ -13,7 +13,12 @@ namespace WWSoundFileRW {
         // SIMDの都合により48の倍数。
         public const int TYPICAL_READ_FRAMES = 6 * 1024 * 1024;
 
-        private PcmData mPcmData;
+        /// <summary>
+        /// EOF : End Of File HRESULTの値です。
+        /// </summary>
+        public const int ERROR_HANDLE_EOF = 38;
+
+        private PcmDataLib.PcmData mPcmData;
         private FlacDecodeIF mFlacR;
         private AiffReader mAiffR;
         private DsfReader mDsfR;
@@ -21,49 +26,53 @@ namespace WWSoundFileRW {
         private WavReader mWaveR;
         private BinaryReader mBr;
         private Mp3Reader mMp3Reader;
+        private IntPtr mWriteBeginPtr;
 
         private class NativeReaderInf {
             public WWNativeSoundFileReader mNSFR;
             public bool mUseNativeReader = false;
-            public IntPtr mBuf = new IntPtr();
-            public long mFileOffset = 0;
+            public long mFileOffs = 0;
+            private IntPtr mWriteBeginPtr;
+            public long mWritePtrOffs = 0;
             public int mSrcBytesPerFrame = 0;
             public int mTgtBytesPerFrame = 0;
 
-            public int ReadBegin(string path, long fileOffset, SoundFilePcmFmt srcF, SoundFilePcmFmt tgtF) {
-                mFileOffset = fileOffset;
+            public int ReadBegin(
+                    string path, long fileOffset,
+                    SoundFilePcmFmt srcF, SoundFilePcmFmt tgtF,
+                    IntPtr writePtr) {
+                mFileOffs = fileOffset;
+                mWriteBeginPtr = writePtr;
+                mWritePtrOffs = 0;
                 mUseNativeReader = true;
                 mSrcBytesPerFrame = srcF.BytesPerFrame;
                 mTgtBytesPerFrame = tgtF.BytesPerFrame;
                 mNSFR = new WWNativeSoundFileReader();
                 mNSFR.Init();
-                mBuf = mNSFR.AllocNativeBuffer(TYPICAL_READ_FRAMES * mTgtBytesPerFrame);
+
                 return mNSFR.ReadBegin(path,
                     SoundFilePcmFmtToWWNativePcmFmt(srcF),
                     SoundFilePcmFmtToWWNativePcmFmt(tgtF), null);
             }
 
-            public byte [] ReadOne(int readFrames) {
+            public int ReadOne(int readFrames) {
                 if (TYPICAL_READ_FRAMES < readFrames) {
                     throw new InternalBufferOverflowException();
                 }
 
-                int rv = mNSFR.ReadOne(mFileOffset, readFrames, mBuf, 0);
+                int rv = mNSFR.ReadOne(mFileOffs, readFrames, mWriteBeginPtr, mWritePtrOffs);
                 if (0 <= rv) {
                     // 成功。
                     int srcBytes = readFrames * mSrcBytesPerFrame;
                     int tgtBytes = readFrames * mTgtBytesPerFrame;
-                    
-                    var r = new byte[tgtBytes];
-                    System.Runtime.InteropServices.Marshal.Copy(mBuf, r, 0, tgtBytes);
-                    
-                    mFileOffset += srcBytes;
 
-                    return r;
+                    mWritePtrOffs += tgtBytes;
+                    mFileOffs += srcBytes;
                 } else {
                     // 失敗。
-                    return null;
                 }
+
+                return rv;
             }
 
             public void ReadEnd() {
@@ -74,7 +83,8 @@ namespace WWSoundFileRW {
                 mNSFR.Term();
                 mNSFR = null;
                 mUseNativeReader = false;
-                mBuf = IntPtr.Zero;
+                mWriteBeginPtr = IntPtr.Zero;
+                mWritePtrOffs = 0;
             }
 
             private WWNativeSoundFileReader.WWNativePcmFmt
@@ -110,7 +120,10 @@ namespace WWSoundFileRW {
 
         protected virtual void Dispose(bool disposing) {
             if (disposing) {
-                mBr.Dispose();
+                if (null != mBr) {
+                    mBr.Close();
+                    mBr = null;
+                }
             }
         }
 
@@ -192,7 +205,10 @@ namespace WWSoundFileRW {
                 PcmDataLib.PcmData pdCopy,
                 string path,
                 long startFrame, long wantFrames,
-                SoundFilePcmFmt desiredFmt) {
+                SoundFilePcmFmt desiredFmt,
+                IntPtr writeBeginPtr) {
+            mPcmData = pdCopy;
+            mWriteBeginPtr = writeBeginPtr;
 
             var fmt = GuessFileFormatFromFilePath(path);
             try {
@@ -205,7 +221,7 @@ namespace WWSoundFileRW {
                     return StreamBeginAiff(path, startFrame);
                 case Format.WAVE:
                     m_format = Format.WAVE;
-                    return ReadBeginWav(pdCopy, path, startFrame, desiredFmt);
+                    return ReadBeginWav(path, startFrame, desiredFmt, writeBeginPtr);
                 case Format.DSF:
                     m_format = Format.DSF;
                     return StreamBeginDsf(path, startFrame);
@@ -234,44 +250,60 @@ namespace WWSoundFileRW {
         /// <summary>
         /// PCMデータを読み出す。
         /// </summary>
+        /// <param name="b_out">読み出したPCMデータ断片が戻ることがある。このとき呼び出し側はwasapi再生データとしてセットします。
+        ///                     サイズが0の場合は、中で既にwasapiにセットした場合、EOFに達した場合、読み出しエラー発生の場合がある。戻り値によって判断します。</param>
         /// <param name="readFrames">読み込みたいフレーム数(オリジナルSRでフレーム数を数える)。48の倍数が良い。6Mフレームぐらいにすると良い。(このフレーム数のデータが戻るとは限らない)</param>
-        /// <returns>PCMデータが詰まったバイト列。0要素の配列の場合、もう終わり。</returns>
-        public byte[] StreamReadOne(int preferredFrames, out int ercd) {
-            ercd = 0;
+        /// <returns>0: 成功、負：エラー、ERROR_HANDLE_EOF(38): EOFに達した。</returns>
+        public int StreamReadOne(int preferredFrames, out byte[] b_out, out int readFrames) {
+            readFrames = 0;
+            int ercd = 0;
 
             // FLACのデコーダーはエラーコードを戻すことがある。
             // 他のデコーダーは、データ領域に構造がないので読み出しエラーは特にない。System.IOExceptionが起きることはある。
 
-            byte[] r;
             switch (m_format) {
             case Format.FLAC:
-                r = mFlacR.ReadStreamReadOne(preferredFrames, out ercd);
+                b_out = mFlacR.ReadStreamReadOne(preferredFrames, out ercd);
                 break;
             case Format.AIFF:
-                r = mAiffR.ReadStreamReadOne(mBr, preferredFrames);
+                b_out = mAiffR.ReadStreamReadOne(mBr, preferredFrames);
                 break;
             case Format.WAVE:
-                r = ReadOneWav(preferredFrames);
-                break;
+                // 新型の読み出し処理。
+                return ReadOneWav(preferredFrames, out b_out, out readFrames);
             case Format.DSF:
-                r = mDsfR.ReadStreamReadOne(mBr, preferredFrames);
+                b_out = mDsfR.ReadStreamReadOne(mBr, preferredFrames);
                 break;
             case Format.DSDIFF:
-                r = mDsdiffR.ReadStreamReadOne(mBr, preferredFrames);
+                b_out = mDsdiffR.ReadStreamReadOne(mBr, preferredFrames);
                 break;
             case Format.MP3:
                 if (int.MaxValue < mMp3Reader.data.LongLength) {
-                    r = new byte[0];
+                    b_out = new byte[0];
+                    ercd = ERROR_HANDLE_EOF;
                 } else {
-                    r = mMp3Reader.data.ToArray();
+                    b_out = mMp3Reader.data.ToArray();
                 }
                 break;
             default:
                 System.Diagnostics.Debug.Assert(false);
-                r = new byte[0];
+                b_out = new byte[0];
                 break;
             }
-            return r;
+
+            if (b_out == null && 0 <= ercd) {
+                // 読み出しエラーにします。
+                b_out = new byte[0];
+                ercd = -1;
+            } else if (b_out != null && b_out.Length == 0) {
+                // EOFに達した。
+                ercd = ERROR_HANDLE_EOF;
+            } else {
+                // 実際に読み出されたフレーム数readFrames。
+                readFrames = b_out.Length / ( mPcmData.BitsPerFrame / 8 );
+            }
+
+            return ercd;
         }
 
         public void StreamAbort() {
@@ -437,7 +469,11 @@ namespace WWSoundFileRW {
             return hr;
         }
 
-        private int ReadBeginWav(PcmDataLib.PcmData pdCopy, string path, long startFrame, SoundFilePcmFmt tgtF) {
+        private int ReadBeginWav(
+                string path,
+                long startFrame,
+                SoundFilePcmFmt tgtF,
+                IntPtr writeBeginPtr) {
             int ercd = -1;
 
             var origF = new SoundFilePcmFmt();
@@ -463,13 +499,16 @@ namespace WWSoundFileRW {
                         tgtF.numChannels = origF.numChannels;
 
                         // tgtFへのサンプルフォーマット変更を反映します。
-                        pdCopy.BitsPerSample = tgtF.containerBitDepth;
-                        pdCopy.ValidBitsPerSample = tgtF.validBitDepth;
-                        pdCopy.SampleValueRepresentationType
-                                = tgtF.isFloat != 0 ? PcmData.ValueRepresentationType.SFloat : PcmData.ValueRepresentationType.SInt;
+                        mPcmData.BitsPerSample      = tgtF.containerBitDepth;
+                        mPcmData.ValidBitsPerSample = tgtF.validBitDepth;
+                        mPcmData.SampleValueRepresentationType
+                                = tgtF.isFloat != 0 
+                                    ? PcmData.ValueRepresentationType.SFloat
+                                    : PcmData.ValueRepresentationType.SInt;
 
                         // WWNativeSoundFileReaderを使用。
-                        ercd = mNativeR.ReadBegin(path, dsc.Offset, origF, tgtF);
+                        ercd = mNativeR.ReadBegin(path, dsc.Offset, origF, tgtF,
+                                writeBeginPtr);
                         return ercd;
                     }
                 }
@@ -494,11 +533,30 @@ namespace WWSoundFileRW {
             return ercd;
         }
 
-        private byte[] ReadOneWav(int preferredFrames) {
+        /// <summary>
+        /// Wavの読み出し。
+        /// </summary>
+        /// <returns>0: 成功。負: 失敗。ERROR_HANDLE_EOF: EOFに達した。</returns>
+        private int ReadOneWav(
+                int preferredFrames, out byte[] b_out, out int readFrames) {
+            readFrames = preferredFrames;
             if (mNativeR.mUseNativeReader) {
+                // ネイティブWav Readの場合、中でWasapiバッファに直接書き込むのでb_outは空です。
+                b_out = new byte[0];
                 return mNativeR.ReadOne(preferredFrames);
             } else {
-                return mWaveR.ReadStreamReadOne(mBr, preferredFrames);
+                b_out = mWaveR.ReadStreamReadOne(mBr, preferredFrames);
+
+                // 戻り値を決定します。
+                if (b_out == null) {
+                    return -1;
+                } else if (b_out.Count() == 0) {
+                    return ERROR_HANDLE_EOF;
+                } else {
+                    // 成功。
+                    readFrames = b_out.Length / (mPcmData.BitsPerFrame / 8);
+                    return 0;
+                }
             }
         }
 
