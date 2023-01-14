@@ -228,6 +228,33 @@ WWGetHostControllerInf(
         WWUsbVendorIdToStr(hc.vendorID),
         hc.devStr.deviceDesc.c_str(),
         hc.bs0.CurrentUsbFrame);
+    printf(
+        "    bi.DeviceCount=%d\n"
+        "    bi.TotalBusBandwidth=%d\n"
+        "    bi.Total32secBandwidth=%d\n"
+        "    bi.AllocedBulkAndControl=%d\n"
+        "    bi.AllocedIso=%d\n"
+
+        "    bi.AllocedInterrupt_1ms=%d\n"
+        "    bi.AllocedInterrupt_2ms=%d\n"
+        "    bi.AllocedInterrupt_4ms=%d\n"
+        "    bi.AllocedInterrupt_8ms=%d\n"
+        "    bi.AllocedInterrupt_16ms=%d\n"
+
+        "    bi.AllocedInterrupt_32ms=%d\n",
+        hc.bir.DeviceCount,
+        hc.bir.TotalBusBandwidth,
+        hc.bir.Total32secBandwidth,
+        hc.bir.AllocedBulkAndControl,
+        hc.bir.AllocedIso,
+
+        hc.bir.AllocedInterrupt_1ms,
+        hc.bir.AllocedInterrupt_2ms,
+        hc.bir.AllocedInterrupt_4ms,
+        hc.bir.AllocedInterrupt_8ms,
+        hc.bir.AllocedInterrupt_16ms,
+        hc.bir.AllocedInterrupt_32ms);
+
     mHCs.push_back(hc);
 
     HRG(GetRootHubName(hDev, rootHubName));

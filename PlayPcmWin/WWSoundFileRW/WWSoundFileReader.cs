@@ -40,7 +40,7 @@ namespace WWSoundFileRW {
             public int ReadBegin(
                     string path, long fileOffset,
                     SoundFilePcmFmt srcF, SoundFilePcmFmt tgtF,
-                    IntPtr writePtr) {
+                    int [] channelMap, IntPtr writePtr) {
                 mFileOffs = fileOffset;
                 mWriteBeginPtr = writePtr;
                 mWritePtrOffs = 0;
@@ -52,7 +52,7 @@ namespace WWSoundFileRW {
 
                 return mNSFR.ReadBegin(path,
                     SoundFilePcmFmtToWWNativePcmFmt(srcF),
-                    SoundFilePcmFmtToWWNativePcmFmt(tgtF), null);
+                    SoundFilePcmFmtToWWNativePcmFmt(tgtF), channelMap);
             }
 
             public int ReadOne(int readFrames) {
@@ -206,6 +206,7 @@ namespace WWSoundFileRW {
                 string path,
                 long startFrame, long wantFrames,
                 SoundFilePcmFmt desiredFmt,
+                int [] channelMap,
                 IntPtr writeBeginPtr) {
             mPcmData = pdCopy;
             mWriteBeginPtr = writeBeginPtr;
@@ -221,7 +222,7 @@ namespace WWSoundFileRW {
                     return StreamBeginAiff(path, startFrame);
                 case Format.WAVE:
                     m_format = Format.WAVE;
-                    return ReadBeginWav(path, startFrame, desiredFmt, writeBeginPtr);
+                    return ReadBeginWav(path, startFrame, desiredFmt, channelMap, writeBeginPtr);
                 case Format.DSF:
                     m_format = Format.DSF;
                     return StreamBeginDsf(path, startFrame);
@@ -469,10 +470,24 @@ namespace WWSoundFileRW {
             return hr;
         }
 
+        private bool ValidateChannelMapIntegrity(int[] channelMap, int srcChannels, int tgtChannels) {
+            if (channelMap.Length != tgtChannels) {
+                return false;
+            }
+            for (int ch = 0; ch < channelMap.Length; ++ch) {
+                int cm = channelMap[ch];
+                if (0 <= cm && srcChannels <= cm) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private int ReadBeginWav(
                 string path,
                 long startFrame,
                 SoundFilePcmFmt tgtF,
+                int [] channelMap,
                 IntPtr writeBeginPtr) {
             int ercd = -1;
 
@@ -495,10 +510,13 @@ namespace WWSoundFileRW {
                                 wr.SampleValueRepresentationType == PcmData.ValueRepresentationType.SFloat,
                                 wr.SampleDataType == WavReader.DataType.DoP);
 
-                        // チャンネル数をorigとtgtで合わせます。
-                        tgtF.numChannels = origF.numChannels;
+                        if (!ValidateChannelMapIntegrity(channelMap, origF.numChannels, tgtF.numChannels)) {
+                            Console.WriteLine("Error: Channel integrity check failed");
+                            return -1;
+                        }
 
                         // tgtFへのサンプルフォーマット変更を反映します。
+                        mPcmData.NumChannels        = tgtF.numChannels;
                         mPcmData.BitsPerSample      = tgtF.containerBitDepth;
                         mPcmData.ValidBitsPerSample = tgtF.validBitDepth;
                         mPcmData.SampleValueRepresentationType
@@ -507,7 +525,8 @@ namespace WWSoundFileRW {
                                     : PcmData.ValueRepresentationType.SInt;
 
                         // WWNativeSoundFileReaderを使用。
-                        ercd = mNativeR.ReadBegin(path, dsc.Offset, origF, tgtF,
+                        ercd = mNativeR.ReadBegin(path, dsc.Offset,
+                                origF, tgtF, channelMap,
                                 writeBeginPtr);
                         return ercd;
                     }

@@ -44,7 +44,7 @@ namespace PlayPcmWin
         private const long SLIDER_UPDATE_TICKS = 500 * 10000;
 
         /// <summary>
-        /// 共有モードの音量制限。
+        /// 共有モードの音量制限。(0.985で歪み始めるので。)
         /// </summary>
         const double SHARED_MAX_AMPLITUDE = 0.98;
 
@@ -1358,13 +1358,13 @@ namespace PlayPcmWin
                     startPcmData.ValidBitsPerSample,
                     startPcmData.SampleValueRepresentationType);
             for (int i = 0; i < candidateNum; ++i) {
-                SampleFormatInfo sf = SampleFormatInfo.CreateSetupSampleFormat(
+                SampleFormatInfo sf = SampleFormatInfo.GetSetupSampleFormatCandidate(
+                        i,
                         mPreference.WasapiSharedOrExclusive,
                         mPreference.BitsPerSampleFixType,
                         startPcmData.BitsPerSample,
                         startPcmData.ValidBitsPerSample,
-                        startPcmData.SampleValueRepresentationType,
-                        i);
+                        startPcmData.SampleValueRepresentationType);
 
                 if (mDeviceSetupParams.Is(
                         startPcmData.SampleRate,
@@ -1384,12 +1384,13 @@ namespace PlayPcmWin
             }
 
             for (int i = 0; i < candidateNum; ++i) {
-                SampleFormatInfo sf = SampleFormatInfo.CreateSetupSampleFormat(
+                SampleFormatInfo sf = SampleFormatInfo.GetSetupSampleFormatCandidate(
+                        i,
                         mPreference.WasapiSharedOrExclusive,
                         mPreference.BitsPerSampleFixType,
                         startPcmData.BitsPerSample,
                         startPcmData.ValidBitsPerSample,
-                        startPcmData.SampleValueRepresentationType, i);
+                        startPcmData.SampleValueRepresentationType);
 
                 mDeviceSetupParams.Set(
                         startPcmData.SampleRate,
@@ -2008,10 +2009,13 @@ namespace PlayPcmWin
                         // 後続の処理で修正します。
                         var desiredFmt = DeviceSetupParamsToSoundFilePcmFmt(
                                 mDeviceSetupParams);
+
+                        var channelMap = BuildChannelMap(pd.NumChannels, mDeviceSetupParams.NumChannels);
+
                         int ercd = sr.StreamBegin(
                                 new PcmDataLib.PcmData(pd),
                                 pd.FullPath, 0, 0,
-                                desiredFmt, IntPtr.Zero);
+                                desiredFmt, channelMap, IntPtr.Zero);
                         sr.StreamEnd();
                         if (ercd < 0) {
                             r.hr = ercd;
@@ -2099,6 +2103,32 @@ namespace PlayPcmWin
             return result;
         }
 
+        /// <summary>
+        /// channelMapを作る。
+        /// </summary>
+        private int[] BuildChannelMap(int srcChannels, int tgtChannels) {
+            var channelMap = new int[tgtChannels];
+
+            // 基本的には、対応するチャンネルの音を鳴らす。
+            // 対応するチャンネルのPCMが無いときは無音を鳴らす。
+            for (int ch = 0; ch < tgtChannels; ++ch) {
+                if (ch < srcChannels) {
+                    channelMap[ch] = ch;
+                } else {
+                    // 無音。
+                    channelMap[ch] = -1;
+                }
+            }
+
+            // オリジナルPCMがモノラル音声の場合、左右スピーカーから鳴るようにする。
+            if (srcChannels == 1 && 2 <= tgtChannels) {
+                channelMap[0] = 0;
+                channelMap[1] = 0;
+            }
+
+            return channelMap;
+        }
+
         private ReadFileResult ReadOnePcmFileFragment(
                 BackgroundWorker bw,
                 PcmDataLib.PcmData pd, long readStartFrame,
@@ -2110,9 +2140,12 @@ namespace PlayPcmWin
             var pdCopy = new PcmDataLib.PcmData().CopyFrom(pd);
 
             using (var sr = new WWSoundFileReader()) {
+                var channelMap = BuildChannelMap(pdCopy.NumChannels, mDeviceSetupParams.NumChannels);
+
                 int ercd = sr.StreamBegin(pdCopy,
                         pdCopy.FullPath, readStartFrame, wantFramesTotal,
                         DeviceSetupParamsToSoundFilePcmFmt(mDeviceSetupParams),
+                        channelMap,
                         writeBeginPtr);
                 if (ercd < 0) {
                     Console.WriteLine("D: ReadOnePcmFileFragment() StreamBegin failed");

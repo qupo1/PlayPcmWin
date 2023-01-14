@@ -38,90 +38,184 @@ BitDepthAndIntFloatToSampleFmt(int bitDepth, bool isFloat)
     }
 }
 
-/// 32bit integer PCMサンプル値を戻します。32bit float値が入っている場合、そのビット列がそのまま32bit入ります。
-static int32_t
-GetSampleValueI32(const uint8_t *buf, int64_t frameNr, int ch, const WWNativePcmFmt &fmt)
+/// PCMサンプル値をdouble型で戻します。整数値が入っている場合(-1.0 ≤ v < +1.0)に正規化。
+static double
+GetSampleValueAsDouble(
+        const uint8_t *buf,
+        int64_t frameNr,
+        int ch,
+        const WWNativePcmFmt &fmt)
 {
-    // FLOATの場合、32bitのみ。
-    assert(!fmt.isFloat || fmt.validBitDepth == 32);
+    double d = 0.0;
+
+    // FLOATの場合、32bitのみ対応。
+    assert(!fmt.isFloat || (fmt.containerBitDepth == 32 && fmt.validBitDepth == 32));
 
     if (fmt.numChannels <= ch) {
-        // チャンネル番号が範囲外の場合、0を戻します。
-        return 0;
+        // チャンネル番号が範囲外の場合、0を戻します。DoPの場合は問題あり。
+        return 0.0;
     }
 
-    int64_t sampleNr = (frameNr * fmt.numChannels + ch);
-    int64_t bytePos  = sampleNr * fmt.containerBitDepth / 8;
+    const int64_t sampleNr = frameNr  * fmt.numChannels + ch;
+    const int64_t bytePos  = sampleNr * fmt.containerBitDepth / 8;
 
     switch (fmt.validBitDepth) {
     case 16:
         {
-            uint16_t v = (buf[bytePos]<<16) + (buf[bytePos+1]<<24);
-            return v;
+            int16_t v
+                = (buf[bytePos  ])
+                + (buf[bytePos+1]<<8);
+            d = v / (INT16_MAX + 1.0);
+            break;
         }
     case 24:
         {
-            uint32_t v = (buf[bytePos]<<8) + (buf[bytePos+1]<<16) + (buf[bytePos+1]<<24);
-            return v;
+            int32_t v
+                = (buf[bytePos  ]<<8)
+                + (buf[bytePos+1]<<16)
+                + (buf[bytePos+2]<<24);
+            d = v / (INT32_MAX + 1.0);
+            break;
         }
     case 32:
-        {
-            uint32_t v = buf[bytePos] + (buf[bytePos+1]<<8) + (buf[bytePos+1]<<16) + (buf[bytePos+1]<<24);
-            return v;
+        if (fmt.isFloat) {
+            // 32bit float
+            uint32_t v
+                = (buf[bytePos  ])
+                + (buf[bytePos+1]<<8)
+                + (buf[bytePos+2]<<16)
+                + (buf[bytePos+3]<<24);
+            float vf = *((float*)&v);
+            d = vf;
+            break;
+        } else {
+            // 32bit Int
+            int32_t v
+                = (buf[bytePos  ])
+                + (buf[bytePos+1]<<8)
+                + (buf[bytePos+2]<<16)
+                + (buf[bytePos+3]<<24);
+            d = v / (INT32_MAX + 1.0);
+            break;
         }
     default:
         assert(0);
-        return 0;
+        break;
     }
+
+    return d;
 }
 
-/// 32bit integer PCMサンプル値を書き込みます。
+/// PCMサンプル値dを書き込みます。
 static void
-SetSampleValueI32(const int32_t v, uint8_t *buf, int64_t frameNr, int ch, const WWNativePcmFmt &fmt)
+SetSampleValue(
+        const double d,
+        uint8_t *buf,
+        int64_t frameNr,
+        int ch,
+        const WWNativePcmFmt &fmt)
 {
-    // FLOATの場合、32bitのみ。
-    assert(!fmt.isFloat || fmt.validBitDepth == 32);
+    // FLOATの場合、32bit。
+    assert(!fmt.isFloat || (fmt.containerBitDepth == 32 && fmt.validBitDepth == 32));
 
     // 書き込みチャンネル数は範囲内。
     assert(0 <= ch && ch < fmt.numChannels);
 
-    int64_t sampleNr = (frameNr * fmt.numChannels + ch);
-    int64_t bytePos  = sampleNr * fmt.containerBitDepth / 8;
+    const int64_t sampleNr = frameNr  * fmt.numChannels + ch;
+    const int64_t bytePos  = sampleNr * fmt.containerBitDepth / 8;
 
     switch (fmt.containerBitDepth) {
     case 16:
-        buf[bytePos + 0] = (v>>16) & 0xff;
-        buf[bytePos + 1] = (v>>24) & 0xff;
+        {
+            int16_t v = 0;
+            if ((double)INT16_MAX/(INT16_MAX+1) < d) {
+                v = INT16_MAX;
+            } else if (d < -1.0) {
+                v = INT16_MIN;
+            } else {
+                v = (int16_t)(d * (INT16_MAX+1));
+            }
+
+            buf[bytePos + 0] = (v   ) & 0xff;
+            buf[bytePos + 1] = (v>>8) & 0xff;
+        }
         break;
     case 24:
-        buf[bytePos + 0] = (v>>8) & 0xff;
-        buf[bytePos + 1] = (v>>16) & 0xff;
-        buf[bytePos + 2] = (v>>24) & 0xff;
+        {
+            int32_t v = 0;
+            if (8388607.0/8388608.0 < d) {
+                v = INT32_MAX;
+            } else if (d < -1.0) {
+                v = INT32_MIN;
+            } else {
+                v = (int32_t)(d * 0x80000000LL);
+            }
+
+            buf[bytePos + 0] = (v>>8)  & 0xff;
+            buf[bytePos + 1] = (v>>16) & 0xff;
+            buf[bytePos + 2] = (v>>24) & 0xff;
+        }
         break;
     case 32:
-        switch (fmt.validBitDepth) {
-        case 24:
-            buf[bytePos + 0] = 0;
-            buf[bytePos + 1] = (v>>8) & 0xff;
+        if (fmt.isFloat) {
+            // 32bit float
+            float f = (float)d;
+            uint32_t v = *((uint32_t*)&f);
+
+            buf[bytePos + 0] =  v      & 0xff;
+            buf[bytePos + 1] = (v>>8)  & 0xff;
             buf[bytePos + 2] = (v>>16) & 0xff;
             buf[bytePos + 3] = (v>>24) & 0xff;
-            break;
-        case 32:
-            buf[bytePos + 0] = v & 0xff;
-            buf[bytePos + 1] = (v>>8) & 0xff;
-            buf[bytePos + 2] = (v>>16) & 0xff;
-            buf[bytePos + 3] = (v>>24) & 0xff;
-            break;
-        default:
-            assert(0);
-            break;
+        } else {
+            // 32bit int
+            switch (fmt.validBitDepth) {
+            case 24:
+                {
+                    int32_t v = 0;
+                    if (8388607.0/8388608.0 < d) {
+                        v = INT32_MAX;
+                    } else if (d < -1.0) {
+                        v = INT32_MIN;
+                    } else {
+                        v = (int32_t)(d * 0x80000000LL);
+                    }
+
+                    buf[bytePos + 0] = 0;
+                    buf[bytePos + 1] = (v>>8)  & 0xff;
+                    buf[bytePos + 2] = (v>>16) & 0xff;
+                    buf[bytePos + 3] = (v>>24) & 0xff;
+                }
+                break;
+            case 32:
+                {
+                    int32_t v = 0;
+                    if ((double)INT32_MAX/(INT32_MAX+1.0) < d) {
+                        v = INT32_MAX;
+                    } else if (d < -1.0) {
+                        v = INT32_MIN;
+                    } else {
+                        v = (int32_t)(d * 0x80000000LL);
+                    }
+
+                    buf[bytePos + 0] =  v      & 0xff;
+                    buf[bytePos + 1] = (v>>8)  & 0xff;
+                    buf[bytePos + 2] = (v>>16) & 0xff;
+                    buf[bytePos + 3] = (v>>24) & 0xff;
+                }
+                break;
+            default:
+                assert(0);
+                break;
+            }
         }
+        break;
     default:
         assert(0);
         break;
     }
 }
 
+/// PCMフォーマット変換処理。チャンネル数が異なる場合や、ビットフォーマットが異なる場合にも対応。
 static HRESULT
 ConvertCpp(
         const uint8_t *pcmFrom, const WWNativePcmFmt &fromFmt,
@@ -140,23 +234,23 @@ ConvertCpp(
     for (int64_t i=0; i<frameCount; ++i) {
         for (int chTo=0; chTo<toFmt.numChannels; ++chTo) {
             // PCM無音で初期化。
-            int32_t v = 0;
+            double v = 0;
 
             if (toFmt.isDoP) {
-                // DoP無音。
+                // DoP無音。(1bit audioデータ列は0x69を並べます。)
                 if (i%2==0) {
-                    v = 0x05696900;
+                    v = 0x05696900 / (INT32_MAX + 1.0);
                 } else {
-                    v = 0xfa696900;
+                    v = 0xfa696900 / (INT32_MAX + 1.0);
                 }
             }
 
             int chFrom = channelMap[chTo];
             if (0 <= chFrom) {
-                v = GetSampleValueI32(pcmFrom, i, chTo, fromFmt);
+                v = GetSampleValueAsDouble(pcmFrom, i, chFrom, fromFmt);
             }
 
-            SetSampleValueI32(v, pcmTo, i, chTo, toFmt);
+            SetSampleValue(v, pcmTo, i, chTo, toFmt);
         }
     }
 
@@ -180,7 +274,8 @@ IsIdenticalMap(int nCh, const int *channelMap)
 HRESULT
 WWPcmFmtConverter(
         const uint8_t *pcmFrom, const WWNativePcmFmt &fromFmt,
-        uint8_t       *pcmTo,   const WWNativePcmFmt &toFmt, const int *channelMap, const int64_t frameCount)
+        uint8_t       *pcmTo,   const WWNativePcmFmt &toFmt,
+        const int *channelMap, const int64_t frameCount)
 {
     SampleFmt fromSF = BitDepthAndIntFloatToSampleFmt(fromFmt.containerBitDepth, fromFmt.isFloat!=0);
     SampleFmt toSF   = BitDepthAndIntFloatToSampleFmt(toFmt.containerBitDepth,   toFmt.isFloat!=0);
@@ -200,7 +295,7 @@ WWPcmFmtConverter(
                 pcmTo,   toFmt, channelMap, frameCount);
     }
 
-    // 入出力サンプルカウントは同じ(sampleCount)。
+    // 入出力サンプルカウントは同じ値＝＝sampleCount。
     int64_t sampleCount = frameCount * fromFmt.numChannels;
 
     switch (fromSF) {

@@ -111,24 +111,22 @@ namespace WasapiPcmUtil {
         /// <summary>
         /// PcmDataの形式と、(共有・排他)、フォーマット固定設定から、
         /// デバイスに設定されるビットフォーマットを取得。
-        /// 
-        /// これは、内容的にテーブルなので、テーブルにまとめたほうが良い。
         /// </summary>
         /// <returns>デバイスに設定されるビットフォーマット</returns>
-        static public SampleFormatInfo CreateSetupSampleFormat(
+        static public SampleFormatInfo GetSetupSampleFormatCandidate(
+                int candidateId,
                 WasapiSharedOrExclusiveType sharedOrExclusive,
                 BitsPerSampleFixType bitsPerSampleFixType,
                 int bitsPerSample,
                 int validBitsPerSample,
-                PcmDataLib.PcmData.ValueRepresentationType vrt,
-                int candidateId) {
+                PcmDataLib.PcmData.ValueRepresentationType vrt) {
             SampleFormatInfo sf = new SampleFormatInfo();
 
             if (sharedOrExclusive == WasapiSharedOrExclusiveType.Shared) {
-                // 共有モード
-                sf.bitsPerSample = bitsPerSample;
-                sf.validBitsPerSample = validBitsPerSample;
-                sf.bitFormatType = SampleFormatInfo.VrtToBft(vrt);
+                // 共有モードの場合、32bit float型 1通り。
+                sf.bitsPerSample = 32;
+                sf.validBitsPerSample = 32;
+                sf.bitFormatType = WasapiCS.BitFormatType.SFloat;
                 return sf;
             }
 

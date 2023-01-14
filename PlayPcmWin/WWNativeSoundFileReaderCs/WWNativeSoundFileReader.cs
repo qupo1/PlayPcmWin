@@ -43,7 +43,7 @@ namespace WWNativeSoundFileReaderCs {
             }
         };
 
-        public unsafe int ReadBegin(
+        public int ReadBegin(
                 string path,
                 WWNativePcmFmt origPcmFmt,
                 WWNativePcmFmt tgtPcmFmt,
@@ -52,16 +52,7 @@ namespace WWNativeSoundFileReaderCs {
 
             int rv = 0;
 
-            IntPtr ptr;
-            if (channelMap == null) {
-                ptr = IntPtr.Zero;
-            } else {
-                fixed (int* p = &channelMap[0]) {
-                    ptr = (IntPtr)p;
-                }
-            }
-
-            rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, ptr);
+            rv = NativeMethods.WWNativeSoundFileReaderStart(mIdx, path, ref origPcmFmt, ref tgtPcmFmt, channelMap);
 
             return rv;
         }
@@ -99,6 +90,9 @@ namespace WWNativeSoundFileReaderCs {
             internal extern static int
             WWNativeSoundFileReaderInit();
 
+            /// <summary>
+            /// 適切にアラインされたメモリをネイティブ層で確保。
+            /// </summary>
             [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
             internal extern static IntPtr
             WWNativeSoundFileReaderAllocNativeBuffer(long bytes);
@@ -107,10 +101,15 @@ namespace WWNativeSoundFileReaderCs {
             internal extern static void
             WWNativeSoundFileReaderReleaseNativeBuffer(IntPtr ptr);
 
+            /// <summary>
             /// ファイル読み出し開始。
+            /// </summary>
+            /// <param name="tgtPcmFmt">チャンネル数変更するときはtgtPcmFmt.numChannel要素のchannelMapを付けます。</param>
+            /// <param name="channelMap">要素数はtgtPcmFormat.numChannels個。</param>
             [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
             internal extern static int
-            WWNativeSoundFileReaderStart(int id, string path, ref WWNativePcmFmt origPcmFmt, ref WWNativePcmFmt tgtPcmFmt, IntPtr channelMap);
+            WWNativeSoundFileReaderStart(int id, string path, ref WWNativePcmFmt origPcmFmt, ref WWNativePcmFmt tgtPcmFmt,
+                    [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int [] channelMap);
 
             /// 読み終わるまでブロックします。
             [DllImport("WWNativeSoundFileReaderDLL.dll", CharSet = CharSet.Unicode)]
