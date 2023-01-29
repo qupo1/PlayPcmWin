@@ -39,6 +39,9 @@
     <ClCompile Include="WWWavReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WWProgramVersion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WasapiWrap.h">
@@ -62,5 +65,16 @@
     <ClInclude Include="WWWavReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WWProgramVersion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

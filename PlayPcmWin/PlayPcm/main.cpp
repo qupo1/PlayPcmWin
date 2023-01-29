@@ -4,6 +4,7 @@
 #include "WWDsfReader.h"
 #include "WWDsdiffReader.h"
 #include "WWPrivilegeControl.h"
+#include "WWProgramVersion.h"
 
 #include <stdio.h>
 #include <Windows.h>
@@ -17,8 +18,15 @@
 static void
 PrintUsage(void)
 {
+    uint32_t majorV  = 0;
+    uint32_t minorV1 = 0;
+    uint32_t minorV2 = 0;
+    uint32_t minorV3 = 0;
+
+    WWProgramVersion(&majorV, &minorV1, &minorV2, &minorV3);
+
     printf(
-        "PlayPcm version 1.0.6\n"
+        "PlayPcm version %u.%u.%u\n"
         "Usage:\n"
         "    PlayPcm\n"
         "        Print this message and enumerate all available devices\n"
@@ -31,8 +39,8 @@ PrintUsage(void)
         "        Example:\n"
         "            PlayPcm -d 1 C:\\audio\\music.wav\n"
         "            PlayPcm -d 1 C:\\audio\\music.dsf\n"
-        "            PlayPcm -d 1 C:\\audio\\music.dff\n"
-        );
+        "            PlayPcm -d 1 C:\\audio\\music.dff\n",
+        majorV, minorV1, minorV2);
 }
 
 static HRESULT
