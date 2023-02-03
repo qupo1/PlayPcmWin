@@ -102,6 +102,10 @@ WWUsbDeviceTreeDLL_GetHostControllerInf(int nth, WWUsbHostControllerCs &hc_r)
 
     memset(hc_r.vendor, 0, sizeof hc_r.vendor);
     wcsncpy_s(hc_r.vendor, WWUsbVendorIdToStr(hc.vendorID), WWUSB_STRING_COUNT - 1);
+
+    memset(hc_r.location, 0, sizeof hc_r.location);
+    wcsncpy_s(hc_r.location, hc.devStr.locationInf.c_str(), WWUSB_STRING_COUNT - 1);
+
     return S_OK;
 }
 

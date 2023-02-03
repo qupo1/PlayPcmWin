@@ -70,7 +70,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="TerminalProperty.cs" />
-    <Compile Include="UsbDevice.cs" />
+    <Compile Include="UsbNode.cs" />
     <Compile Include="Module.cs" />
     <Compile Include="UsbDeviceTreeCanvas.cs" />
     <Compile Include="UsbCommonDescriptor.cs" />

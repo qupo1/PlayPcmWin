@@ -53,12 +53,47 @@ WWUsbDeviceSpeedToWWUsbDeviceBusSpeed(USB_DEVICE_SPEED ds);
 
 struct WWUsbDeviceStrings {
     std::wstring deviceId;
-    std::wstring deviceDesc;
-    std::wstring hwId;
-    std::wstring service;
-    std::wstring deviceClass;
+    
+    std::wstring configFlags;
+    std::wstring exclusive;
     std::wstring friendlyName;
+    std::wstring locationInf;
+    std::wstring lowerFilters;
+
+    std::wstring removalPolicyOverride;
+    std::wstring security;
+    std::wstring securitySds;
+    std::wstring uiNumberDescFmt;
+    std::wstring upperFilters;
+
+    std::wstring hwId;
+    std::wstring compatibleIds;
+
+    std::wstring address;
+    std::wstring busNumber;
+    std::wstring busTypeGuid;
+    std::wstring characteristics;
+    std::wstring capabilities;
+
+    std::wstring deviceClass;
+    std::wstring classGuid;
+    std::wstring devicePowerData;
+    std::wstring deviceDesc;
+    std::wstring devType;
+
+    std::wstring driver;
+    std::wstring enumeratorName;
+    std::wstring installState;
+    std::wstring legacyBusType;
+    std::wstring locationPaths;
+
     std::wstring manufacturer;
+    std::wstring physicalDeviceObjectName;
+    std::wstring removalPolicy;
+    std::wstring removalPolicyHwDefault;
+    std::wstring service;
+
+    std::wstring uiNumber;
 };
 
 struct WWStringDesc {

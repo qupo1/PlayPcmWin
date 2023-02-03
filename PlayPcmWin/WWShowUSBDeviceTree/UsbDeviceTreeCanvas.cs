@@ -16,9 +16,9 @@ namespace WWShowUSBDeviceTree {
 
         List<Path> mCables = new List<Path>();
 
-        List<UsbDevice> mNodeList = new List<UsbDevice>();
+        List<UsbNode> mNodeList = new List<UsbNode>();
 
-        List<List<UsbDevice>> mNodeListByLayer = new List<List<UsbDevice>>();
+        List<List<UsbNode>> mNodeListByLayer = new List<List<UsbNode>>();
 
         public UsbDeviceTreeCanvas(Canvas c) {
             mCanvas = c;
@@ -31,15 +31,19 @@ namespace WWShowUSBDeviceTree {
             mNodeListByLayer.Clear();
         }
 
-        private void AddNode(UsbDevice node) {
+        private void AddNode(UsbNode node) {
             mNodeList.Add(node);
             mCanvas.Children.Add(node.uiElement);
         }
 
         public void AddNode(WWUsbHostControllerCs hc) {
-            string s = string.Format("{0}\n{1}\n{2}\nNumOfRootPorts={3}, DeviceCount={4}, HardResetCount={5}",
-                    hc.name, hc.vendor, hc.desc, hc.numberOfRootPorts, hc.deviceCount, hc.hardResetCount);
-            var node = new UsbDevice(UsbDevice.NodeType.HostController,
+            string s = string.Format("{0}\n{1}\n{2}\n{3}\nNumOfRootPorts={4}, DeviceCount={5}, HardResetCount={6}",
+                    hc.name,
+                    hc.vendor,
+                    hc.desc,
+                    hc.location,
+                    hc.numberOfRootPorts, hc.deviceCount, hc.hardResetCount);
+            var node = new UsbNode(UsbNode.NodeType.HostController,
                 hc.idx, -1, BusSpeed.RootHub, BusSpeed.RootHub, s);
             AddNode(node);
         }
@@ -47,13 +51,13 @@ namespace WWShowUSBDeviceTree {
             var speed = (UsbDeviceTreeCs.BusSpeed)hub.speed;
             var speedStr = (speed == UsbDeviceTreeCs.BusSpeed.RootHub) ? "\nRoot hub" : "";
             var s = string.Format("{0} ports{1}", hub.numPorts, speedStr);
-            var node = new UsbDevice(UsbDevice.NodeType.Hub, hub.idx, hub.parentIdx, speed, speed, s);
+            var node = new UsbNode(UsbNode.NodeType.Hub, hub.idx, hub.parentIdx, speed, speed, s);
             AddNode(node);
         }
         public void AddNode(WWUsbHubPortCs hp, bool showDetail) {
-            var nodeType = UsbDevice.NodeType.HubPort;
+            var nodeType = UsbNode.NodeType.HubPort;
             if (hp.deviceIsHub != 0) {
-                nodeType = UsbDevice.NodeType.HubPortHub;
+                nodeType = UsbNode.NodeType.HubPortHub;
             }
             var speed = (UsbDeviceTreeCs.BusSpeed)hp.speed;
             var version = (UsbDeviceTreeCs.BusSpeed)hp.usbVersion;
@@ -68,7 +72,7 @@ namespace WWShowUSBDeviceTree {
                         hp.name, hp.vendor, hp.product, hp.ConnectorTypeStr(), hp.VersionStr(), hp.SpeedStr(),
                         confS);
 
-                var node = new UsbDevice(nodeType, hp.idx, hp.parentIdx, speed, version, s);
+                var node = new UsbNode(nodeType, hp.idx, hp.parentIdx, speed, version, s);
 
                 // オーディオのchild nodes。
                 foreach (var m in confReader.mModules) {
@@ -82,17 +86,17 @@ namespace WWShowUSBDeviceTree {
             } else {
                 s = string.Format("{0}\n{1} {2}\n{3} {4}, {5}",
                         hp.name, hp.vendor, hp.product, hp.ConnectorTypeStr(), hp.VersionStr(), hp.SpeedStr());
-                var node = new UsbDevice(nodeType, hp.idx, hp.parentIdx, speed, version, s);
+                var node = new UsbNode(nodeType, hp.idx, hp.parentIdx, speed, version, s);
                 AddNode(node);
             }
 
         }
 
-        public void AddNode(UsbDevice.NodeType nodeType, int idx, int parentIdx,
+        public void AddNode(UsbNode.NodeType nodeType, int idx, int parentIdx,
                 UsbDeviceTreeCs.BusSpeed speed,
                 UsbDeviceTreeCs.BusSpeed usbVersion,
                 string text) {
-            var node = new UsbDevice(nodeType, idx, parentIdx, speed, usbVersion, text);
+            var node = new UsbNode(nodeType, idx, parentIdx, speed, usbVersion, text);
             mNodeList.Add(node);
             mCanvas.Children.Add(node.uiElement);
         }
@@ -119,7 +123,7 @@ namespace WWShowUSBDeviceTree {
             mNodeListByLayer.Clear();
             foreach (var v in mNodeList) {
                 while (mNodeListByLayer.Count <= v.layer) {
-                    mNodeListByLayer.Add(new List<UsbDevice>());
+                    mNodeListByLayer.Add(new List<UsbNode>());
                 }
                 mNodeListByLayer[v.layer].Add(v);
             }
@@ -197,7 +201,7 @@ namespace WWShowUSBDeviceTree {
                     var node = mNodeListByLayer[layer][i];
 
                     var speed = node.speed;
-                    var brush = UsbDevice.SpeedToBrush(speed);
+                    var brush = UsbNode.SpeedToBrush(speed);
 
                     var parentN = node.left;
 
@@ -238,7 +242,7 @@ namespace WWShowUSBDeviceTree {
                     if ((layer & 1) == 1) {
 
                         // 補足的なポート詳細情報。親に重ねて表示。
-                        double x = node.left.X + node.left.W - UsbDevice.PADDING_RIGHT;
+                        double x = node.left.X + node.left.W - UsbNode.PADDING_RIGHT;
                         y = node.left.Y + node.left.H/2 - node.H/2;
                         node.X = x;
                         node.Y = y;
@@ -271,7 +275,7 @@ namespace WWShowUSBDeviceTree {
                 }
 
                 if ((layer & 1) == 0) {
-                    xOffs += maxW - UsbDevice.PADDING_RIGHT;
+                    xOffs += maxW - UsbNode.PADDING_RIGHT;
                 } else {
                     xOffs += maxW + spacingX;
                 }
@@ -280,7 +284,7 @@ namespace WWShowUSBDeviceTree {
             mCanvas.Height = canvasH + spacingX;
         }
 
-        private UsbDevice FindNode(int idx) {
+        private UsbNode FindNode(int idx) {
             foreach (var v in mNodeList) {
                 if (v.idx == idx) {
                     return v;
@@ -290,10 +294,10 @@ namespace WWShowUSBDeviceTree {
             return null;
         }
 
-        private void ResolveLayer(UsbDevice v) {
+        private void ResolveLayer(UsbNode v) {
             // layerを確定する。
             v.layer = 0;
-            UsbDevice c = v;
+            UsbNode c = v;
             while (0 <= c.parentIdx) {
                 c = FindNode(c.parentIdx);
                 ++v.layer;

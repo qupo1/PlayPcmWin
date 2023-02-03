@@ -195,12 +195,48 @@ WWDriverKeyNameToDeviceStrings(std::wstring driverName, WWUsbDeviceStrings &uds_
     HRG(DriverNameToDeviceInst(driverName, &devInf, sdd));
 
     GetDeviceInstanceId(devInf, sdd, uds_r.deviceId);
-    GetDeviceProperty(devInf, sdd, SPDRP_DEVICEDESC, uds_r.deviceDesc);
-    GetDeviceProperty(devInf, sdd, SPDRP_HARDWAREID, uds_r.hwId);
-    GetDeviceProperty(devInf, sdd, SPDRP_SERVICE, uds_r.service);
-    GetDeviceProperty(devInf, sdd, SPDRP_CLASS, uds_r.deviceClass);
+
+    GetDeviceProperty(devInf, sdd, SPDRP_CONFIGFLAGS, uds_r.configFlags);
+    GetDeviceProperty(devInf, sdd, SPDRP_EXCLUSIVE, uds_r.exclusive);
     GetDeviceProperty(devInf, sdd, SPDRP_FRIENDLYNAME, uds_r.friendlyName);
+    GetDeviceProperty(devInf, sdd, SPDRP_LOCATION_INFORMATION, uds_r.locationInf);
+    GetDeviceProperty(devInf, sdd, SPDRP_LOWERFILTERS, uds_r.lowerFilters);
+
+    GetDeviceProperty(devInf, sdd, SPDRP_REMOVAL_POLICY_OVERRIDE, uds_r.removalPolicyOverride);
+    GetDeviceProperty(devInf, sdd, SPDRP_SECURITY, uds_r.security);
+    GetDeviceProperty(devInf, sdd, SPDRP_SECURITY_SDS, uds_r.securitySds);
+    GetDeviceProperty(devInf, sdd, SPDRP_UI_NUMBER_DESC_FORMAT, uds_r.uiNumberDescFmt);
+    GetDeviceProperty(devInf, sdd, SPDRP_UPPERFILTERS, uds_r.upperFilters);
+
+    GetDeviceProperty(devInf, sdd, SPDRP_HARDWAREID, uds_r.hwId);
+    GetDeviceProperty(devInf, sdd, SPDRP_COMPATIBLEIDS, uds_r.compatibleIds);
+
+    GetDeviceProperty(devInf, sdd, SPDRP_ADDRESS, uds_r.address);
+    GetDeviceProperty(devInf, sdd, SPDRP_BUSNUMBER, uds_r.busNumber);
+    GetDeviceProperty(devInf, sdd, SPDRP_BUSTYPEGUID, uds_r.busTypeGuid);
+    GetDeviceProperty(devInf, sdd, SPDRP_CHARACTERISTICS, uds_r.characteristics);
+    GetDeviceProperty(devInf, sdd, SPDRP_CAPABILITIES, uds_r.capabilities);
+
+    GetDeviceProperty(devInf, sdd, SPDRP_CLASS, uds_r.deviceClass);
+    GetDeviceProperty(devInf, sdd, SPDRP_CLASSGUID, uds_r.classGuid);
+    GetDeviceProperty(devInf, sdd, SPDRP_DEVICE_POWER_DATA, uds_r.devicePowerData);
+    GetDeviceProperty(devInf, sdd, SPDRP_DEVICEDESC, uds_r.deviceDesc);
+    GetDeviceProperty(devInf, sdd, SPDRP_DEVTYPE, uds_r.devType);
+
+    GetDeviceProperty(devInf, sdd, SPDRP_DRIVER, uds_r.driver);
+    GetDeviceProperty(devInf, sdd, SPDRP_ENUMERATOR_NAME, uds_r.enumeratorName);
+    GetDeviceProperty(devInf, sdd, SPDRP_INSTALL_STATE, uds_r.installState);
+    GetDeviceProperty(devInf, sdd, SPDRP_LEGACYBUSTYPE, uds_r.legacyBusType);
+    GetDeviceProperty(devInf, sdd, SPDRP_LOCATION_PATHS, uds_r.locationPaths);
+
     GetDeviceProperty(devInf, sdd, SPDRP_MFG, uds_r.manufacturer);
+    GetDeviceProperty(devInf, sdd, SPDRP_PHYSICAL_DEVICE_OBJECT_NAME, uds_r.physicalDeviceObjectName);
+    GetDeviceProperty(devInf, sdd, SPDRP_REMOVAL_POLICY, uds_r.removalPolicy);
+    GetDeviceProperty(devInf, sdd, SPDRP_REMOVAL_POLICY_HW_DEFAULT, uds_r.removalPolicyHwDefault);
+    GetDeviceProperty(devInf, sdd, SPDRP_SERVICE, uds_r.service);
+
+    GetDeviceProperty(devInf, sdd, SPDRP_UI_NUMBER, uds_r.uiNumber);
+
     hr = S_OK;
 end:
 
