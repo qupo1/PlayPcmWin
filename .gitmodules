@@ -1,0 +1,6 @@
+[submodule "ogg"]
+	path = ogg
+	url = https://github.com/xiph/ogg.git
+[submodule "flac"]
+	path = flac
+	url = https://github.com/xiph/flac.git
