@@ -1,21 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{23DC272C-B67B-41C5-9622-A35BFA3B9D1E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PlayPcmWin</RootNamespace>
-    <AssemblyName>PlayPcmWin</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <WarningLevel>4</WarningLevel>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -31,6 +18,10 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -38,166 +29,21 @@
   <PropertyGroup>
     <ApplicationIcon>ppwlogo.ico</ApplicationIcon>
   </PropertyGroup>
-  <PropertyGroup />
-  <PropertyGroup />
-  <PropertyGroup />
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>PlayPcmWin.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
-    <Compile Include="AiffReader.cs" />
-    <Compile Include="AudioPlayer.cs" />
-    <Compile Include="ChannelMappingSettings.xaml.cs">
-      <DependentUpon>ChannelMappingSettings.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ChannelSelect.xaml.cs">
-      <DependentUpon>ChannelSelect.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Mp3Reader.cs" />
-    <Compile Include="CueSheetRW.cs" />
-    <Compile Include="DeviceAttributes.cs" />
-    <Compile Include="DeviceSetupParams.cs" />
-    <Compile Include="DsdiffReader.cs" />
-    <Compile Include="FileDisappearCheck.cs" />
-    <Compile Include="FlacDecodeIF.cs" />
-    <Compile Include="InterceptMediaKeys.cs" />
-    <Compile Include="M3uRW.cs" />
-    <Compile Include="MultipleAppInstanceMgr.cs" />
-    <Compile Include="NextTask.cs" />
-    <Compile Include="PcmDataList.cs" />
-    <Compile Include="PcmHeaderReader.cs" />
-    <Compile Include="PcmReader.cs" />
-    <Compile Include="PlayListItemInfo.cs" />
-    <Compile Include="PlaylistRW.cs" />
-    <Compile Include="PpwPlaylistRW.cs" />
-    <Compile Include="PPWServer.cs" />
-    <Compile Include="PPWServerSettingsWindow.xaml.cs">
-      <DependentUpon>PPWServerSettingsWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="PreferenceAudioFilter.cs" />
-    <Compile Include="PreferenceAudioFilterStore.cs" />
-    <Compile Include="RemoteCommand.cs" />
-    <Compile Include="SettingsWindow.xaml.cs">
-      <DependentUpon>SettingsWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="SoundEffectsConfiguration.xaml.cs">
-      <DependentUpon>SoundEffectsConfiguration.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="SoundEffectsUpdater.cs" />
-    <Compile Include="Util.cs" />
-    <Compile Include="DsfReader.cs" />
-    <Compile Include="DelaySettingsWindow.xaml.cs">
-      <DependentUpon>DelaySettingsWindow.xaml</DependentUpon>
-    </Compile>
-    <Page Include="ChannelMappingSettings.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="ChannelSelect.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Page Include="PPWServerSettingsWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="SettingsWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="SoundEffectsConfiguration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="DelaySettingsWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="PreferenceStore.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.ja-JP.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.zh-Hant.resx" />
-    <EmbeddedResource Include="Properties\Resources.zh-Hans.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <None Include="app.config" />
-    <None Include="PlayPcmWin.exe.manifest">
+    <None Update="PlayPcmWin.exe.manifest">
       <SubType>Designer</SubType>
     </None>
     <None Include="PlayPcmWin.snk" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
@@ -223,42 +69,15 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PcmData\PcmDataLib.csproj">
-      <Project>{7AF36E7B-839D-4C2F-AAFD-6D8319714D66}</Project>
-      <Name>PcmDataLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WasapiCS\WasapiCS.csproj">
-      <Project>{0D9C1283-4DA5-4C3F-8A4E-AD8194381DE4}</Project>
-      <Name>WasapiCS</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WasapiPcmUtil\WasapiPcmUtil.csproj">
-      <Project>{C51CEE2E-D264-4A27-8E9E-C2F127A37AEE}</Project>
-      <Name>WasapiPcmUtil</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WavRWLib2\WavRWLib2.csproj">
-      <Project>{77005090-E2C5-4063-9681-0D0EED33A2B2}</Project>
-      <Name>WavRWLib2</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WWFilterCppCs\WWFilterCppCs.csproj">
-      <Project>{1D2FED4A-D40F-4A8F-A963-4C733B8EDD04}</Project>
-      <Name>WWFilterCppCs</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WWFlacRWCS\WWFlacRWCS.csproj">
-      <Project>{DA071B6A-B2E2-4567-84D1-5A9122DAB75C}</Project>
-      <Name>WWFlacRWCS</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WWMFReaderCs\WWMFReaderCs.csproj">
-      <Project>{43047D33-5FDB-45D0-AEF0-4FA81060F2E1}</Project>
-      <Name>WWMFReaderCs</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WWUtil\WWUtil.csproj">
-      <Project>{FC57308E-CF56-4B3E-B920-4093660D0A4A}</Project>
-      <Name>WWUtil</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WWXmlRW\WWXmlRW.csproj">
-      <Project>{AB557C03-95F9-4D3A-B2CB-16EC26D884CD}</Project>
-      <Name>WWXmlRW</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\PcmData\PcmDataLib.csproj" />
+    <ProjectReference Include="..\WasapiCS\WasapiCS.csproj" />
+    <ProjectReference Include="..\WasapiPcmUtil\WasapiPcmUtil.csproj" />
+    <ProjectReference Include="..\WavRWLib2\WavRWLib2.csproj" />
+    <ProjectReference Include="..\WWFilterCppCs\WWFilterCppCs.csproj" />
+    <ProjectReference Include="..\WWFlacRWCS\WWFlacRWCS.csproj" />
+    <ProjectReference Include="..\WWMFReaderCs\WWMFReaderCs.csproj" />
+    <ProjectReference Include="..\WWUtil\WWUtil.csproj" />
+    <ProjectReference Include="..\WWXmlRW\WWXmlRW.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="PlayPcmWinLicense.txt" />
@@ -266,16 +85,12 @@
   <ItemGroup>
     <Resource Include="ppwlogo.ico" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Remove="MainWindow.ja-JP.xaml" />
+    <Page Remove="SettingsWindow.ja-JP.xaml" />
+  </ItemGroup>
+  <PropertyGroup />
 </Project>
