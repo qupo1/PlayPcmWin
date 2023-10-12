@@ -51,7 +51,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)libFLAC\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)libFLAC\lib\$(PlatformToolset)\$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)..\..\flac\ogg\Release;$(ProjectDir)..\..\flac\src\libFLAC\Release\;$(ProjectDir)..\..\flac\src\share\utf8\Release\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(PlatformToolset)\x64\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>WWFlacRW</TargetName>
