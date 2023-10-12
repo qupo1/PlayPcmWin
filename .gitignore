@@ -1,0 +1,13 @@
+.vs/
+bin/
+obj/
+Debug/
+Release/
+
+*.user
+
+*.log
+*.obj
+*.pch
+*.pdb
+*.tlog
