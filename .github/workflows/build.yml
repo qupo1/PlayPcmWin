@@ -19,6 +19,6 @@ jobs:
       - name: Configure FLAC
         run: cd flac; cmake -G "Visual Studio 17 2022" -A x64 -DINSTALL_MANPAGES=OFF
       - name: Build FLAC
-        run: cmake --build . --config Release
+        run: cd flac; cmake --build . --config Release
       - name: Build
-        run: cd ..\; MSBuild PlayPcmWin\PlayPcmWin\PlayPcmWin.sln -t:restore,build
+        run: MSBuild PlayPcmWin\PlayPcmWin\PlayPcmWin.sln -t:restore,build
