@@ -22,3 +22,19 @@ jobs:
         run: cd flac; cmake --build . --config Release
       - name: Build
         run: MSBuild PlayPcmWin\PlayPcmWin\PlayPcmWin.sln -t:restore,build
+      - name: Prepare Release
+        run: cd PlayPcmWin\PlayPcmWin\bin\;
+             mv v143\x64\Release\*.dll Release\net7.0-windows\;
+             rm Release\net7.0-windows\*.pdb;
+             mv Release\net7.0-windows\ Release\PlayPcmWin;
+             Compress-Archive -Path Release\PlayPcmWin -DestinationPath ..\..\..\PlayPcmWin.zip
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: PlayPcmWin.zip
+          path: PlayPcmWin.zip
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: PlayPcmWin.zip
