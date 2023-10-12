@@ -15,9 +15,10 @@ jobs:
         with:
           dotnet-version: '7'
       - name: Copy Ogg
-        run: cp -r PlayPcmWin\ogg PlayPcmWin\flac\
+        run: cp -r ogg flac\
+      - name: Configure FLAC
+        run: cd flac; cmake -G "Visual Studio 17 2022" -A x64 -DINSTALL_MANPAGES=OFF
       - name: Build FLAC
-        run: cmake -G "Visual Studio 17 2022" -A x64 -DINSTALL_MANPAGES=OFF
-      - run: cmake --build . --config Release
+        run: cmake --build . --config Release
       - name: Build
-        run: MSBuild PlayPcmWin\PlayPcmWin\PlayPcmWin.sln -t:restore,build
+        run: cd ..\; MSBuild PlayPcmWin\PlayPcmWin\PlayPcmWin.sln -t:restore,build
